@@ -1,0 +1,97 @@
+The Specifics:
+-Temporal Warfare is a game of perfect information: that is, all players can see the troops,
+   resources, and buildings in each time zone and in each players' ship at all times.
+
+The Setting:
+-5 (temp number) planets which are all separate and do not interact
+-Each planet has 10 (temp number, maybe 15) time zones which each act as a territory
+
+The Time Zones:
+-Each time zone has resources, buildings, troops and stats.
+-Each time zone level is 2 times as powerful as the level before
+-Additionally, each time zone has a small randomly generated modifier which makes it slightly
+  different from the same level on different planets
+-Each territory generates resources each turn.
+
+Resources:
+-Resources are used to build buildings
+-You must have resources in a time zone to build in that time zone.
+
+Buildings:
+-Building are built on time periods using resources
+-Buildings can change the time period specific troop modifier: making troops trained there better
+-Buildings can be used to increase resource generation
+-Buildings can give defenders a defensive boost on that specific time period
+
+Troops:
+-Troops all carry with them the stats from the time zone they were created in
+-Each troop has the time zone level value
+    -This can be changed through integration
+-Each troop has the modifier value from the specific time zone in which is was created
+    -This can not be changed
+
+Integration:
+-If a troop spends a turn in a time zone of a higher level than it is, it integrates, moving up 1
+   level until it matches the time zone level that it is in
+-Troops that are of a higher level than the time period they are in will not integrate.
+
+Propagation:
+-Whenever resources are generated or added, buildings are built or upgraded, or troops are trained
+   or added, that change propagates, that is, to then be added to the next time zone up a level at
+   the level appropriate to that level
+-When a time zone is conquered, a wall is created preventing propagation from the level before.
+   This allows multiple players to control time zones on the same planet without their territory
+   being automatically overridden.
+-On the turn immediately following an override, the time period that was overridden is a bit weak
+   to counterattack allowing the defender a chance to secure their time zones from being
+   overridden
+    -conversely, a time zone which has just been conquered gets a defensive bonus so that a player
+       who has just had a territory conquered cannot simple reconquer it and avoid any loss.
+-Troops and resources taken from a later time period and brought to an earlier time period will
+   eventually propagate creating more troops or resources in the long run but will leave those later
+   periods vulnerable in the short term.
+-Each eligible change creates a propagation order in the next time zone up a level which is
+   carried out on the next turn by that time zone creating a new propagation order for the next
+   time zone up unless the time zone that propagates is sealed because the time zone above was
+   conquered
+-TODO: IMPORTANT: Does the removal of troops and resources propagate to later time periods?
+    -Tentative yes
+
+The Player:
+-The player has a ship capable of moving between any time zones on any planet.
+-The ship can hold any number of troops and resources.
+    -Troops can be taken in the ship to an enemy time zone and battle is commenced, should the
+       attacker win, they claim the time zone. A wall preventing propagation is created on the
+       level below and propagation begins upward, overriding the time zones above. The player
+       can move troops and / or resources to their new time zone.
+    -Troops can be taken to a friendly time period to reinforce against enemy attack
+
+Combat:
+-Combat between 2 groups of troops is decided by the power levels of the troops. If you are
+   attacking a group of troops that is 1.2 times as strong as you, you need 1.2 times as many
+   troops. When a battle begins, it takes multiple turns to resolve allowing both sides time
+   to reinforce. Attacking troops can be left to fight while the player moves around.
+    -During a combat phase, a certain number of troops on the attacking side are essentially
+       traded for their effective power level of defending troops modified by building and
+       any other modifiers
+-When a time period is conquered, the resources and buildings within remain.
+-Buildings can be destroyed in combat. Players can give orders to attack or avoid attacking
+   buildings when attacking. They can also give order to either defend or sacrifice buildings
+   when defending. Buildings can even be destroyed by defenders in scorched earth.
+-TODO: figure out a way to store the various power levels of different troops in the same time
+   zone or ship
+    -does each individual troop need to be its own object?
+
+Order of a turn:
+1. Player can move their ship from one time zone to another once and can load or unload troops
+   and / or resources once per turn in any order but only once each.
+2. Resource Generation for each time zone
+3. Troop training for each time zone
+4. Combat for each time zone that has combat
+    4a. Buildings destroyed if applicable
+    4b. Troops killed
+5. Integration except in time zones with combat
+6. Propagation
+
+Win Condition:
+-Control every time period on the map
