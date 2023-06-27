@@ -9,15 +9,17 @@ class Button {
     s_color: string
     s_textColor: string
     s_font: string
+    na_textOffset: number[]
     s_text: string
     f_action: Function
 
-    constructor (c_position: number[], c_size: number[], c_color: string, c_textColor: string, c_font: string, c_text: string, c_action: Function) {
+    constructor (c_position: number[], c_size: number[], c_color: string, c_textColor: string, c_font: string, c_textOffset: number[], c_text: string, c_action: Function) {
         this.na_position = c_position
         this.na_size = c_size
         this.s_color = c_color
         this.s_textColor = c_textColor
         this.s_font = c_font
+        this.na_textOffset = c_textOffset
         this.s_text = c_text
         this.f_action = c_action
     }
@@ -29,7 +31,7 @@ class Button {
         //draws the text on the button
         context.fillStyle = this.s_textColor
         context.font = this.s_font
-        context.fillText(this.s_text, this.na_position[0] + 10, this.na_position[1] + (this.na_size[1] * 0.75))
+        context.fillText(this.s_text, this.na_position[0] + this.na_textOffset[0], this.na_position[1] + this.na_textOffset[1])
     }
 
     OnClick = () => {
@@ -97,7 +99,7 @@ const context: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRende
 
 const ba_buttons: Button[] = [] //list to store all of the buttons that need to be drawn to the screen
 
-const b_testButton: Button = new Button([10, 10], [120, 30], "green", "white", "20px Arial", "Test Button", () => console.log(`test button pressed`))
+const b_testButton: Button = new Button([10, 10], [120, 30], "green", "white", "20px Arial", [10, 22], "Test Button", () => console.log(`test button pressed`))
 ba_buttons.push(b_testButton)
 
 const CheckForButtonPressed = (e: MouseEvent): void => {
