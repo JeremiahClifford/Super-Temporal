@@ -22,7 +22,7 @@ class Button {
         this.f_action = c_action
     }
 
-    Draw = () => {
+    Draw = (): void => {
         //draws the button
         context.fillStyle = this.s_color
         context.fillRect(this.na_position[0], this.na_position[1], this.na_size[0], this.na_size[1])
@@ -34,6 +34,56 @@ class Button {
 
     OnClick = () => {
         this.f_action()
+    }
+}
+
+class Player {
+
+    ta_troops: Troop[]
+    n_resources: number
+
+    constructor () {
+        this.ta_troops = []
+        this.n_resources = 0
+    }
+
+    Trade = (p_troopsIn: Troop[], p_resourcesIn: number, p_troopsOut: Troop[], p_resourcesOut: number): void => {
+        p_troopsIn.forEach((t) => this.ta_troops.push(t)) //take all the troops that are being added from the players inventory and add them to the time period
+        //TODO: remove any troops that are being moved out
+        
+        this.n_resources += p_resourcesIn //add any resources that are being moved into the time period
+        this.n_resources -= p_resourcesOut //subtract any resources that are being moved out
+    }
+}
+
+class Troop {
+
+}
+
+class Building {
+
+}
+
+class TimePeriod {
+
+    n_level: number
+    n_resources: number
+    ba_buildings: Building[]
+    ta_troops: Troop[]
+
+    constructor (c_level: number) {
+        this.n_level = c_level
+        this.n_resources = 0
+        this.ba_buildings = []
+        this.ta_troops = []
+    }
+
+    Trade = (p_troopsIn: Troop[], p_resourcesIn: number, p_troopsOut: Troop[], p_resourcesOut: number): void => {
+        p_troopsIn.forEach((t) => this.ta_troops.push(t)) //take all the troops that are being added from the players inventory and add them to the time period
+        //TODO: remove any troops that are bing moved out
+        
+        this.n_resources += p_resourcesIn //add any resources that are being moved into the time period
+        this.n_resources -= p_resourcesOut //subtract any resources that are being moved out
     }
 }
 
@@ -65,7 +115,7 @@ const CheckForButtonPressed = (e: MouseEvent): void => {
 }
 canvas.addEventListener('mousedown', (e) => CheckForButtonPressed(e)) //sets an event listener to check if the player clicked on a button for every time they click on the canvas
 
-const DrawBoard = () => {
+const DrawBoard = (): void => {
     
     context.fillStyle = "#03053c" //sets the fill color to a dark blue
     context.fillRect(0, 0, canvas.width, canvas.height) //draws a dark blue square over the whole canvas

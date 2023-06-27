@@ -32,6 +32,42 @@ class Button {
         this.f_action();
     };
 }
+class Player {
+    ta_troops;
+    n_resources;
+    constructor() {
+        this.ta_troops = [];
+        this.n_resources = 0;
+    }
+    Trade = (p_troopsIn, p_resourcesIn, p_troopsOut, p_resourcesOut) => {
+        p_troopsIn.forEach((t) => this.ta_troops.push(t)); //take all the troops that are being added from the players inventory and add them to the time period
+        //TODO: remove any troops that are being moved out
+        this.n_resources += p_resourcesIn; //add any resources that are being moved into the time period
+        this.n_resources -= p_resourcesOut; //subtract any resources that are being moved out
+    };
+}
+class Troop {
+}
+class Building {
+}
+class TimePeriod {
+    n_level;
+    n_resources;
+    ba_buildings;
+    ta_troops;
+    constructor(c_level) {
+        this.n_level = c_level;
+        this.n_resources = 0;
+        this.ba_buildings = [];
+        this.ta_troops = [];
+    }
+    Trade = (p_troopsIn, p_resourcesIn, p_troopsOut, p_resourcesOut) => {
+        p_troopsIn.forEach((t) => this.ta_troops.push(t)); //take all the troops that are being added from the players inventory and add them to the time period
+        //TODO: remove any troops that are bing moved out
+        this.n_resources += p_resourcesIn; //add any resources that are being moved into the time period
+        this.n_resources -= p_resourcesOut; //subtract any resources that are being moved out
+    };
+}
 //----------------------------------------------
 //-------------MAIN GAME LOGIC------------------
 //----------------------------------------------
