@@ -1,9 +1,18 @@
 //----------------------------------------------
-//-------------------Values---------------------
+//--------------Tunable Values------------------
 //----------------------------------------------
 
 const numPlanets: number = 5 //number of planets that the game should have
 const numTimePeriods: number = 10 //stores how many time periods each planet should have
+
+const timePeriodBoardShift: number = 40
+
+const planetLabelHeight: number = 30 //how tall the planet's name should be at the top of the display
+const planetOverviewWidth: number = 60 //how wide the column that shows a particular planet should be drawn
+const timePeriodOverviewHeight: number = 70 //how tall the box that shows the time period overview should be
+
+const planetLabelFont: string = "15px Arial"
+const boardNumberLabelWidth: number = 30
 
 //----------------------------------------------
 //------------------Classes---------------------
@@ -101,6 +110,18 @@ class TimePeriod {
         this.n_resources += p_resourcesIn //add any resources that are being moved into the time period
         this.n_resources -= p_resourcesOut //subtract any resources that are being moved out
     }
+
+    Draw = (p_widthOffset: number, p_heightOffset: number, p_planetsIndex: number, p_timePeriodIndex: number) => {
+        context.fillStyle = "white" //sets the fill color to a white
+        context.fillRect(p_widthOffset, p_heightOffset, planetOverviewWidth, timePeriodOverviewHeight) //draws a white square over the area where the planet is to be drawn
+        context.strokeStyle = "black" //sets the stroke color to a black
+        context.lineWidth = 3 //sets the width of the stroke line
+        if (p_planetsIndex === n_selectedPlanetIndex && p_timePeriodIndex === n_selectedTimePeriodIndex) { //checks if the current time period is the one that the player has selected
+            context.strokeStyle = "red" //sets the stroke color to a red
+            context.lineWidth = 4 //sets the width of the stroke line
+        }
+        context.strokeRect(p_widthOffset, p_heightOffset, planetOverviewWidth, timePeriodOverviewHeight) //draws a black square around the area where the planet is to be drawn
+    }
 }
 
 class Planet {
@@ -118,6 +139,22 @@ class Planet {
             this.ta_timePeriods.push(new TimePeriod(Math.pow(2, i), Math.random() * (0.05 * Math.pow(2, i))))
         }
     }
+
+    Draw = (p_widthOffset: number, p_planetIndex: number) => {
+        //draws a label of the planets name at the top
+        context.fillStyle = "white" //sets the fill color to a white
+        context.fillRect(p_widthOffset + timePeriodBoardShift, timePeriodBoardShift - planetLabelHeight, planetOverviewWidth, planetLabelHeight)
+        context.strokeStyle = "black" //sets the stroke color to a black
+        context.lineWidth = 3 //sets the width of the stroke line
+        context.strokeRect(p_widthOffset + timePeriodBoardShift, timePeriodBoardShift - planetLabelHeight, planetOverviewWidth, planetLabelHeight) //draws the background for the planet's name
+        context.font = planetLabelFont //makes sure that the planet label font is set properly
+        context.fillStyle = "black" //sets the fill color to a black
+        context.fillText(`${this.s_name}`, timePeriodBoardShift + 2 + (p_planetIndex * planetOverviewWidth), timePeriodBoardShift - 10)
+
+        for (let i: number = 0; i < this.ta_timePeriods.length; i++) { //lops through all of the time periods of this planet and runs their draw function
+            this.ta_timePeriods[i].Draw(p_widthOffset + timePeriodBoardShift, (timePeriodOverviewHeight * i) + timePeriodBoardShift, p_planetIndex, i) //draws a border around the label of the planet's name
+        }
+    }
 }
 
 //----------------------------------------------
@@ -126,29 +163,49 @@ class Planet {
 
 let pa_planets: Planet[] = []
 
+let n_selectedPlanetIndex: number = -1
+let n_selectedTimePeriodIndex: number = -1
+
 //gets the canvas and context from the HTML Page to be used to draw the game to the canvas on the page
 const canvas: HTMLCanvasElement = document.getElementById("viewport") as HTMLCanvasElement
 const context: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRenderingContext2D
 
 const ba_buttons: Button[] = [] //list to store all of the buttons that need to be drawn to the screen
 
-const b_testButton: Button = new Button([10, 10], [152, 30], "green", "white", "20px Arial", [10, 22], "Debug Planets", () => DebugPlanets())
+const b_testButton: Button = new Button([400, 50], [152, 30], "green", "white", "20px Arial", [10, 22], "Debug Planets", () => DebugPlanets())
 ba_buttons.push(b_testButton)
 
-const CheckForButtonPressed = (e: MouseEvent): void => {
+const CheckForPressed = (e: MouseEvent): void => {
     //finds the position on the canvas where the player clicked
     const rect = canvas.getBoundingClientRect()
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
-    //console.log("x: " + x + " y: " + y)
 
     ba_buttons.forEach((b) => { //loops through every button on screen
         if ((x > b.na_position[0] && x < b.na_position[0] + b.na_size[0]) && (y > b.na_position[1] && y < b.na_position[1] + b.na_size[1])) { //checks if the mouse was within the bounds of the button when it was clicked
             b.OnClick() //if it was, execute the button's onclick function
         }
     })
+
+    for (let i: number = 0; i < pa_planets.length; i++) { //checks all of the planet displays
+        for (let j: number = 0; j < pa_planets[0].ta_timePeriods.length; j++) { //checks all of the time period displays inm the planet
+            if ((x > (i * planetOverviewWidth) + timePeriodBoardShift && x < ((i + 1) * planetOverviewWidth) + timePeriodBoardShift) && (y > (j * timePeriodOverviewHeight) + timePeriodBoardShift && y < ((j + 1) * timePeriodOverviewHeight) + timePeriodBoardShift)) { //checks if the click was within the display of that time period
+                if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) { //checks if the clicked on time period is already selected
+                    //sets the selected indexes to the default none values if it is currently selected
+                    n_selectedPlanetIndex = -1
+                    n_selectedTimePeriodIndex = -1
+                } else {
+                    //sets the selected indexes to that time period
+                    n_selectedPlanetIndex = i
+                    n_selectedTimePeriodIndex = j
+                }
+            }
+        }
+    }
+
+    DrawBoard()
 }
-canvas.addEventListener('mousedown', (e) => CheckForButtonPressed(e)) //sets an event listener to check if the player clicked on a button for every time they click on the canvas
+canvas.addEventListener('mousedown', (e) => CheckForPressed(e)) //sets an event listener to check if the player clicked on a button for every time they click on the canvas
 
 const DrawBoard = (): void => {
     
@@ -156,6 +213,21 @@ const DrawBoard = (): void => {
     context.fillRect(0, 0, canvas.width, canvas.height) //draws a dark blue square over the whole canvas
 
     ba_buttons.forEach((b) => b.Draw()) //draws all of the buttons to the screen
+
+    for (let i: number = 0; i < numTimePeriods; i++) { //loops through all of the time period levels and draws a number on the side of the board
+        context.fillStyle = "white" //sets the fill color to a white
+        context.fillRect(timePeriodBoardShift - boardNumberLabelWidth, timePeriodBoardShift  + (timePeriodOverviewHeight * i), boardNumberLabelWidth, timePeriodOverviewHeight) //draws a white background where the number will go
+        context.strokeStyle = "black" //sets the stroke color to a black
+        context.lineWidth = 3 //sets the width of the stroke line
+        context.strokeRect(timePeriodBoardShift - boardNumberLabelWidth, timePeriodBoardShift  + (timePeriodOverviewHeight * i), boardNumberLabelWidth, timePeriodOverviewHeight) //draws a black border around where the number will go
+        context.font = planetLabelFont //makes sure that the planet label font is set properly
+        context.fillStyle = "black" //sets the fill color to a black
+        context.fillText(`${i+1}`, timePeriodBoardShift - (boardNumberLabelWidth * 0.8), timePeriodBoardShift  + ((timePeriodOverviewHeight * (i + 1)) - (timePeriodOverviewHeight * 0.4)))
+    }
+
+    for (let i: number = 0; i < pa_planets.length; i++) { //loops through all of the planets
+        pa_planets[i].Draw(planetOverviewWidth * i, i) //runs their draw function
+    }
 }
 
 const DebugPlanets = () => { //function to print the info of all the planets to the console for debugging

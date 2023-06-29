@@ -24,6 +24,9 @@ Buildings:
 -Buildings can give defenders a defensive boost on that specific time period
 
 Troops:
+-Training troops costs resources upfront
+   -a certain number of troops is then output each turn until the ordered amount has been created
+   -the player must be in a time zone to order troops to be created
 -Troops all carry with them the stats from the time zone they were created in
 -Each troop has the time zone level value
     -This can be changed through integration
