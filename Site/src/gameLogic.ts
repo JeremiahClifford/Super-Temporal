@@ -111,12 +111,12 @@ class TimePeriod {
         this.n_rawModifierFactor = c_modifierFactor
         this.n_powerModifier = c_modifierFactor * c_level
         if (this.n_powerModifier < 1) { //truncates the troop power modifier to 2 decimals if less than zero or whole number if more than zero to keep things tidy
-            this.n_powerModifier = Math.floor(this.n_powerModifier * 100) *0.01
+            this.n_powerModifier = Math.round(this.n_powerModifier * 100) *0.01
         } else {
-            this.n_powerModifier = Math.floor(this.n_powerModifier)
+            this.n_powerModifier = Math.round(this.n_powerModifier)
         }
         this.n_resourceProduction = baseResourceProduction * (1 + ((maxModifierFactor - c_modifierFactor) * 5)) //sets the resource production bonus to the inverse of the troop power bonus to balance time periods that have good troops with lower resource production
-        this.n_resourceProduction = Math.floor(this.n_resourceProduction * 100) *0.01 //truncates the resource modifier to 2 decimals
+        this.n_resourceProduction = Math.round(this.n_resourceProduction * 100) *0.01 //truncates the resource modifier to 2 decimals
         this.n_resources = 0
         this.ba_buildings = []
         this.ta_troops = []
