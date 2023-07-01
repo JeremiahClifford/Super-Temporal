@@ -252,6 +252,8 @@ const DrawBoard = (): void => {
         pa_planets[i].Draw(planetOverviewWidth * i, i) //runs their draw function
     }
 
+    //TODO: consider reworking this concept altogether and moving out of the canvas and into an HTML Element beside the canvas
+        //This will probably be easier to work with and give more options in terms of how it is interacted with and thin gs the players can do
     //handles the drawing of the selected time periods info board
     context.fillStyle = boardBackgroundColor //sets the fill color to the background color
     context.fillRect((planetOverviewWidth * numPlanets) + timePeriodBoardShift * 2, timePeriodBoardShift, selectedTimePeriodBoardWidth, numTimePeriods * timePeriodOverviewHeight)
