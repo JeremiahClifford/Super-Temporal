@@ -5,6 +5,9 @@
 const numPlanets: number = 5 //number of planets that the game should have
 const numTimePeriods: number = 10 //stores how many time periods each planet should have
 
+const maxModifierFactor: number = 0.05 //how high should the variance between time periods be allowed to get
+const baseResourceProduction: number = 10 //base number of resource generation that each time period generates
+
 const boardBackgroundColor: string = "#e8e8e8" //color of the background of the various boards
 const boardOutlineColor: string = "#2c2c2c" //color of the outline of the various boards
 
@@ -95,20 +98,25 @@ class TimePeriod {
 
     n_ownerIndex: number
     n_level: number
-    n_modifier: number
+    n_rawModifierFactor: number //stores the raw generated value for the modifier factor which should be between 0 and ${maxModifierFactor} for testing purposes
+    n_powerModifier: number
     n_resources: number
+    n_resourceProduction: number
     ba_buildings: Building[]
     ta_troops: Troop[]
 
-    constructor (c_level: number, c_modifier: number) {
+    constructor (c_level: number, c_modifierFactor: number) {
         this.n_ownerIndex = -1
         this.n_level = c_level
-        this.n_modifier = c_modifier
-        if (c_modifier < 1) {
-            this.n_modifier = Math.floor(c_modifier * 100) *0.01
+        this.n_rawModifierFactor = c_modifierFactor
+        this.n_powerModifier = c_modifierFactor * c_level
+        if (this.n_powerModifier < 1) { //truncates the troop power modifier to 2 decimals if less than zero or whole number if more than zero to keep things tidy
+            this.n_powerModifier = Math.floor(this.n_powerModifier * 100) *0.01
         } else {
-            this.n_modifier = Math.floor(c_modifier)
+            this.n_powerModifier = Math.floor(this.n_powerModifier)
         }
+        this.n_resourceProduction = baseResourceProduction * (1 + ((maxModifierFactor - c_modifierFactor) * 5)) //sets the resource production bonus to the inverse of the troop power bonus to balance time periods that have good troops with lower resource production
+        this.n_resourceProduction = Math.floor(this.n_resourceProduction * 100) *0.01 //truncates the resource modifier to 2 decimals
         this.n_resources = 0
         this.ba_buildings = []
         this.ta_troops = []
@@ -147,7 +155,7 @@ class Planet {
         //generate the time periods
         this.ta_timePeriods = []
         for (let i: number = 0; i < numTimePeriods; i++) {
-            this.ta_timePeriods.push(new TimePeriod(Math.pow(2, i), Math.random() * (0.05 * Math.pow(2, i))))
+            this.ta_timePeriods.push(new TimePeriod(Math.pow(2, i), Math.random() * maxModifierFactor))
         }
     }
 
@@ -287,9 +295,11 @@ const DebugPlanets = () => { //function to print the info of all the planets to 
         for (let i: number = 0; i < p.ta_timePeriods.length; i++) {
             console.log(`  Age ${i+1}:`)
             console.log(`   Level: ${p.ta_timePeriods[i].n_level}`)
-            console.log(`   Modifier: ${p.ta_timePeriods[i].n_modifier}`)
-            console.log(`   Effective Level: ${p.ta_timePeriods[i].n_level + p.ta_timePeriods[i].n_modifier}`)
+            console.log(`   Raw Modifier: ${p.ta_timePeriods[i].n_rawModifierFactor}`)
+            console.log(`   Power Modifier: ${p.ta_timePeriods[i].n_powerModifier}`)
+            console.log(`   Effective Level: ${p.ta_timePeriods[i].n_level + p.ta_timePeriods[i].n_powerModifier}`)
             console.log(`   Resources: ${p.ta_timePeriods[i].n_resources}`)
+            console.log(`   Resource Production: ${p.ta_timePeriods[i].n_resourceProduction}`)
             console.log(`   Number of Troops: ${p.ta_timePeriods[i].ta_troops.length}`)
             console.log(`   Number of Buildings: ${p.ta_timePeriods[i].ba_buildings.length}`)
         }
