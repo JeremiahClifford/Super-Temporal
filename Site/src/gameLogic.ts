@@ -7,6 +7,9 @@ const numTimePeriods: number = 10 //stores how many time periods each planet sho
 
 const maxModifierFactor: number = 0.05 //how high should the variance between time periods be allowed to get
 const baseResourceProduction: number = 10 //base number of resource generation that each time period generates
+const resourceRateAdjuster: number = 10 //number that the inverted modifier is multiplied by to make the differences between the resource production of different time periods substantial
+
+const gameBackgroundColor: string = "#03053c" //background color of the whole game
 
 const boardBackgroundColor: string = "#e8e8e8" //color of the background of the various boards
 const boardOutlineColor: string = "#2c2c2c" //color of the outline of the various boards
@@ -14,17 +17,11 @@ const boardOutlineColor: string = "#2c2c2c" //color of the outline of the variou
 const timePeriodBoardShift: number = 40
 
 const planetLabelHeight: number = 30 //how tall the planet's name should be at the top of the display
-const planetOverviewWidth: number = 60 //how wide the column that shows a particular planet should be drawn
+const planetOverviewWidth: number = 75 //how wide the column that shows a particular planet should be drawn
 const timePeriodOverviewHeight: number = 70 //how tall the box that shows the time period overview should be
 
 const planetLabelFont: string = "15px Arial" //what size and font should the planet name labels be
 const boardNumberLabelWidth: number = 30 //how wide should the time period number labels be
-
-const selectedTimePeriodBoardWidth: number = 450 //how wide should the selected time period board be
-const selectedTimePeriodBoardMargin: number = 30 //how much margin should the selected time period board text leave
-const selectedTimePeriodBoardPlanetFont: string = "40px Arial" //what size and font should the planet name label be on the selected time period board
-const selectedTimePeriodBoardTimePeriodFont: string = "35px Arial" //what size and font should the time period age label be on the selected time period board
-const selectedTimePeriodBoardInfoFont: string = "30px Arial" //what size and font should the time period info text be on the selected time period board
 
 //----------------------------------------------
 //------------------Classes---------------------
@@ -92,6 +89,12 @@ class Troop {
 
 class Building {
 
+    s_name: string
+
+    constructor (c_name: string) {
+        this.s_name = c_name
+    }
+
 }
 
 class TimePeriod {
@@ -115,7 +118,7 @@ class TimePeriod {
         } else {
             this.n_powerModifier = Math.round(this.n_powerModifier)
         }
-        this.n_resourceProduction = baseResourceProduction * (1 + ((maxModifierFactor - c_modifierFactor) * 5)) //sets the resource production bonus to the inverse of the troop power bonus to balance time periods that have good troops with lower resource production
+        this.n_resourceProduction = baseResourceProduction * (1 + ((maxModifierFactor - c_modifierFactor) * resourceRateAdjuster)) //sets the resource production bonus to the inverse of the troop power bonus to balance time periods that have good troops with lower resource production
         this.n_resourceProduction = Math.round(this.n_resourceProduction * 100) *0.01 //truncates the resource modifier to 2 decimals
         this.n_resources = 0
         this.ba_buildings = []
@@ -186,8 +189,19 @@ let pa_planets: Planet[] = [] //stores the list of the planets in play
 let n_selectedPlanetIndex: number = -1
 let n_selectedTimePeriodIndex: number = -1
 
-//holds onto the box that hods the list of troops
-let troopListBox: HTMLElement = document.getElementById('troop-list-box') as HTMLElement
+//holds onto the display for the selected timer period and its parts
+const selectedTimePeriodDisplay: HTMLElement = document.getElementById('selected-time-period-display') as HTMLElement //the whole display
+const planetLine: HTMLElement = document.getElementById('planet-line') as HTMLElement //planet title
+const ageLine: HTMLElement = document.getElementById('age-line') as HTMLElement //time period title
+const ownerLine: HTMLElement = document.getElementById('owner-line') as HTMLElement //owner title
+const powerLine: HTMLElement = document.getElementById('power-line') as HTMLElement //power level label
+const resourcesLine: HTMLElement = document.getElementById('resources-line') as HTMLElement //resources line
+const resourceProductionLine: HTMLElement = document.getElementById('resource-production-line') as HTMLElement //resource production line
+const buildingSection: HTMLElement = document.getElementById('building-section') as HTMLElement //building list section
+const buildingBox: HTMLElement = document.getElementById('building-list-box') as HTMLElement //box that holds list of buildings
+const troopSection: HTMLElement = document.getElementById('troop-section') as HTMLElement //troop list section
+const troopBox: HTMLElement = document.getElementById('troop-list-box') as HTMLElement //box that holds list of troops
+
 
 //gets the canvas and context from the HTML Page to be used to draw the game to the canvas on the page
 const canvas: HTMLCanvasElement = document.getElementById("viewport") as HTMLCanvasElement
@@ -195,7 +209,7 @@ const context: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRende
 
 const ba_buttons: Button[] = [] //list to store all of the buttons that need to be drawn to the screen
 
-const b_testButton: Button = new Button([500, 750], [152, 30], "green", "white", "20px Arial", [10, 22], "Debug Planets", () => DebugPlanets())
+const b_testButton: Button = new Button([150, 750], [152, 30], "green", "white", "20px Arial", [10, 22], "Debug Planets", () => DebugPlanets())
 ba_buttons.push(b_testButton)
 
 const CheckForPressed = (e: MouseEvent): void => {
@@ -232,7 +246,7 @@ canvas.addEventListener('mousedown', (e) => CheckForPressed(e)) //sets an event 
 
 const DrawBoard = (): void => {
     
-    context.fillStyle = "#03053c" //sets the fill color to a dark blue
+    context.fillStyle = gameBackgroundColor //sets the fill color to the game background color
     context.fillRect(0, 0, canvas.width, canvas.height) //draws a dark blue square over the whole canvas
 
     ba_buttons.forEach((b) => b.Draw()) //draws all of the buttons to the screen
@@ -252,37 +266,39 @@ const DrawBoard = (): void => {
         pa_planets[i].Draw(planetOverviewWidth * i, i) //runs their draw function
     }
 
-    //TODO: consider reworking this concept altogether and moving out of the canvas and into an HTML Element beside the canvas
-        //This will probably be easier to work with and give more options in terms of how it is interacted with and thin gs the players can do
     //handles the drawing of the selected time periods info board
-    context.fillStyle = boardBackgroundColor //sets the fill color to the background color
-    context.fillRect((planetOverviewWidth * numPlanets) + timePeriodBoardShift * 2, timePeriodBoardShift, selectedTimePeriodBoardWidth, numTimePeriods * timePeriodOverviewHeight)
-    context.strokeStyle = "black" //sets the stroke color to a black
-    context.lineWidth = 3 //sets the width of the stroke line
-    context.strokeRect((planetOverviewWidth * numPlanets) + timePeriodBoardShift * 2, timePeriodBoardShift, selectedTimePeriodBoardWidth, numTimePeriods * timePeriodOverviewHeight)
     if (n_selectedPlanetIndex != -1) {
-        //draws which planet is selected
-        context.fillStyle = "black" //sets the fill color to a black
-        context.font = selectedTimePeriodBoardPlanetFont //makes sure that the planet label font is set properly
-        context.fillText(`${pa_planets[n_selectedPlanetIndex].s_name}`, ((planetOverviewWidth * numPlanets) + timePeriodBoardShift * 2) + selectedTimePeriodBoardMargin, timePeriodBoardShift + selectedTimePeriodBoardMargin + 30)
-        //draws which time period is selected
-        context.font = selectedTimePeriodBoardTimePeriodFont //makes sure that the time period label font is set properly
-        context.fillText(`Age ${n_selectedTimePeriodIndex + 1}`, ((planetOverviewWidth * numPlanets) + timePeriodBoardShift * 2) + selectedTimePeriodBoardMargin, timePeriodBoardShift + selectedTimePeriodBoardMargin + 80)
-        //draws the relevant info from the time period
-        //draws the owner of the time period
-        context.font = selectedTimePeriodBoardInfoFont //makes sure that the info text font is set properly
-        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === -1) { //if no player owns the time period
-            context.fillText(`Owner: Indigenous People`, ((planetOverviewWidth * numPlanets) + timePeriodBoardShift * 2) + selectedTimePeriodBoardMargin, timePeriodBoardShift + selectedTimePeriodBoardMargin + 120) //draw that it is owned by indigenous people
+        planetLine.innerHTML = `${pa_planets[n_selectedPlanetIndex].s_name}` //writes which planet is selected
+        ageLine.innerHTML = `Age ${n_selectedTimePeriodIndex}` //writes which time period is selected
+        //writes the relevant info from the time period
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === -1) { //checks if the time period is owner by a player
+            ownerLine.innerHTML = `Owner: ${pa_planets[n_selectedPlanetIndex].s_name} natives` //if not: writes that it is owned by people from that planet
         } else {
-            context.fillText(`Owner: Player ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex}`, ((planetOverviewWidth * numPlanets) + timePeriodBoardShift * 2) + selectedTimePeriodBoardMargin, timePeriodBoardShift + selectedTimePeriodBoardMargin + 120) //draws the name of the player that owns the time period
+            ownerLine.innerHTML = `Owner: Player ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex + 1}` //if so: writes the owner of the time period
         }
-        context.fillText(`Resources: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources}`, ((planetOverviewWidth * numPlanets) + timePeriodBoardShift * 2) + selectedTimePeriodBoardMargin, timePeriodBoardShift + selectedTimePeriodBoardMargin + 160) //draws the amount of resources in the time period
-        context.fillText(`Troops:`, ((planetOverviewWidth * numPlanets) + timePeriodBoardShift * 2) + selectedTimePeriodBoardMargin, timePeriodBoardShift + selectedTimePeriodBoardMargin + 200) //draws the label for the list of troops in the time period
-        //handles the scrolling box of the troop list
-        troopListBox.style.display = "block" //shows the troop list box
-
-    } else {
-        troopListBox.style.display = "none" //hides the troop list box when the time period is deselected
+        powerLine.innerHTML = `Power Level: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_level + pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_powerModifier}` //writes the power level of the time period to the label
+        resourcesLine.innerHTML = `Resources: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources}` //writes the number of resources in the time period
+        resourceProductionLine.innerHTML = `Resource Production Rate: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resourceProduction}` //writes the resource production rate to the label
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ba_buildings.length > 0) { //checks if there are any buildings in the time period
+            pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ba_buildings.forEach((b) => buildingBox.innerHTML += `${b.s_name}`) //if so: loops through them all and writes them to the box
+        } else {
+            buildingBox.innerHTML = `None` //if not: writes none to the list
+        }
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ta_troops.length > 0) { //checks if there are any buildings in the time period
+            //TODO: if so: loops through them all and writes them to the box
+        } else {
+            troopBox.innerHTML = `None` //if not: writes none to the list
+        }
+    }  else {
+        //resets the display values when deselecting
+        planetLine.innerHTML = `No Planet Selected` //resets the time period age
+        ageLine.innerHTML = `No Time Period Selected` //resets the time period age
+        ownerLine.innerHTML = `Owner: ` //resets the owner of the time period
+        powerLine.innerHTML = `Power Level: ` //resets the power level label
+        resourcesLine.innerHTML = `Resources: ` //resets the number of resources in the time period
+        resourceProductionLine.innerHTML = `Resource Production Rate: ` //resets the resource production rate label
+        buildingBox.innerHTML = `` //resets the list of buildings
+        troopBox.innerHTML = `` //resets the list of troops
     }
 
 
@@ -314,12 +330,8 @@ const InitializeGame = () => { //used to set up the game
         pa_planets.push(new Planet(`Planet ${i+1}`))
     }
 
-    troopListBox.style.width = `${selectedTimePeriodBoardWidth - (selectedTimePeriodBoardMargin * 2)}px`
-    troopListBox.style.display = "none" //hides the troop list box
-    troopListBox.style.position = "absolute" //sets the position to absolute so it can be positioned in place
-    //TODO: position the box  in place over the canvas in the menu
-
-    //DebugPlanets() //temp: prints all of the planets to the console for debugging
+    document.body.style.backgroundColor = gameBackgroundColor //sets the background of the site to the gameBackgroundColor
+    selectedTimePeriodDisplay.style.backgroundColor = boardBackgroundColor //sets the display background color to the same color as the canvas
 
     DrawBoard() //draws the board when the page loads
 }

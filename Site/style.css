@@ -1,0 +1,48 @@
+body {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+#selected-time-period-display {
+    width: 33%;
+    min-width: 450px;
+    max-width: 550px;
+
+    margin-left: 30px;
+
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+#planet-line, #age-line, #owner-line, #power-line, #resources-line, #resource-production-line {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 0px;
+
+    padding: 5px;
+}
+
+#building-section, #troop-section {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    padding: 5px;
+    padding-bottom: 10px;
+
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+#building-section h3, #troop-section h3 {
+    margin-top: 0px;
+    margin-bottom: 5px;
+}
+
+#building-list-box, #troop-list-box {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
