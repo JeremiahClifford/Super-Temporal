@@ -66,12 +66,16 @@ class Button {
 
 class Player {
 
+    s_name: string
     ta_troops: Troop[]
     n_resources: number
+    na_location: number[]
 
-    constructor () {
+    constructor (c_name: string) {
+        this.s_name = c_name
         this.ta_troops = []
         this.n_resources = 0
+        this.na_location = [-1, -1]
     }
 
     Trade = (p_troopsIn: Troop[], p_resourcesIn: number, p_troopsOut: Troop[], p_resourcesOut: number): void => {
@@ -157,8 +161,8 @@ class Planet {
 
         //generate the time periods
         this.ta_timePeriods = []
-        for (let i: number = 0; i < numTimePeriods; i++) {
-            this.ta_timePeriods.push(new TimePeriod(Math.pow(2, i), Math.random() * maxModifierFactor))
+        for (let i: number = 0; i < numTimePeriods; i++) { //creates the specified number of time periods for the planets
+            this.ta_timePeriods.push(new TimePeriod(Math.pow(2, i), Math.random() * maxModifierFactor)) //creates all of the planets, providing the power level and the random modifier
         }
     }
 
@@ -183,11 +187,14 @@ class Planet {
 //-------------MAIN GAME LOGIC------------------
 //----------------------------------------------
 
-let pa_planets: Planet[] = [] //stores the list of the planets in play
+const pa_players: Player[] = [] //stores the list of players in the game
 
-//stores the coordinates of the selected time period
-let n_selectedPlanetIndex: number = -1
-let n_selectedTimePeriodIndex: number = -1
+const testPlayer: Player = new Player("Test Player") //TEMP:
+pa_players.push(testPlayer)
+
+const currentPlayerIndex: number = 0 //TEMP: not sure how this will work when this game goes to multiplayer
+
+const pa_planets: Planet[] = [] //stores the list of the planets in play
 
 //holds onto the display for the selected timer period and its parts
 const selectedTimePeriodDisplay: HTMLElement = document.getElementById('selected-time-period-display') as HTMLElement //the whole display
@@ -201,7 +208,22 @@ const buildingSection: HTMLElement = document.getElementById('building-section')
 const buildingBox: HTMLElement = document.getElementById('building-list-box') as HTMLElement //box that holds list of buildings
 const troopSection: HTMLElement = document.getElementById('troop-section') as HTMLElement //troop list section
 const troopBox: HTMLElement = document.getElementById('troop-list-box') as HTMLElement //box that holds list of troops
+//TODO: add a box to the selected time period display that shows which players if any are there
+    //do so by looping through the player list and checking if they are at the selected time period
+    //make it a scrolling box
 
+const playerListDisplay: HTMLElement = document.getElementById('player-list-display') as HTMLElement //the section which has the list of players
+const playerListBox: HTMLElement = document.getElementById('player-list-box') as HTMLElement//the scrolling box that will show the list of players
+
+//holds onto the display for the player's info
+const currentPlayerInfoBox: HTMLElement = document.getElementById('player-info') as HTMLElement //the box that has the player's info
+const locationSpot: HTMLElement = document.getElementById('location-spot') as HTMLElement //the line for the players location
+const resourceSpot: HTMLElement = document.getElementById('resource-spot') as HTMLElement //the line for the player's resources
+const troopListSpot: HTMLElement = document.getElementById('troop-list-spot') as HTMLElement //the scrolling box that shows what troops the player has
+
+//stores the coordinates of the selected time period
+let n_selectedPlanetIndex: number = -1
+let n_selectedTimePeriodIndex: number = -1
 
 //gets the canvas and context from the HTML Page to be used to draw the game to the canvas on the page
 const canvas: HTMLCanvasElement = document.getElementById("viewport") as HTMLCanvasElement
@@ -209,8 +231,12 @@ const context: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRende
 
 const ba_buttons: Button[] = [] //list to store all of the buttons that need to be drawn to the screen
 
-const b_testButton: Button = new Button([150, 750], [152, 30], "green", "white", "20px Arial", [10, 22], "Debug Planets", () => DebugPlanets())
-ba_buttons.push(b_testButton)
+const b_moveButton: Button = new Button([150, 750], [123, 30], "green", "white", "20px Arial", [10, 22], "Travel Here", () => {
+    if (n_selectedPlanetIndex !== -1) { //makes sure that a time period is selected
+        pa_players[currentPlayerIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] //moves the current player to the selected time period
+    }
+}) //TEMP:
+ba_buttons.push(b_moveButton)
 
 const CheckForPressed = (e: MouseEvent): void => {
     //finds the position on the canvas where the player clicked
@@ -301,9 +327,20 @@ const DrawBoard = (): void => {
         troopBox.innerHTML = `` //resets the list of troops
     }
 
+    //TODO: handles the drawing of the players board
 
-    //handles the drawing of the players overview board
-    //TODO:
+    //WIP: handles the drawing of the current player info board
+    if (pa_players[currentPlayerIndex].na_location[0] === -1) { //checks if the player has not yet gone to a time period
+        locationSpot.innerHTML = `Location: Nowhere` //if so: show them as nowhere
+    } else {
+        locationSpot.innerHTML = `Location: ${pa_planets[pa_players[currentPlayerIndex].na_location[0]].s_name} Age ${pa_players[currentPlayerIndex].na_location[1] + 1}` //if not: write which planet and time period they are in
+    }
+    resourceSpot.innerHTML = `Resources: ${pa_players[currentPlayerIndex].n_resources}` //fills in the line showing the player's resources
+    if (pa_players[currentPlayerIndex].ta_troops.length > 0) { //checks if the player has any troops onbaord
+        //TODO: if so: loops through them all and writes them to the box
+    } else {
+        troopListSpot.innerHTML = `None`//if not: writes none
+    }
 }
 
 const DebugPlanets = () => { //function to print the info of all the planets to the console for debugging
@@ -326,14 +363,23 @@ const DebugPlanets = () => { //function to print the info of all the planets to 
 
 const InitializeGame = () => { //used to set up the game
 
-    for (let i: number = 0; i < numPlanets; i++) {
+    //initializes some style for the page
+    document.body.style.backgroundColor = gameBackgroundColor //sets the background of the site to the gameBackgroundColor
+    selectedTimePeriodDisplay.style.backgroundColor = boardBackgroundColor //sets the display background color to the same color as the canvas
+    playerListDisplay.style.backgroundColor = boardBackgroundColor //sets the background color of the player list board to the board background color
+    currentPlayerInfoBox.style.backgroundColor = boardBackgroundColor //sets the background color of the player info box to the board background color
+
+    for (let i: number = 0; i < numPlanets; i++) { //creates the list of planets of the number specified in the tunable values
         pa_planets.push(new Planet(`Planet ${i+1}`))
     }
 
-    document.body.style.backgroundColor = gameBackgroundColor //sets the background of the site to the gameBackgroundColor
-    selectedTimePeriodDisplay.style.backgroundColor = boardBackgroundColor //sets the display background color to the same color as the canvas
-
     DrawBoard() //draws the board when the page loads
+
+    //WIP: Ideas / sections that need thought
+        //how does the game start, no one has a time periods so do they start with troops and choose which to conquer to start: probably
+            //what troops to they start with
+        //do time periods start the game with some resources
+            //should lower power time periods start with more resources to balance it out: maybe leaning probably
 }
 
 InitializeGame() //runs the initialize game function to start the game

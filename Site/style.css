@@ -1,5 +1,14 @@
 body {
     display: flex;
+    flex-flow: column nowrap;
+}
+
+#top-layer {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+
+    display: flex;
     flex-flow: row wrap;
 }
 
@@ -9,6 +18,7 @@ body {
     max-width: 550px;
 
     margin-left: 30px;
+    margin-right: 30px;
 
     display: flex;
     flex-flow: column nowrap;
@@ -42,7 +52,49 @@ body {
 }
 
 #building-list-box, #troop-list-box {
-    width: 90%;
+    width: 95%;
     margin-left: auto;
     margin-right: auto;
+}
+
+#player-list-display {
+    width: 33%;
+    min-width: 450px;
+    max-width: 550px;
+
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+#player-list-display h1 {
+    margin-left: 2.5%;
+    margin-bottom: 5px;
+}
+
+#player-list-box {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+
+    height: 85%;
+}
+
+#player-info {
+    width: 98%;
+    margin-left: auto;
+    margin-right: auto;
+
+    margin-top: 20px;
+
+    display: flex;
+    flex-flow: row wrap;
+}
+
+#location-spot, #resource-spot, #troop-spot {
+    width: 20%;
+    min-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+
+    margin-bottom: 10px;
 }
