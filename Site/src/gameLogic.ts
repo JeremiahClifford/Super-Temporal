@@ -67,6 +67,7 @@ const DebugPlanets = (): void => { //function to print the info of all the plane
         console.log(` Time Periods:`)
         for (let i: number = 0; i < p.ta_timePeriods.length; i++) {
             console.log(`  Age ${i+1}:`)
+            console.log(`   Raw Level: ${p.ta_timePeriods[i].n_rawLevel}`)
             console.log(`   Level: ${p.ta_timePeriods[i].n_level}`)
             console.log(`   Raw Modifier: ${p.ta_timePeriods[i].n_rawModifierFactor}`)
             console.log(`   Power Modifier: ${p.ta_timePeriods[i].n_powerModifier}`)
@@ -145,12 +146,21 @@ class Player {
 
 class Troop {
 
+    n_rawLevel: number
     n_level: number
     n_modifier: number
 
     constructor (c_level: number, c_modifier: number) {
-        this.n_level = c_level
+        this.n_rawLevel = c_level
+        this.n_level = Math.pow(2, this.n_rawLevel)
         this.n_modifier = c_modifier
+    }
+
+    ProgressIntegration = (currentTimePeriodLevel: number): void => {
+        if (currentTimePeriodLevel > this.n_rawLevel) {
+            this.n_rawLevel++
+            this.n_level = Math.pow(2, this.n_rawLevel)
+        }
     }
 
     ToString = () => {
@@ -171,6 +181,7 @@ class Building {
 class TimePeriod {
 
     n_ownerIndex: number
+    n_rawLevel: number
     n_level: number
     n_rawModifierFactor: number //stores the raw generated value for the modifier factor which should be between 0 and ${maxModifierFactor} for testing purposes
     n_powerModifier: number
@@ -181,9 +192,10 @@ class TimePeriod {
 
     constructor (c_level: number, c_modifierFactor: number) {
         this.n_ownerIndex = -1
-        this.n_level = c_level
+        this.n_rawLevel = c_level
+        this.n_level = Math.pow(2, this.n_rawLevel)
         this.n_rawModifierFactor = c_modifierFactor
-        this.n_powerModifier = c_modifierFactor * c_level
+        this.n_powerModifier = c_modifierFactor * this.n_level
         if (this.n_powerModifier < 1) { //truncates the troop power modifier to 2 decimals if less than zero or whole number if more than zero to keep things tidy
             this.n_powerModifier = Math.round(this.n_powerModifier * 100) *0.01
         } else {
@@ -193,7 +205,7 @@ class TimePeriod {
         this.n_resourceProduction = Math.round(this.n_resourceProduction * 100) *0.01 //truncates the resource modifier to 2 decimals
         this.n_resources = this.n_resourceProduction * 5 //TEMP: starts the time period with 5 turns worth of resources. not sure what I want this to be in the final version
         this.ba_buildings = []
-        this.ta_troops = [new Troop(c_level, this.n_powerModifier)] //TEMP: not sure what troops time periods will start with if any
+        this.ta_troops = [new Troop(this.n_rawLevel, this.n_powerModifier)] //TEMP: not sure what troops time periods will start with if any
     }
 
     Trade = (p_troopsIn: Troop[], p_resourcesIn: number, p_troopsOut: Troop[], p_resourcesOut: number): void => {
@@ -229,7 +241,7 @@ class Planet {
         //generate the time periods
         this.ta_timePeriods = []
         for (let i: number = 0; i < numTimePeriods; i++) { //creates the specified number of time periods for the planets
-            this.ta_timePeriods.push(new TimePeriod(Math.pow(2, i), Math.random() * maxModifierFactor)) //creates all of the planets, providing the power level and the random modifier
+            this.ta_timePeriods.push(new TimePeriod(i, Math.random() * maxModifierFactor)) //creates all of the planets, providing the power level and the random modifier
         }
     }
 
