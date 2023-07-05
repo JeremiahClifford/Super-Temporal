@@ -27,13 +27,13 @@ const boardNumberLabelWidth: number = 30 //how wide should the time period numbe
 //--------------Helper Functions----------------
 //----------------------------------------------
 
-const SortTroops = (ta: Troop[]): Troop[] => {
-    return ta.sort((a, b) => {
+const SortTroops = (ta: Troop[]): Troop[] => { //sorts the troops of an army in descending order of power
+    return ta.sort((a, b) => { //uses the built in sort method
         return (b.n_level + b.n_modifier) - (a.n_level + a.n_modifier)
     })
 }
 
-const TroopsString = (o: Player | TimePeriod): string => { //gives a string representation of the player's or time period's list of troops
+const TroopsString = (o: Army): string => { //gives a string representation of the player's or time period's list of troops
     o.ta_troops = SortTroops(o.ta_troops) //sorts the troops so they are in a good order to be printed
 
     //squashes troops of the same level into 1 line
@@ -54,11 +54,20 @@ const TroopsString = (o: Player | TimePeriod): string => { //gives a string repr
         }
     }
 
-    let output: string = `${o.ta_troops.length} Troop(s):<br>` //adds the header to the output showing how many total troops the player has
+    let output: string = ``
+    if (o.n_ownerIndex === -1) {
+        output = `Natives:<br>${o.ta_troops.length} Troop(s):<br>` //adds the header to the output showing how many total troops the army has and the owner
+    } else {
+        output = `${pa_players[o.n_ownerIndex].s_name}:<br>${o.ta_troops.length} Troop(s):<br>` //adds the header to the output showing how many total troops the army has and the owner
+    }
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
         output += `${typeCounts[i]}x Level: ${troopTypes[i]}<br>` //adds a line of their info to the output string
     }
     return output //returns the outputted list
+}
+
+const Trade = (p: Player, t: TimePeriod, troopsGiven: Troop[], troopsTaken: Troop[], resourcesTaken: number, resourcesGiven: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective
+    //TODO: implement functionality
 }
 
 const DebugPlanets = (): void => { //function to print the info of all the planets to the console for debugging
@@ -74,7 +83,7 @@ const DebugPlanets = (): void => { //function to print the info of all the plane
             console.log(`   Effective Level: ${p.ta_timePeriods[i].n_level + p.ta_timePeriods[i].n_powerModifier}`)
             console.log(`   Resources: ${p.ta_timePeriods[i].n_resources}`)
             console.log(`   Resource Production: ${p.ta_timePeriods[i].n_resourceProduction}`)
-            console.log(`   Number of Troops: ${p.ta_timePeriods[i].ta_troops.length}`)
+            console.log(`   Number of Armies: ${p.ta_timePeriods[i].aa_armies.length}`)
             console.log(`   Number of Buildings: ${p.ta_timePeriods[i].ba_buildings.length}`)
         }
     })
@@ -124,27 +133,19 @@ class Button {
 class Player {
 
     s_name: string
-    ta_troops: Troop[]
+    a_troops: Army
     n_resources: number
     na_location: number[]
 
-    constructor (c_name: string) {
+    constructor (c_index: number, c_name: string) {
         this.s_name = c_name
-        this.ta_troops = [new Troop(1, 0), new Troop(1, 0.1), new Troop(1, 0)] //TEMP: not sure what troops players will start with if any
+        this.a_troops = new Army(c_index, [new Troop(1, 0), new Troop(1, 0.1), new Troop(1, 0)]) //TEMP: not sure what troops players will start with if any
         this.n_resources = 0
         this.na_location = [-1, -1]
     }
-
-    Trade = (p_troopsIn: Troop[], p_resourcesIn: number, p_troopsOut: Troop[], p_resourcesOut: number): void => {
-        //TODO: remove any troops that are being moved out
-        p_troopsIn.forEach((t) => this.ta_troops.push(t)) //take all the troops that are being added from the players inventory and add them to the time period
-        
-        this.n_resources += p_resourcesIn //add any resources that are being moved into the time period
-        this.n_resources -= p_resourcesOut //subtract any resources that are being moved out
-    }
 }
 
-class Troop {
+class Troop { //represents 1 fighting unit
 
     n_rawLevel: number
     n_level: number
@@ -168,6 +169,17 @@ class Troop {
     }
 }
 
+class Army {
+
+    n_ownerIndex: number
+    ta_troops: Troop[]
+
+    constructor (c_ownerIndex: number, c_troops: Troop[]) {
+        this.n_ownerIndex = c_ownerIndex
+        this.ta_troops = c_troops
+    }
+}
+
 class Building {
 
     s_name: string
@@ -188,7 +200,7 @@ class TimePeriod {
     n_resources: number
     n_resourceProduction: number
     ba_buildings: Building[]
-    ta_troops: Troop[]
+    aa_armies: Army[]
 
     constructor (c_level: number, c_modifierFactor: number) {
         this.n_ownerIndex = -1
@@ -205,15 +217,7 @@ class TimePeriod {
         this.n_resourceProduction = Math.round(this.n_resourceProduction * 100) *0.01 //truncates the resource modifier to 2 decimals
         this.n_resources = this.n_resourceProduction * 5 //TEMP: starts the time period with 5 turns worth of resources. not sure what I want this to be in the final version
         this.ba_buildings = []
-        this.ta_troops = [new Troop(this.n_rawLevel, this.n_powerModifier)] //TEMP: not sure what troops time periods will start with if any
-    }
-
-    Trade = (p_troopsIn: Troop[], p_resourcesIn: number, p_troopsOut: Troop[], p_resourcesOut: number): void => {
-        //TODO: remove any troops that are being moved out
-        p_troopsIn.forEach((t) => this.ta_troops.push(t)) //take all the troops that are being added from the players inventory and add them to the time period
-        
-        this.n_resources += p_resourcesIn //add any resources that are being moved into the time period
-        this.n_resources -= p_resourcesOut //subtract any resources that are being moved out
+        this.aa_armies = [new Army(-1, [new Troop(this.n_rawLevel, this.n_powerModifier)])] //TEMP: not sure what troops time periods will start with if any
     }
 
     Draw = (p_widthOffset: number, p_heightOffset: number, p_planetsIndex: number, p_timePeriodIndex: number): void => {
@@ -268,7 +272,7 @@ class Planet {
 
 const pa_players: Player[] = [] //stores the list of players in the game
 
-const testPlayer: Player = new Player("Test Player") //TEMP:
+const testPlayer: Player = new Player(0, "Test Player") //TEMP:
 pa_players.push(testPlayer)
 
 const currentPlayerIndex: number = 0 //TEMP: not sure how this will work when this game goes to multiplayer
@@ -389,8 +393,11 @@ const DrawBoard = (): void => {
         } else {
             buildingBox.innerHTML = `None` //if not: writes none to the list
         }
-        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ta_troops.length > 0) { //checks if there are any buildings in the time period
-            troopBox.innerHTML = `${TroopsString(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])}` //writes the time period's TroopString to the box
+        troopBox.innerHTML = `` //resets the text in the troop box
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies.length > 0) { //if there are any armies in the time period
+            for (let i: number = 0; i < pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies.length; i++) { //if so:loops through all of armies in the time period to be written out
+                troopBox.innerHTML += TroopsString(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies[i])
+            }
         } else {
             troopBox.innerHTML = `None` //if not: writes none to the list
         }
@@ -415,8 +422,8 @@ const DrawBoard = (): void => {
         locationSpot.innerHTML = `Location: ${pa_planets[pa_players[currentPlayerIndex].na_location[0]].s_name} Age ${pa_players[currentPlayerIndex].na_location[1] + 1}` //if not: write which planet and time period they are in
     }
     resourceSpot.innerHTML = `Resources: ${pa_players[currentPlayerIndex].n_resources}` //fills in the line showing the player's resources
-    if (pa_players[currentPlayerIndex].ta_troops.length > 0) { //checks if the player has any troops onboard
-        troopListSpot.innerHTML = `${TroopsString(pa_players[currentPlayerIndex])}` //writes the player's TroopString to the box
+    if (pa_players[currentPlayerIndex].a_troops.ta_troops.length > 0) { //checks if the player has any troops onboard
+        troopListSpot.innerHTML = `${TroopsString(pa_players[currentPlayerIndex].a_troops)}` //writes the player's TroopString to the box
     } else {
         troopListSpot.innerHTML = `None`//if not: writes none
     }
@@ -435,15 +442,15 @@ const InitializeGame = (): void => { //used to set up the game
     }
 
     DrawBoard() //draws the board when the page loads
-
-    //WIP: Ideas / sections that need thought
-        //how does the game start, no one has a time periods so do they start with troops and choose which to conquer to start: probably
-            //what troops to they start with
-        //do time periods start the game with some resources
-            //should lower power time periods start with more resources to balance it out: maybe leaning probably
 }
 
 InitializeGame() //runs the initialize game function to start the game
+
+//WIP: Ideas / sections that need thought
+  //how does the game start, no one has a time periods so do they start with troops and choose which to conquer to start: probably
+    //what troops to they start with
+  //do time periods start the game with some resources
+    //should lower power time periods start with more resources to balance it out: maybe leaning probably
 
 //TODO: things that still need to be done
 //trading troops and resources between your ship and time periods
