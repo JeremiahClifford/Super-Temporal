@@ -135,8 +135,8 @@ class Player {
     }
 
     Trade = (p_troopsIn: Troop[], p_resourcesIn: number, p_troopsOut: Troop[], p_resourcesOut: number): void => {
-        p_troopsIn.forEach((t) => this.ta_troops.push(t)) //take all the troops that are being added from the players inventory and add them to the time period
         //TODO: remove any troops that are being moved out
+        p_troopsIn.forEach((t) => this.ta_troops.push(t)) //take all the troops that are being added from the players inventory and add them to the time period
         
         this.n_resources += p_resourcesIn //add any resources that are being moved into the time period
         this.n_resources -= p_resourcesOut //subtract any resources that are being moved out
@@ -197,8 +197,8 @@ class TimePeriod {
     }
 
     Trade = (p_troopsIn: Troop[], p_resourcesIn: number, p_troopsOut: Troop[], p_resourcesOut: number): void => {
-        p_troopsIn.forEach((t) => this.ta_troops.push(t)) //take all the troops that are being added from the players inventory and add them to the time period
         //TODO: remove any troops that are being moved out
+        p_troopsIn.forEach((t) => this.ta_troops.push(t)) //take all the troops that are being added from the players inventory and add them to the time period
         
         this.n_resources += p_resourcesIn //add any resources that are being moved into the time period
         this.n_resources -= p_resourcesOut //subtract any resources that are being moved out
@@ -432,3 +432,14 @@ const InitializeGame = (): void => { //used to set up the game
 }
 
 InitializeGame() //runs the initialize game function to start the game
+
+//TODO: things that still need to be done
+//trading troops and resources between your ship and time periods
+  //building buildings
+  //training troops
+//combat
+  //conquering time periods
+//integration
+//propagation
+//troop experience level
+//turns

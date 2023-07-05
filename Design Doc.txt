@@ -32,6 +32,8 @@ Troops:
     -This can be changed through integration
 -Each troop has the modifier value from the specific time zone in which is was created
     -This can not be changed
+-Each troop has an experience value gained from taking part in combat which increases its power
+   -this increases when the troops engages in combat
 
 Integration:
 -If a troop spends a turn in a time zone of a higher level than it is, it integrates, moving up 1
@@ -93,7 +95,7 @@ Order of a turn:
 4. Combat for each time zone that has combat
     4a. Buildings destroyed if applicable
     4b. Troops killed
-5. Integration except in time zones with combat
+5. Integration even in time zones with combat
 6. Propagation
 
 Win Condition:
