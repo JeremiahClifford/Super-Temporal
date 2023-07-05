@@ -24,6 +24,62 @@ const planetLabelFont: string = "15px Arial" //what size and font should the pla
 const boardNumberLabelWidth: number = 30 //how wide should the time period number labels be
 
 //----------------------------------------------
+//--------------Helper Functions----------------
+//----------------------------------------------
+
+const SortTroops = (ta: Troop[]): Troop[] => {
+    return ta.sort((a, b) => {
+        return (b.n_level + b.n_modifier) - (a.n_level + a.n_modifier)
+    })
+}
+
+const TroopsString = (o: Player | TimePeriod): string => { //gives a string representation of the player's or time period's list of troops
+    o.ta_troops = SortTroops(o.ta_troops) //sorts the troops so they are in a good order to be printed
+
+    //squashes troops of the same level into 1 line
+    //arrays to store the types of power level and how many of them there are
+    let troopTypes: number[] = [] //types of level
+    let typeCounts: number[] = [] //number of each type
+
+    for (let i: number = 0; i < o.ta_troops.length; i++) { //loops through the array and checks if this is the first of the power level
+        if (troopTypes.indexOf(o.ta_troops[i].n_level + o.ta_troops[i].n_modifier) > -1) { //if not: increments the count for that power level
+            for (let j: number = 0; j < troopTypes.length; j++) {
+                if (troopTypes[j] === o.ta_troops[i].n_level + o.ta_troops[i].n_modifier) {
+                    typeCounts[j]++
+                }
+            }
+        } else {
+            troopTypes.push(o.ta_troops[i].n_level + o.ta_troops[i].n_modifier) //if so: adds that level to the bottom on the list and gives it a count of 1
+            typeCounts.push(1)
+        }
+    }
+
+    let output: string = `${o.ta_troops.length} Troop(s):<br>` //adds the header to the output showing how many total troops the player has
+    for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
+        output += `${typeCounts[i]}x Level: ${troopTypes[i]}<br>` //adds a line of their info to the output string
+    }
+    return output //returns the outputted list
+}
+
+const DebugPlanets = (): void => { //function to print the info of all the planets to the console for debugging
+    pa_planets.forEach((p) => {
+        console.log(`${p.s_name}: `)
+        console.log(` Time Periods:`)
+        for (let i: number = 0; i < p.ta_timePeriods.length; i++) {
+            console.log(`  Age ${i+1}:`)
+            console.log(`   Level: ${p.ta_timePeriods[i].n_level}`)
+            console.log(`   Raw Modifier: ${p.ta_timePeriods[i].n_rawModifierFactor}`)
+            console.log(`   Power Modifier: ${p.ta_timePeriods[i].n_powerModifier}`)
+            console.log(`   Effective Level: ${p.ta_timePeriods[i].n_level + p.ta_timePeriods[i].n_powerModifier}`)
+            console.log(`   Resources: ${p.ta_timePeriods[i].n_resources}`)
+            console.log(`   Resource Production: ${p.ta_timePeriods[i].n_resourceProduction}`)
+            console.log(`   Number of Troops: ${p.ta_timePeriods[i].ta_troops.length}`)
+            console.log(`   Number of Buildings: ${p.ta_timePeriods[i].ba_buildings.length}`)
+        }
+    })
+}
+
+//----------------------------------------------
 //------------------Classes---------------------
 //----------------------------------------------
 
@@ -73,7 +129,7 @@ class Player {
 
     constructor (c_name: string) {
         this.s_name = c_name
-        this.ta_troops = []
+        this.ta_troops = [new Troop(1, 0), new Troop(1, 0.1), new Troop(1, 0)] //TEMP: not sure what troops players will start with if any
         this.n_resources = 0
         this.na_location = [-1, -1]
     }
@@ -89,6 +145,17 @@ class Player {
 
 class Troop {
 
+    n_level: number
+    n_modifier: number
+
+    constructor (c_level: number, c_modifier: number) {
+        this.n_level = c_level
+        this.n_modifier = c_modifier
+    }
+
+    ToString = () => {
+        return `Level: ${this.n_level + this.n_modifier}`
+    }
 }
 
 class Building {
@@ -124,20 +191,20 @@ class TimePeriod {
         }
         this.n_resourceProduction = baseResourceProduction * (1 + ((maxModifierFactor - c_modifierFactor) * resourceRateAdjuster)) //sets the resource production bonus to the inverse of the troop power bonus to balance time periods that have good troops with lower resource production
         this.n_resourceProduction = Math.round(this.n_resourceProduction * 100) *0.01 //truncates the resource modifier to 2 decimals
-        this.n_resources = 0
+        this.n_resources = this.n_resourceProduction * 5 //TEMP: starts the time period with 5 turns worth of resources. not sure what I want this to be in the final version
         this.ba_buildings = []
-        this.ta_troops = []
+        this.ta_troops = [new Troop(c_level, this.n_powerModifier)] //TEMP: not sure what troops time periods will start with if any
     }
 
     Trade = (p_troopsIn: Troop[], p_resourcesIn: number, p_troopsOut: Troop[], p_resourcesOut: number): void => {
         p_troopsIn.forEach((t) => this.ta_troops.push(t)) //take all the troops that are being added from the players inventory and add them to the time period
-        //TODO: remove any troops that are bing moved out
+        //TODO: remove any troops that are being moved out
         
         this.n_resources += p_resourcesIn //add any resources that are being moved into the time period
         this.n_resources -= p_resourcesOut //subtract any resources that are being moved out
     }
 
-    Draw = (p_widthOffset: number, p_heightOffset: number, p_planetsIndex: number, p_timePeriodIndex: number) => {
+    Draw = (p_widthOffset: number, p_heightOffset: number, p_planetsIndex: number, p_timePeriodIndex: number): void => {
         context.fillStyle = boardBackgroundColor //sets the fill color to the background color
         context.fillRect(p_widthOffset, p_heightOffset, planetOverviewWidth, timePeriodOverviewHeight) //draws a white square over the area where the planet is to be drawn
         context.strokeStyle = boardOutlineColor //sets the stroke color to the outline
@@ -166,7 +233,7 @@ class Planet {
         }
     }
 
-    Draw = (p_widthOffset: number, p_planetIndex: number) => {
+    Draw = (p_widthOffset: number, p_planetIndex: number): void => {
         //draws a label of the planets name at the top
         context.fillStyle = boardBackgroundColor //sets the fill color to the background color
         context.fillRect(p_widthOffset + timePeriodBoardShift, timePeriodBoardShift - planetLabelHeight, planetOverviewWidth, planetLabelHeight)
@@ -235,7 +302,7 @@ const b_moveButton: Button = new Button([150, 750], [123, 30], "green", "white",
     if (n_selectedPlanetIndex !== -1) { //makes sure that a time period is selected
         pa_players[currentPlayerIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] //moves the current player to the selected time period
     }
-}) //TEMP:
+})
 ba_buttons.push(b_moveButton)
 
 const CheckForPressed = (e: MouseEvent): void => {
@@ -311,7 +378,7 @@ const DrawBoard = (): void => {
             buildingBox.innerHTML = `None` //if not: writes none to the list
         }
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ta_troops.length > 0) { //checks if there are any buildings in the time period
-            //TODO: if so: loops through them all and writes them to the box
+            troopBox.innerHTML = `${TroopsString(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])}` //writes the time period's TroopString to the box
         } else {
             troopBox.innerHTML = `None` //if not: writes none to the list
         }
@@ -329,39 +396,21 @@ const DrawBoard = (): void => {
 
     //TODO: handles the drawing of the players board
 
-    //WIP: handles the drawing of the current player info board
+    //handles the drawing of the current player info board
     if (pa_players[currentPlayerIndex].na_location[0] === -1) { //checks if the player has not yet gone to a time period
         locationSpot.innerHTML = `Location: Nowhere` //if so: show them as nowhere
     } else {
         locationSpot.innerHTML = `Location: ${pa_planets[pa_players[currentPlayerIndex].na_location[0]].s_name} Age ${pa_players[currentPlayerIndex].na_location[1] + 1}` //if not: write which planet and time period they are in
     }
     resourceSpot.innerHTML = `Resources: ${pa_players[currentPlayerIndex].n_resources}` //fills in the line showing the player's resources
-    if (pa_players[currentPlayerIndex].ta_troops.length > 0) { //checks if the player has any troops onbaord
-        //TODO: if so: loops through them all and writes them to the box
+    if (pa_players[currentPlayerIndex].ta_troops.length > 0) { //checks if the player has any troops onboard
+        troopListSpot.innerHTML = `${TroopsString(pa_players[currentPlayerIndex])}` //writes the player's TroopString to the box
     } else {
         troopListSpot.innerHTML = `None`//if not: writes none
     }
 }
 
-const DebugPlanets = () => { //function to print the info of all the planets to the console for debugging
-    pa_planets.forEach((p) => {
-        console.log(`${p.s_name}: `)
-        console.log(` Time Periods:`)
-        for (let i: number = 0; i < p.ta_timePeriods.length; i++) {
-            console.log(`  Age ${i+1}:`)
-            console.log(`   Level: ${p.ta_timePeriods[i].n_level}`)
-            console.log(`   Raw Modifier: ${p.ta_timePeriods[i].n_rawModifierFactor}`)
-            console.log(`   Power Modifier: ${p.ta_timePeriods[i].n_powerModifier}`)
-            console.log(`   Effective Level: ${p.ta_timePeriods[i].n_level + p.ta_timePeriods[i].n_powerModifier}`)
-            console.log(`   Resources: ${p.ta_timePeriods[i].n_resources}`)
-            console.log(`   Resource Production: ${p.ta_timePeriods[i].n_resourceProduction}`)
-            console.log(`   Number of Troops: ${p.ta_timePeriods[i].ta_troops.length}`)
-            console.log(`   Number of Buildings: ${p.ta_timePeriods[i].ba_buildings.length}`)
-        }
-    })
-}
-
-const InitializeGame = () => { //used to set up the game
+const InitializeGame = (): void => { //used to set up the game
 
     //initializes some style for the page
     document.body.style.backgroundColor = gameBackgroundColor //sets the background of the site to the gameBackgroundColor
