@@ -542,8 +542,6 @@ InitializeGame() //runs the initialize game function to start the game
     //should lower power time periods start with more resources to balance it out: maybe leaning probably
 
 //TODO: things that still need to be done
-//player list board
-//turns
 //combat
   //conquering time periods
   //troop experience level
