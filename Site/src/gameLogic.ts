@@ -542,11 +542,11 @@ InitializeGame() //runs the initialize game function to start the game
     //should lower power time periods start with more resources to balance it out: maybe leaning probably
 
 //TODO: things that still need to be done
-//combat
-  //conquering time periods
-  //troop experience level
 //trading troops and resources between your ship and time periods
   //building buildings
   //training troops
+//combat
+  //conquering time periods
+  //troop experience level
 //integration
 //propagation
