@@ -553,6 +553,7 @@ InitializeGame() //runs the initialize game function to start the game
 
 //TODO: things that still need to be done
 //trading troops and resources between your ship and time periods
+  //function to draw which troop and how many resources are in each group and to redraw when anything is moved
   //showing what troops and resources are available in each place
   //selecting things to move
   //functionality of trade() function to move the selected things back and forth
