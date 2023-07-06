@@ -76,7 +76,11 @@ body {
     margin-left: auto;
     margin-right: auto;
 
-    height: 85%;
+    height: 700px;
+}
+
+.player-card {
+    border: 2px black;
 }
 
 #player-info {

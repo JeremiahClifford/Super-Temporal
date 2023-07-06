@@ -66,8 +66,18 @@ const TroopsString = (o: Army): string => { //gives a string representation of t
     return output //returns the outputted list
 }
 
-const Trade = (p: Player, t: TimePeriod, troopsGiven: Troop[], troopsTaken: Troop[], resourcesTaken: number, resourcesGiven: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective
-    //TODO: implement functionality
+const Trade = (p: number, t: TimePeriod, troopsGiven: Troop[], troopsTaken: Troop[], resourcesTaken: number, resourcesGiven: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
+    let playerArmyIndex: number = -1
+    for (let i: number = 0; i < t.aa_armies.length; i++) { //finds if the player already has an army in this time period
+        if (t.aa_armies[i].n_ownerIndex === p) {
+            playerArmyIndex = i
+        }
+    }
+    if (playerArmyIndex > -1) { //if they have an army here
+        //TODO: implement functionality
+    } else { //if they don't have an army here
+        //TODO: implement functionality
+    }
 }
 
 const DebugPlanets = (): void => { //function to print the info of all the planets to the console for debugging
@@ -137,11 +147,22 @@ class Player {
     n_resources: number
     na_location: number[]
 
+    b_canMove: boolean
+    b_canTrade: boolean
+
     constructor (c_index: number, c_name: string) {
         this.s_name = c_name
         this.a_troops = new Army(c_index, [new Troop(1, 0), new Troop(1, 0.1), new Troop(1, 0)]) //TEMP: not sure what troops players will start with if any
         this.n_resources = 0
         this.na_location = [-1, -1]
+
+        this.b_canMove = false
+        this.b_canTrade = false
+    }
+
+    StartTurn = (): void => {
+        this.b_canMove = true
+        this.b_canTrade = true
     }
 }
 
@@ -272,10 +293,13 @@ class Planet {
 
 const pa_players: Player[] = [] //stores the list of players in the game
 
-const testPlayer: Player = new Player(0, "Test Player") //TEMP:
-pa_players.push(testPlayer)
+for (let i: number = 0; i < 10; i++) {  //TEMP:
+    const testPlayer: Player = new Player(0, `Test Player ${i+1}`)
+    pa_players.push(testPlayer)
+}
 
-const currentPlayerIndex: number = 0 //TEMP: not sure how this will work when this game goes to multiplayer
+let currentTurnIndex: number //stores which player is currently up
+let currentPlayerIndex: number = 0 //TEMP: not sure how this will work when this game goes to multiplayer
 
 const pa_planets: Planet[] = [] //stores the list of the planets in play
 
@@ -413,7 +437,25 @@ const DrawBoard = (): void => {
         troopBox.innerHTML = `` //resets the list of troops
     }
 
-    //TODO: handles the drawing of the players board
+    //handles the drawing of the players board
+    playerListBox.innerHTML = ``
+    pa_players.forEach((p) => {
+        if (p.na_location[0] === -1) {
+            playerListBox.innerHTML += `
+                <div class="player-card">
+                    <h3>${p.s_name}</h3>
+                    <h4>Location: Nowhere</h4>
+                </div>
+            `
+        } else {
+            playerListBox.innerHTML += `
+                <div class="player-card">
+                    <h3>${p.s_name}</h3>
+                    <h4>Location: ${pa_planets[p.na_location[0]].s_name} Age ${p.na_location[1] + 1}</h4>
+                </div>
+            `
+        }
+    })
 
     //handles the drawing of the current player info board
     if (pa_players[currentPlayerIndex].na_location[0] === -1) { //checks if the player has not yet gone to a time period
@@ -430,6 +472,9 @@ const DrawBoard = (): void => {
 }
 
 const InitializeGame = (): void => { //used to set up the game
+
+    //TODO: randomize order of players
+    currentTurnIndex = 0
 
     //initializes some style for the page
     document.body.style.backgroundColor = gameBackgroundColor //sets the background of the site to the gameBackgroundColor
@@ -453,12 +498,13 @@ InitializeGame() //runs the initialize game function to start the game
     //should lower power time periods start with more resources to balance it out: maybe leaning probably
 
 //TODO: things that still need to be done
+//player list board
+//turns
+//combat
+  //conquering time periods
+  //troop experience level
 //trading troops and resources between your ship and time periods
   //building buildings
   //training troops
-//combat
-  //conquering time periods
 //integration
 //propagation
-//troop experience level
-//turns
