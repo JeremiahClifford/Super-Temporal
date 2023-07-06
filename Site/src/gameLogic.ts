@@ -164,6 +164,11 @@ class Player {
         this.b_canMove = true
         this.b_canTrade = true
     }
+
+    EndTurn = (): void => {
+        this.b_canMove = false
+        this.b_canTrade = false
+    }
 }
 
 class Troop { //represents 1 fighting unit
@@ -294,7 +299,7 @@ class Planet {
 const pa_players: Player[] = [] //stores the list of players in the game
 
 for (let i: number = 0; i < 10; i++) {  //TEMP:
-    const testPlayer: Player = new Player(0, `Test Player ${i+1}`)
+    const testPlayer: Player = new Player(i, `Test Player ${i+1}`)
     pa_players.push(testPlayer)
 }
 
@@ -338,12 +343,18 @@ const context: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRende
 
 const ba_buttons: Button[] = [] //list to store all of the buttons that need to be drawn to the screen
 
-const b_moveButton: Button = new Button([150, 750], [123, 30], "green", "white", "20px Arial", [10, 22], "Travel Here", () => {
-    if (n_selectedPlanetIndex !== -1) { //makes sure that a time period is selected
-        pa_players[currentPlayerIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] //moves the current player to the selected time period
+const b_moveButton: Button = new Button([10, 750], [123, 30], "green", "white", "20px Arial", [10, 22], "Travel Here", () => {
+    if (pa_players[currentTurnIndex].b_canMove) { //makes sure the player still has their move action available
+        if (n_selectedPlanetIndex !== -1) { //makes sure that a time period is selected
+            pa_players[currentPlayerIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] //moves the current player to the selected time period
+            pa_players[currentTurnIndex].b_canMove = false
+        }
     }
 })
-ba_buttons.push(b_moveButton)
+//ba_buttons.push(b_moveButton)
+
+const b_endTurnButton: Button = new Button([313, 750], [100, 30], "green", "white", "20px Arial", [10, 22], "End Turn", () => AdvanceTurn())
+ba_buttons.push(b_endTurnButton)
 
 const CheckForPressed = (e: MouseEvent): void => {
     //finds the position on the canvas where the player clicked
@@ -356,6 +367,13 @@ const CheckForPressed = (e: MouseEvent): void => {
             b.OnClick() //if it was, execute the button's onclick function
         }
     })
+    //checks the contextual buttons
+    //move button
+    if ((x > b_moveButton.na_position[0] && x < b_moveButton.na_position[0] + b_moveButton.na_size[0]) && (y > b_moveButton.na_position[1] && y < b_moveButton.na_position[1] + b_moveButton.na_size[1])) { //checks if the mouse was within the bounds of the button when it was clicked
+        b_moveButton.OnClick() //if it was, execute the button's onclick function
+    }
+    //trade button
+    //TODO: for when trade button is added
 
     for (let i: number = 0; i < pa_planets.length; i++) { //checks all of the planet displays
         for (let j: number = 0; j < pa_planets[0].ta_timePeriods.length; j++) { //checks all of the time period displays inm the planet
@@ -383,6 +401,13 @@ const DrawBoard = (): void => {
     context.fillRect(0, 0, canvas.width, canvas.height) //draws a dark blue square over the whole canvas
 
     ba_buttons.forEach((b) => b.Draw()) //draws all of the buttons to the screen
+    //handles the buttons which are only shown if the corresponding action is available to the current player
+    if (pa_players[currentTurnIndex].b_canMove) {
+        b_moveButton.Draw()
+    }
+    if (pa_players[currentTurnIndex].b_canTrade) {
+        //TODO: for when trade button is added
+    }
 
     for (let i: number = 0; i < numTimePeriods; i++) { //loops through all of the time period levels and draws a number on the side of the board
         context.fillStyle = boardBackgroundColor //sets the fill color to the background color
@@ -471,10 +496,29 @@ const DrawBoard = (): void => {
     }
 }
 
+const AdvanceTurn = (): void => { //ends the current turn and starts the next one
+
+    pa_players[currentTurnIndex].EndTurn() //removes any unused action from the player ending their turn
+
+    if (currentTurnIndex === (pa_players.length - 1)) { //advances the player whose turn it is by on, making sure to loop around once at the end
+        //TODO: here is where resource gen, troop training, building, combat, integration, propagation, etc should go
+        currentTurnIndex = 0
+    } else {
+        currentTurnIndex++
+    }
+
+    pa_players[currentTurnIndex].StartTurn() //sets the current player up so they have their actions
+
+    currentPlayerIndex = currentTurnIndex //TEMP:
+
+    DrawBoard()
+}
+
 const InitializeGame = (): void => { //used to set up the game
 
     //TODO: randomize order of players
     currentTurnIndex = 0
+    pa_players[currentTurnIndex].StartTurn()
 
     //initializes some style for the page
     document.body.style.backgroundColor = gameBackgroundColor //sets the background of the site to the gameBackgroundColor
