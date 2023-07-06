@@ -80,7 +80,18 @@ body {
 }
 
 .player-card {
-    border: 2px black;
+    border: 2px solid black;
+
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.player-card * {
+    margin: 5px;
 }
 
 #player-info {
@@ -97,6 +108,61 @@ body {
 #location-spot, #resource-spot, #troop-spot {
     width: 20%;
     min-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+
+    margin-bottom: 10px;
+}
+
+#trading-window {
+    border: 3px solid black;
+
+    display: flex;
+    flex-flow: column nowrap;
+
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+
+    margin-top: 20px;
+}
+
+#trade-window-title {
+    width: 135px;
+    margin-left: auto;
+    margin-right: auto;
+
+    margin-bottom: 0px;
+}
+
+#trade-window-body {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.trader {
+    width: 40%;
+    margin-left: auto;
+    margin-right: auto;
+
+    margin-top: 0px;
+    margin-bottom: 10px;
+
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+#trading-window-buttons {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+
+    display: flex;
+    flex-flow: row wrap;
+}
+
+#trading-window-buttons button {
+    width: fit-content;
     margin-left: auto;
     margin-right: auto;
 

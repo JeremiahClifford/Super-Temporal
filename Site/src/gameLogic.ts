@@ -333,6 +333,9 @@ const locationSpot: HTMLElement = document.getElementById('location-spot') as HT
 const resourceSpot: HTMLElement = document.getElementById('resource-spot') as HTMLElement //the line for the player's resources
 const troopListSpot: HTMLElement = document.getElementById('troop-list-spot') as HTMLElement //the scrolling box that shows what troops the player has
 
+//holds onto the trading window
+const tradingWindow: HTMLElement = document.getElementById('trading-window') as HTMLElement //the whole trading window
+
 //stores the coordinates of the selected time period
 let n_selectedPlanetIndex: number = -1
 let n_selectedTimePeriodIndex: number = -1
@@ -526,6 +529,13 @@ const InitializeGame = (): void => { //used to set up the game
     playerListDisplay.style.backgroundColor = boardBackgroundColor //sets the background color of the player list board to the board background color
     currentPlayerInfoBox.style.backgroundColor = boardBackgroundColor //sets the background color of the player info box to the board background color
 
+    tradingWindow.style.backgroundColor = boardBackgroundColor //set the background color of the trading window
+    //sets up the central position of the trading window
+    tradingWindow.style.position = 'fixed'
+    tradingWindow.style.left = '5%'
+    tradingWindow.style.top = '100px'
+    tradingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
+
     for (let i: number = 0; i < numPlanets; i++) { //creates the list of planets of the number specified in the tunable values
         pa_planets.push(new Planet(`Planet ${i+1}`))
     }
@@ -543,10 +553,14 @@ InitializeGame() //runs the initialize game function to start the game
 
 //TODO: things that still need to be done
 //trading troops and resources between your ship and time periods
-  //building buildings
-  //training troops
+  //showing what troops and resources are available in each place
+  //selecting things to move
+  //functionality of trade() function to move the selected things back and forth
 //combat
   //conquering time periods
   //troop experience level
+//conquered time period controls
+  //building buildings
+  //training troops
 //integration
 //propagation
