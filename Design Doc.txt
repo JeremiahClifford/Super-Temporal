@@ -41,9 +41,11 @@ Integration:
 -Troops that are of a higher level than the time period they are in will not integrate.
 
 Propagation:
--Whenever resources are generated or added, buildings are built or upgraded, or troops are trained
-   or added, that change propagates, that is, to then be added to the next time zone up a level at
-   the level appropriate to that level
+-Whenever resources are generated, moved in, or moved out; buildings are built or upgraded; or 
+   troops are trained, moved in, or moved out, that change propagates, that is, to then be added 
+   to the next time zone up a level at the level appropriate to that level
+      if troop of a lower level are added, such that they will later integrate, they are propagated
+      up 1 level, not all the way up to the level of the next time zone
 -When a time zone is conquered, a wall is created preventing propagation from the level before.
    This allows multiple players to control time zones on the same planet without their territory
    being automatically overridden.
@@ -59,8 +61,8 @@ Propagation:
    carried out on the next turn by that time zone creating a new propagation order for the next
    time zone up unless the time zone that propagates is sealed because the time zone above was
    conquered
--TODO: IMPORTANT: Does the removal of troops and resources propagate to later time periods?
-    -Tentative yes
+-Changes which would normally propagate do not propagate if there is combat in the time zone on
+   that turn
 
 The Player:
 -The player has a ship capable of moving between any time zones on any planet.
