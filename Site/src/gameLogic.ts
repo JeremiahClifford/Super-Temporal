@@ -66,20 +66,30 @@ const TroopsString = (a: Army): string => { //gives a string representation of t
     return output //returns the outputted list
 }
 
-const TroopCardList = (a: Army, taken: boolean): string => { //takes an army and returns a string which is a list of all the individual troops with controls which are used on the trade screen to move them back and forth. If taken is true that means this list goes in the selected box. If taken is false, it is going in the present box. This changes what the button s say
-    let output = `<div id="troop-card-list">`
+const TroopCardList = (a: Army, taken: boolean, target: Army): string => { //takes an army and returns a string which is a list of all the individual troops with controls which are used on the trade screen to move them back and forth. If taken is true that means this list goes in the selected box. If taken is false, it is going in the present box. This changes what the button s say
+    let output: HTMLElement = document.createElement('div') as HTMLElement //creates the div for the list of troop cards
+    output.className = 'troop-card-list' //gives the div a class
 
-    a.ta_troops.forEach((t) => {
-        output += `
-            <div class="troop-card">
-                Level: ${t.n_level + t.n_modifier}
-            </div>
-        ` //TODO: add whatever buttons are needed when they are needed. Make sure to make 2 possibilities depending on if taken is true or false
-    })
+    for (let i: number = 0; i < a.ta_troops.length; i++) { //loops through all of the troops to give them each a card
+        let troopCard: HTMLElement = document.createElement('div') as HTMLElement //creates the troop card for this troop
+        troopCard.className = 'troop-card' //gives the troop card a class
+        troopCard.innerHTML += `
+                Level: ${a.ta_troops[i].n_level + a.ta_troops[i].n_modifier}
+        ` //adds the level of the troop to the troop card
+        let selectButton: HTMLButtonElement = document.createElement('button') //creates the select button
+        selectButton.className = 'swap-button'
+        if (taken) { //adds the text to the button depending on wether it is selected or not
+            selectButton.innerHTML = 'Deselect'
+        } else {
+            selectButton.innerHTML = 'Select'
+        }
+        selectButton.onclick = () => SwapTroop(a, i, target) //WIP: for some reason neither this nor the next line actually add the onclick event
+        selectButton.addEventListener("click", () => SwapTroop(a, i, target)) //WIP: for some reason neither this nor the pervious line actually add the onclick event
+        troopCard.appendChild(selectButton) //adds te button the to troop card
+        output.appendChild(troopCard) //adds the troop card to the list
+    }
 
-    output += `</div>`
-
-    return output
+    return output.outerHTML //returns the generated HTML
 }
 
 const DebugPlanets = (): void => { //function to print the info of all the planets to the console for debugging
@@ -308,10 +318,10 @@ const tradeCancelButton: HTMLButtonElement = document.getElementById('trade-wind
 
 let resourcesGiven: number = 0
 let resourcesTaken: number = 0
-let troopsGiven: Troop[] = []
-let troopsTaken: Troop[] = []
+let troopsGiven: Army = new Army(-2, [])
+let troopsTaken: Army = new Army(-3, [])
 
-const FillInTradeWindow = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_troopsTaken: Troop[], p_resourcesTaken: number, p_resourcesGiven: number): void => { //function which writes everything that is in the trade. This function runs every time something is changed in the trade tto update the UI
+const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which writes everything that is in the trade. This function runs every time something is changed in the trade tto update the UI
 
     tradingWindow.style.display = "block" //shows the trade window
 
@@ -329,7 +339,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_t
         }
     }
     if (playerArmyIndex > -1) { //checks if the player has an army in the time period
-        timePeriodPresent.innerHTML += TroopCardList(t.aa_armies[playerArmyIndex], false)//if so: writes out the troops of that army
+        timePeriodPresent.innerHTML += TroopCardList(t.aa_armies[playerArmyIndex], false, troopsTaken)//if so: writes out the troops of that army
     } //if not: do nothing
     //fills in the time period selected
     timePeriodForTrade.innerHTML = `
@@ -337,7 +347,13 @@ const FillInTradeWindow = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_t
             <h4>Resources: ${resourcesTaken}</h4>
         <div>
     ` //resets the text and adds a card for the resources in the time period
-    timePeriodForTrade.innerHTML += TroopCardList(new Army(p, troopsTaken), true)
+    if (playerArmyIndex > -1) { //checks if a player has an army in the time period
+        timePeriodForTrade.innerHTML += TroopCardList(troopsTaken, true, t.aa_armies[playerArmyIndex]) //if so: uses it
+    } else {
+        //if not: creates a new one and uses it
+        t.aa_armies.push(new Army(p, []))
+        timePeriodForTrade.innerHTML += TroopCardList(troopsTaken, true, t.aa_armies[t.aa_armies.length - 1])   
+    }
 
     //fills in the player side
     //fills in the player present
@@ -346,18 +362,19 @@ const FillInTradeWindow = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_t
             <h4>Resources: ${pa_players[p].n_resources}</h4>
         <div>
     ` //resets the text and adds a card for the resources that the player has onboard
-    playerPresent.innerHTML += TroopCardList(pa_players[p].a_troops, false)
+    playerPresent.innerHTML += TroopCardList(pa_players[p].a_troops, false, troopsGiven)
     //fills in the player selected
     playerForTrade.innerHTML = `
         <div class="resource-trade-card">
             <h4>Resources: ${resourcesGiven}</h4>
         <div>
     ` //resets the text and adds a card for the resources in the time period
-    playerForTrade.innerHTML += TroopCardList(new Army(p, troopsGiven), true)
+    playerForTrade.innerHTML += TroopCardList(troopsGiven, true, pa_players[p].a_troops)
 }
 
 const CloseTradeWindow = (p: number, tp: TimePeriod): void => { //cancels a trade in progress and hides the window
     tradingWindow.style.display = "none" //hides the trade window
+    pa_players[p].b_canTrade = true //gives the player their trade action back
     //moves all of the selected things back where they came from
     //returns the player's resources
     pa_players[p].n_resources += resourcesGiven
@@ -366,7 +383,7 @@ const CloseTradeWindow = (p: number, tp: TimePeriod): void => { //cancels a trad
     tp.n_resources += resourcesTaken
     resourcesTaken = 0
     //returns the player's troops and sorts their army
-    troopsGiven.forEach((t) => pa_players[p].a_troops.ta_troops.push(t))
+    troopsGiven.ta_troops.forEach((t) => pa_players[p].a_troops.ta_troops.push(t))
     pa_players[p].a_troops.ta_troops = SortTroops(pa_players[p].a_troops.ta_troops)
     //returns the time period's troops and sorts their army
     let playerArmyIndex: number = -1 //the index at which the player's army in the time period is. -1 by default as they might not have an army
@@ -377,11 +394,20 @@ const CloseTradeWindow = (p: number, tp: TimePeriod): void => { //cancels a trad
     }
     if (playerArmyIndex > -1) { //checks if the player has an army in the time period
         //if so: returns the troops and sorts the army
-        troopsTaken.forEach((t) => tp.aa_armies[playerArmyIndex].ta_troops.push(t))
+        troopsTaken.ta_troops.forEach((t) => tp.aa_armies[playerArmyIndex].ta_troops.push(t))
         tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
     }
+    DrawBoard()
 }
 tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes  the cancel button work
+
+const SwapTroop = (start: Army, startIndex: number, target: Army): void => {
+    console.log(`swapping`)
+    target.ta_troops.push(start.ta_troops[startIndex])
+    target.ta_troops = SortTroops(target.ta_troops)
+    start.ta_troops.slice(startIndex, 1)
+    FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])
+}
 
 const Trade = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_troopsTaken: Troop[], p_resourcesTaken: number, p_resourcesGiven: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
     let playerArmyIndex: number = -1
@@ -395,6 +421,7 @@ const Trade = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_troopsTaken: 
     } else { //if they don't have an army here
         //TODO: implement functionality
     }
+    //TODO: this should be just the opposite of cancel; move the given to the time period and taken to the player
 }
 
 //----------------------------------------------
@@ -460,7 +487,7 @@ const b_moveButton: Button = new Button([10, 750], [123, 30], "green", "white", 
 const b_tradeButton: Button = new Button([165, 750], [120, 30], "green", "white", "20px Arial", [10, 22], "Trade Here", () => {
     if (pa_players[currentTurnIndex].b_canTrade) { //makes sure the player still has their trade action available
         if (n_selectedPlanetIndex !== -1) { //makes sure that a time period is selected
-            FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex], troopsGiven, troopsTaken, resourcesGiven, resourcesTaken)
+            FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])
             pa_players[currentTurnIndex].b_canTrade = false //takes the player's trade action
         }
     }
@@ -660,12 +687,15 @@ InitializeGame() //runs the initialize game function to start the game
 //WIP: Ideas / sections that need thought
   //how does the game start, no one has a time periods so do they start with troops and choose which to conquer to start: probably
     //what troops to they start with
+    //what troops to time periods start with
   //do time periods start the game with some resources
-    //should lower power time periods start with more resources to balance it out: maybe leaning probably
+    //should lower power time periods start with more resources to balance it out: maybe, leaning probably
 
 //TODO: things that still need to be done
 //trading troops and resources between your ship and time periods
-  //selecting things to move
+  //WIP: selecting things to move
+    //WIP: selecting troops
+    //selecting an amount of resources
   //functionality of trade() function to move the selected things back and forth
 //combat
   //conquering time periods
