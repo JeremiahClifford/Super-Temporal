@@ -33,32 +33,32 @@ const SortTroops = (ta: Troop[]): Troop[] => { //sorts the troops of an army in 
     })
 }
 
-const TroopsString = (o: Army): string => { //gives a string representation of the player's or time period's list of troops
-    o.ta_troops = SortTroops(o.ta_troops) //sorts the troops so they are in a good order to be printed
+const TroopsString = (a: Army): string => { //gives a string representation of the player's or time period's list of troops
+    a.ta_troops = SortTroops(a.ta_troops) //sorts the troops so they are in a good order to be printed
 
     //squashes troops of the same level into 1 line
     //arrays to store the types of power level and how many of them there are
     let troopTypes: number[] = [] //types of level
     let typeCounts: number[] = [] //number of each type
 
-    for (let i: number = 0; i < o.ta_troops.length; i++) { //loops through the array and checks if this is the first of the power level
-        if (troopTypes.indexOf(o.ta_troops[i].n_level + o.ta_troops[i].n_modifier) > -1) { //if not: increments the count for that power level
+    for (let i: number = 0; i < a.ta_troops.length; i++) { //loops through the array and checks if this is the first of the power level
+        if (troopTypes.indexOf(a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) > -1) { //if not: increments the count for that power level
             for (let j: number = 0; j < troopTypes.length; j++) {
-                if (troopTypes[j] === o.ta_troops[i].n_level + o.ta_troops[i].n_modifier) {
+                if (troopTypes[j] === a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) {
                     typeCounts[j]++
                 }
             }
         } else {
-            troopTypes.push(o.ta_troops[i].n_level + o.ta_troops[i].n_modifier) //if so: adds that level to the bottom on the list and gives it a count of 1
+            troopTypes.push(a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) //if so: adds that level to the bottom on the list and gives it a count of 1
             typeCounts.push(1)
         }
     }
 
     let output: string = ``
-    if (o.n_ownerIndex === -1) {
-        output = `Natives:<br>${o.ta_troops.length} Troop(s):<br>` //adds the header to the output showing how many total troops the army has and the owner
+    if (a.n_ownerIndex === -1) {
+        output = `Natives:<br>${a.ta_troops.length} Troop(s):<br>` //adds the header to the output showing how many total troops the army has and the owner
     } else {
-        output = `${pa_players[o.n_ownerIndex].s_name}:<br>${o.ta_troops.length} Troop(s):<br>` //adds the header to the output showing how many total troops the army has and the owner
+        output = `${pa_players[a.n_ownerIndex].s_name}:<br>${a.ta_troops.length} Troop(s):<br>` //adds the header to the output showing how many total troops the army has and the owner
     }
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
         output += `${typeCounts[i]}x Level: ${troopTypes[i]}<br>` //adds a line of their info to the output string
@@ -66,18 +66,20 @@ const TroopsString = (o: Army): string => { //gives a string representation of t
     return output //returns the outputted list
 }
 
-const Trade = (p: number, t: TimePeriod, troopsGiven: Troop[], troopsTaken: Troop[], resourcesTaken: number, resourcesGiven: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
-    let playerArmyIndex: number = -1
-    for (let i: number = 0; i < t.aa_armies.length; i++) { //finds if the player already has an army in this time period
-        if (t.aa_armies[i].n_ownerIndex === p) {
-            playerArmyIndex = i
-        }
-    }
-    if (playerArmyIndex > -1) { //if they have an army here
-        //TODO: implement functionality
-    } else { //if they don't have an army here
-        //TODO: implement functionality
-    }
+const TroopCardList = (a: Army, taken: boolean): string => { //takes an army and returns a string which is a list of all the individual troops with controls which are used on the trade screen to move them back and forth. If taken is true that means this list goes in the selected box. If taken is false, it is going in the present box. This changes what the button s say
+    let output = `<div id="troop-card-list">`
+
+    a.ta_troops.forEach((t) => {
+        output += `
+            <div class="troop-card">
+                Level: ${t.n_level + t.n_modifier}
+            </div>
+        ` //TODO: add whatever buttons are needed when they are needed. Make sure to make 2 possibilities depending on if taken is true or false
+    })
+
+    output += `</div>`
+
+    return output
 }
 
 const DebugPlanets = (): void => { //function to print the info of all the planets to the console for debugging
@@ -293,6 +295,73 @@ class Planet {
 }
 
 //----------------------------------------------
+//-----------------Trading----------------------
+//----------------------------------------------
+
+//holds onto the trading window
+const tradingWindow: HTMLElement = document.getElementById('trading-window') as HTMLElement //the whole trading window
+const timePeriodPresent: HTMLElement = document.getElementById('time-period-present') as HTMLElement //the box where the things in the time period go
+const playerPresent: HTMLElement = document.getElementById('player-present') as HTMLElement //the box where the things the player has go
+const tradeCancelButton: HTMLButtonElement = document.getElementById('trade-window-cancel-button') as HTMLButtonElement //cancel button
+
+let resourcesGiven: number = 0
+let resourcesTaken: number = 0
+let troopsGiven: Troop[] = []
+let troopsTaken: Troop[] = []
+
+const FillInTradeWindow = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_troopsTaken: Troop[], p_resourcesTaken: number, p_resourcesGiven: number): void => { //function which writes everything that is in the trade. This function runs every time something is changed in the trade tto update the UI
+
+    tradingWindow.style.display = "block"
+
+    //fills in the time periods side
+    //TODO:
+    //fills in the time period present
+    timePeriodPresent.innerHTML = `
+        <div class="resource-trade-card">
+            <h4>Resources: ${t.n_resources}</h4>
+        <div>
+    ` //resets the text and adds a card for the resources in the time period
+    let playerArmyIndex: number = -1 //the index at which the player's army in the time period is. -1 by default as they might not have an army
+    for (let i: number = 0; i < t.aa_armies.length; i++) { //finds which army in the time period belongs to the player if any
+        if (t.aa_armies[i].n_ownerIndex === p) {
+            playerArmyIndex = i
+        }
+    }
+    if (playerArmyIndex > -1) { //checks if the player has an army in the time period
+        timePeriodPresent.innerHTML += TroopCardList(t.aa_armies[playerArmyIndex], false)//if so: writes out the troops of that army
+    } //if not: do nothing
+
+    //fills in the player side
+    //TODO:
+    //fills in the player present
+    playerPresent.innerHTML = `
+        <div class="resource-trade-card">
+            <h4>Resources: ${pa_players[p].n_resources}</h4>
+        <div>
+    ` //resets the text and adds a card for the resources that the player has onboard
+    playerPresent.innerHTML += TroopCardList(pa_players[p].a_troops, false)
+}
+
+const CloseTradeWindow = (): void => { //cancels a trade in progress and hides the window
+    tradingWindow.style.display = "none"
+    //TODO: move all of the selected things back where they came from
+}
+
+const Trade = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_troopsTaken: Troop[], p_resourcesTaken: number, p_resourcesGiven: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
+    let playerArmyIndex: number = -1
+    for (let i: number = 0; i < t.aa_armies.length; i++) { //finds if the player already has an army in this time period
+        if (t.aa_armies[i].n_ownerIndex === p) {
+            playerArmyIndex = i
+        }
+    }
+    if (playerArmyIndex > -1) { //if they have an army here
+        //TODO: implement functionality
+    } else { //if they don't have an army here
+        //TODO: implement functionality
+    }
+}
+
+//----------------------------------------------
 //-------------MAIN GAME LOGIC------------------
 //----------------------------------------------
 
@@ -333,9 +402,6 @@ const locationSpot: HTMLElement = document.getElementById('location-spot') as HT
 const resourceSpot: HTMLElement = document.getElementById('resource-spot') as HTMLElement //the line for the player's resources
 const troopListSpot: HTMLElement = document.getElementById('troop-list-spot') as HTMLElement //the scrolling box that shows what troops the player has
 
-//holds onto the trading window
-const tradingWindow: HTMLElement = document.getElementById('trading-window') as HTMLElement //the whole trading window
-
 //stores the coordinates of the selected time period
 let n_selectedPlanetIndex: number = -1
 let n_selectedTimePeriodIndex: number = -1
@@ -350,11 +416,19 @@ const b_moveButton: Button = new Button([10, 750], [123, 30], "green", "white", 
     if (pa_players[currentTurnIndex].b_canMove) { //makes sure the player still has their move action available
         if (n_selectedPlanetIndex !== -1) { //makes sure that a time period is selected
             pa_players[currentPlayerIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] //moves the current player to the selected time period
-            pa_players[currentTurnIndex].b_canMove = false
+            pa_players[currentTurnIndex].b_canMove = false //takes the player's move action
         }
     }
 })
-//ba_buttons.push(b_moveButton)
+
+const b_tradeButton: Button = new Button([165, 750], [120, 30], "green", "white", "20px Arial", [10, 22], "Trade Here", () => {
+    if (pa_players[currentTurnIndex].b_canTrade) { //makes sure the player still has their trade action available
+        if (n_selectedPlanetIndex !== -1) { //makes sure that a time period is selected
+            FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex], troopsGiven, troopsTaken, resourcesGiven, resourcesTaken)
+            pa_players[currentTurnIndex].b_canTrade = false //takes the player's trade action
+        }
+    }
+})
 
 const b_endTurnButton: Button = new Button([313, 750], [100, 30], "green", "white", "20px Arial", [10, 22], "End Turn", () => AdvanceTurn())
 ba_buttons.push(b_endTurnButton)
@@ -376,7 +450,9 @@ const CheckForPressed = (e: MouseEvent): void => {
         b_moveButton.OnClick() //if it was, execute the button's onclick function
     }
     //trade button
-    //TODO: for when trade button is added
+    if ((x > b_tradeButton.na_position[0] && x < b_tradeButton.na_position[0] + b_tradeButton.na_size[0]) && (y > b_tradeButton.na_position[1] && y < b_tradeButton.na_position[1] + b_tradeButton.na_size[1])) { //checks if the mouse was within the bounds of the button when it was clicked
+        b_tradeButton.OnClick() //if it was, execute the button's onclick function
+    }
 
     for (let i: number = 0; i < pa_planets.length; i++) { //checks all of the planet displays
         for (let j: number = 0; j < pa_planets[0].ta_timePeriods.length; j++) { //checks all of the time period displays inm the planet
@@ -405,11 +481,11 @@ const DrawBoard = (): void => {
 
     ba_buttons.forEach((b) => b.Draw()) //draws all of the buttons to the screen
     //handles the buttons which are only shown if the corresponding action is available to the current player
-    if (pa_players[currentTurnIndex].b_canMove) {
+    if (pa_players[currentTurnIndex].b_canMove) { //if the player can move: draw the move button
         b_moveButton.Draw()
     }
-    if (pa_players[currentTurnIndex].b_canTrade) {
-        //TODO: for when trade button is added
+    if (pa_players[currentTurnIndex].b_canTrade) { //if the player can trade: draw the trade button
+        b_tradeButton.Draw()
     }
 
     for (let i: number = 0; i < numTimePeriods; i++) { //loops through all of the time period levels and draws a number on the side of the board
