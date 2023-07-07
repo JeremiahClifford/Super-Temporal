@@ -63,6 +63,12 @@ Propagation:
    conquered
 -Changes which would normally propagate do not propagate if there is combat in the time zone on
    that turn
+-IDEA: All time zones are default set propagate all things. When a time zone is conquered, the time
+   zone before is set so that changes still propagate except for troops as they would have died in
+   the combat. The player can move to any time zone they control and set it to not propagate. This
+   be useful as propagated troops can reinforce a battle but can mean that buildings and resources
+   that you generate can also be given to an opponent unless you travel to that time zone and 
+   manually turn off propagation.
 
 The Player:
 -The player has a ship capable of moving between any time zones on any planet.
