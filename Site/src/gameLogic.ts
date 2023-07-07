@@ -301,7 +301,9 @@ class Planet {
 //holds onto the trading window
 const tradingWindow: HTMLElement = document.getElementById('trading-window') as HTMLElement //the whole trading window
 const timePeriodPresent: HTMLElement = document.getElementById('time-period-present') as HTMLElement //the box where the things in the time period go
+const timePeriodForTrade: HTMLElement = document.getElementById('time-period-for-trade') as HTMLElement //box of the things that are coming from the time period
 const playerPresent: HTMLElement = document.getElementById('player-present') as HTMLElement //the box where the things the player has go
+const playerForTrade: HTMLElement = document.getElementById('player-for-trade') as HTMLElement //box of things the player is giving in the trade
 const tradeCancelButton: HTMLButtonElement = document.getElementById('trade-window-cancel-button') as HTMLButtonElement //cancel button
 
 let resourcesGiven: number = 0
@@ -311,10 +313,9 @@ let troopsTaken: Troop[] = []
 
 const FillInTradeWindow = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_troopsTaken: Troop[], p_resourcesTaken: number, p_resourcesGiven: number): void => { //function which writes everything that is in the trade. This function runs every time something is changed in the trade tto update the UI
 
-    tradingWindow.style.display = "block"
+    tradingWindow.style.display = "block" //shows the trade window
 
     //fills in the time periods side
-    //TODO:
     //fills in the time period present
     timePeriodPresent.innerHTML = `
         <div class="resource-trade-card">
@@ -330,9 +331,15 @@ const FillInTradeWindow = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_t
     if (playerArmyIndex > -1) { //checks if the player has an army in the time period
         timePeriodPresent.innerHTML += TroopCardList(t.aa_armies[playerArmyIndex], false)//if so: writes out the troops of that army
     } //if not: do nothing
+    //fills in the time period selected
+    timePeriodForTrade.innerHTML = `
+        <div class="resource-trade-card">
+            <h4>Resources: ${resourcesTaken}</h4>
+        <div>
+    ` //resets the text and adds a card for the resources in the time period
+    timePeriodForTrade.innerHTML += TroopCardList(new Army(p, troopsTaken), true)
 
     //fills in the player side
-    //TODO:
     //fills in the player present
     playerPresent.innerHTML = `
         <div class="resource-trade-card">
@@ -340,12 +347,41 @@ const FillInTradeWindow = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_t
         <div>
     ` //resets the text and adds a card for the resources that the player has onboard
     playerPresent.innerHTML += TroopCardList(pa_players[p].a_troops, false)
+    //fills in the player selected
+    playerForTrade.innerHTML = `
+        <div class="resource-trade-card">
+            <h4>Resources: ${resourcesGiven}</h4>
+        <div>
+    ` //resets the text and adds a card for the resources in the time period
+    playerForTrade.innerHTML += TroopCardList(new Army(p, troopsGiven), true)
 }
 
-const CloseTradeWindow = (): void => { //cancels a trade in progress and hides the window
-    tradingWindow.style.display = "none"
-    //TODO: move all of the selected things back where they came from
+const CloseTradeWindow = (p: number, tp: TimePeriod): void => { //cancels a trade in progress and hides the window
+    tradingWindow.style.display = "none" //hides the trade window
+    //moves all of the selected things back where they came from
+    //returns the player's resources
+    pa_players[p].n_resources += resourcesGiven
+    resourcesGiven = 0
+    //returns the time periods resources
+    tp.n_resources += resourcesTaken
+    resourcesTaken = 0
+    //returns the player's troops and sorts their army
+    troopsGiven.forEach((t) => pa_players[p].a_troops.ta_troops.push(t))
+    pa_players[p].a_troops.ta_troops = SortTroops(pa_players[p].a_troops.ta_troops)
+    //returns the time period's troops and sorts their army
+    let playerArmyIndex: number = -1 //the index at which the player's army in the time period is. -1 by default as they might not have an army
+    for (let i: number = 0; i < tp.aa_armies.length; i++) { //finds which army in the time period belongs to the player if any
+        if (tp.aa_armies[i].n_ownerIndex === p) {
+            playerArmyIndex = i
+        }
+    }
+    if (playerArmyIndex > -1) { //checks if the player has an army in the time period
+        //if so: returns the troops and sorts the army
+        troopsTaken.forEach((t) => tp.aa_armies[playerArmyIndex].ta_troops.push(t))
+        tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
+    }
 }
+tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes  the cancel button work
 
 const Trade = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_troopsTaken: Troop[], p_resourcesTaken: number, p_resourcesGiven: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
     let playerArmyIndex: number = -1
