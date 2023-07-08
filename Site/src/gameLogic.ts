@@ -729,6 +729,10 @@ InitializeGame() //runs the initialize game function to start the game
     //should lower power time periods start with more resources to balance it out: maybe, leaning probably
 
 //TODO: things that still need to be done
+//rework the time period board to not use the canvas
+  //use HTML Elements
+    //this should make the board scale better
+    //no need to make my own buttons and click handling
 //trading troops and resources between your ship and time periods
   //WIP: selecting things to move
     //selecting an amount of resources
