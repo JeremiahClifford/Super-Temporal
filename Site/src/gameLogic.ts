@@ -92,6 +92,18 @@ const TroopCardList = (a: Army, taken: boolean, target: Army): string => { //tak
     return output.outerHTML //returns the generated HTML
 }
 
+const CleanArmies = (): void => { //loops through every time zone and removes any empty time zones. runs every time the game draw
+    for (let i: number = 0; i < pa_planets.length; i++) { //loops through all of the planets
+        for (let j: number = 0; j < pa_planets[i].ta_timePeriods.length; j++) { //loops through all of the time periods
+            for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].aa_armies.length; k++) { //loops through all of the armies
+                if (pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops.length === 0) { //checks if the army is empty
+                    pa_planets[i].ta_timePeriods[j].aa_armies.splice(k, 1) //if so: removes it
+                }
+            }
+        }
+    }
+}
+
 const DebugPlanets = (): void => { //function to print the info of all the planets to the console for debugging
     pa_planets.forEach((p) => {
         console.log(`${p.s_name}: `)
@@ -165,7 +177,7 @@ class Player {
     constructor (c_index: number, c_name: string) {
         this.s_name = c_name
         this.a_troops = new Army(c_index, [new Troop(1, 0), new Troop(1, 0.1), new Troop(1, 0)]) //TEMP: not sure what troops players will start with if any
-        this.n_resources = 0
+        this.n_resources = 20
         this.na_location = [-1, -1]
 
         this.b_canMove = false
@@ -340,20 +352,18 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
     }
     if (playerArmyIndex > -1) { //checks if the player has an army in the time period
         timePeriodPresent.innerHTML += TroopCardList(t.aa_armies[playerArmyIndex], false, troopsTaken)//if so: writes out the troops of that army
-    } //if not: do nothing
+    } else {
+        //if not: creates one to use. if not used, it will be cleaned next time the game draws
+        t.aa_armies.push(new Army(p, []))
+        playerArmyIndex = t.aa_armies.length - 1
+    }
     //fills in the time period selected
     timePeriodForTrade.innerHTML = `
         <div class="resource-trade-card">
             <h4>Resources: ${resourcesTaken}</h4>
         <div>
     ` //resets the text and adds a card for the resources in the time period
-    if (playerArmyIndex > -1) { //checks if a player has an army in the time period
-        timePeriodForTrade.innerHTML += TroopCardList(troopsTaken, true, t.aa_armies[playerArmyIndex]) //if so: uses it
-    } else {
-        //if not: creates a new one and uses it
-        t.aa_armies.push(new Army(p, []))
-        timePeriodForTrade.innerHTML += TroopCardList(troopsTaken, true, t.aa_armies[t.aa_armies.length - 1])   
-    }
+    timePeriodForTrade.innerHTML += TroopCardList(troopsTaken, true, t.aa_armies[playerArmyIndex])
 
     //fills in the player side
     //fills in the player present
@@ -539,6 +549,8 @@ canvas.addEventListener('mousedown', (e) => CheckForPressed(e)) //sets an event 
 
 const DrawBoard = (): void => {
     
+    CleanArmies() //makes sure that any empty armies are removed
+
     context.fillStyle = gameBackgroundColor //sets the fill color to the game background color
     context.fillRect(0, 0, canvas.width, canvas.height) //draws a dark blue square over the whole canvas
 
@@ -605,6 +617,7 @@ const DrawBoard = (): void => {
     }
 
     //handles the drawing of the players board
+    //TODO: add the stuff that the player has to their card
     playerListBox.innerHTML = ``
     pa_players.forEach((p) => {
         if (p.na_location[0] === -1) {
@@ -644,14 +657,14 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
 
     if (currentTurnIndex === (pa_players.length - 1)) { //advances the player whose turn it is by on, making sure to loop around once at the end
         //TODO: here is where resource gen, troop training, building, combat, integration, propagation, etc should go
-        currentTurnIndex = 0
+        currentTurnIndex = 0 //loops around at the end of a full turn cycle
     } else {
-        currentTurnIndex++
+        currentTurnIndex++ //moves the turn to the next player
     }
 
     pa_players[currentTurnIndex].StartTurn() //sets the current player up so they have their actions
 
-    currentPlayerIndex = currentTurnIndex //TEMP:
+    currentPlayerIndex = currentTurnIndex //TEMP: makes the UI show whichever player is the current turn: game is currently pass and play
 
     DrawBoard()
 }
@@ -705,3 +718,6 @@ InitializeGame() //runs the initialize game function to start the game
   //training troops
 //integration
 //propagation
+//player board additional information
+//randomize player order at game start
+//players here section of the selected time period board
