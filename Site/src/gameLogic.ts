@@ -339,11 +339,18 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
 
     //fills in the time periods side
     //fills in the time period present
-    timePeriodPresent.innerHTML = `
-        <div class="resource-trade-card">
-            <h4>Resources: ${t.n_resources}</h4>
-        <div>
-    ` //resets the text and adds a card for the resources in the time period
+    //resets the text and adds a card for the resources in the time period
+    if (t.n_ownerIndex === p) {
+        timePeriodPresent.innerHTML = `
+            <div class="resource-trade-card">
+                <h4>Resources: ${t.n_resources}</h4>
+                <input type="number" class="resource-select-input" id="time-period-present-resource-select-input">
+                <button class="resource-select-button" id="time-period-present-resource-select-button" onclick="SwapResources(false, true)">Select</button>
+            <div>
+        `
+    } else {
+        timePeriodPresent.innerHTML = ``
+    }
     let playerArmyIndex: number = -1 //the index at which the player's army in the time period is. -1 by default as they might not have an army
     for (let i: number = 0; i < t.aa_armies.length; i++) { //finds which army in the time period belongs to the player if any
         if (t.aa_armies[i].n_ownerIndex === p) {
@@ -364,11 +371,18 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
         playerArmyIndex = t.aa_armies.length - 1
     }
     //fills in the time period selected
-    timePeriodForTrade.innerHTML = `
-        <div class="resource-trade-card">
-            <h4>Resources: ${resourcesTaken}</h4>
-        <div>
-    ` //resets the text and adds a card for the resources in the time period
+    //resets the text and adds a card for the resources in the time period
+    if (t.n_ownerIndex === p) {
+        timePeriodForTrade.innerHTML = `
+            <div class="resource-trade-card">
+                <h4>Resources: ${resourcesTaken}</h4>
+                <input type="number" class="resource-select-input" id="time-period-for-trade-resource-select-input">
+                <button class="resource-select-button" id="time-period-for-trade-resource-select-button" onclick="SwapResources(false, false)">Select</button>
+            <div>
+        `
+    } else {
+        timePeriodForTrade.innerHTML = ``
+    }
     timePeriodForTrade.innerHTML += TroopCardList(troopsTaken, true, t.aa_armies[playerArmyIndex])
     for (let i: number = 0; i < troopsTaken.ta_troops.length; i++) { //gives the events to the buttons
         let selectButton: HTMLButtonElement = document.getElementById(`${true}-${troopsTaken.n_ownerIndex}-swap-button-${i}-${p}`) as HTMLButtonElement
@@ -379,11 +393,18 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
 
     //fills in the player side
     //fills in the player present
-    playerPresent.innerHTML = `
-        <div class="resource-trade-card">
-            <h4>Resources: ${pa_players[p].n_resources}</h4>
-        <div>
-    ` //resets the text and adds a card for the resources that the player has onboard
+    //resets the text and adds a card for the resources that the player has onboard
+    if (t.n_ownerIndex === p) {
+        playerPresent.innerHTML = `
+            <div class="resource-trade-card">
+                <h4>Resources: ${pa_players[p].n_resources}</h4>
+                <input type="number" class="resource-select-input" id="player-present-resource-select-input">
+                <button class="resource-select-button" id="player-present-resource-select-button" onclick="SwapResources(true, true)">Select</button>
+            <div>
+        `
+    } else {
+        playerPresent.innerHTML = ``
+    }
     playerPresent.innerHTML += TroopCardList(pa_players[p].a_troops, false, troopsGiven)
     for (let i = 0; i < pa_players[p].a_troops.ta_troops.length; i++) { //gives the events to the buttons
         let selectButton: HTMLButtonElement = document.getElementById(`${false}-${p}-swap-button-${i}-${troopsGiven.n_ownerIndex}`) as HTMLButtonElement
@@ -392,11 +413,19 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
         })
     }
     //fills in the player selected
-    playerForTrade.innerHTML = `
-        <div class="resource-trade-card">
-            <h4>Resources: ${resourcesGiven}</h4>
-        <div>
-    ` //resets the text and adds a card for the resources in the time period
+    //resets the text and adds a card for the resources in the time period
+    if (t.n_ownerIndex === p) {
+        playerForTrade.innerHTML = `
+            <div class="resource-trade-card">
+                <h4>Resources: ${resourcesGiven}</h4>
+                <input type="number" class="resource-select-input" id="player-for-trade-resource-select-input">
+                <button class="resource-select-button" id="player-for-trade-resource-select-button" onclick="SwapResources(true, false)">Select</button>
+            <div>
+        `
+    } else {
+        playerForTrade.innerHTML = ``
+    }
+    
     playerForTrade.innerHTML += TroopCardList(troopsGiven, true, pa_players[p].a_troops)
     for (let i: number = 0; i < troopsGiven.ta_troops.length; i++) { //gives the events to the buttons
         let selectButton: HTMLButtonElement = document.getElementById(`${true}-${troopsGiven.n_ownerIndex}-swap-button-${i}-${p}`) as HTMLButtonElement
@@ -437,6 +466,59 @@ const CloseTradeWindow = (p: number, tp: TimePeriod): void => { //cancels a trad
     DrawBoard()
 }
 tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes  the cancel button work
+
+const SwapResources = (player: boolean, present: boolean): void => { //moves resources from one box to another
+    if (player) { //if the swap should be in the player section
+        if (present) { //if the swap should be from the present section to the selected section
+            let numInput: HTMLInputElement = document.getElementById('player-present-resource-select-input') as HTMLInputElement
+            if (numInput.value) { //makes sure that a number of resources is set by the player
+                if (+numInput.value <= pa_players[currentTurnIndex].n_resources ) { //makes sure the player can take more resources then there are
+                    resourcesGiven += +numInput.value
+                    pa_players[currentTurnIndex].n_resources -= +numInput.value 
+                } else {
+                    resourcesGiven += pa_players[currentTurnIndex].n_resources
+                    pa_players[currentTurnIndex].n_resources = 0
+                }
+            }
+        } else { //if the swap should be from the selected section to the present section
+            let numInput: HTMLInputElement = document.getElementById('player-for-trade-resource-select-input') as HTMLInputElement
+            if (numInput.value) { //makes sure that a number of resources is set by the player
+                if (+numInput.value <= resourcesGiven) { //makes sure the player can take more resources then there are
+                    resourcesGiven -= +numInput.value
+                    pa_players[currentTurnIndex].n_resources += +numInput.value
+                } else {
+                    pa_players[currentTurnIndex].n_resources += resourcesGiven
+                    resourcesGiven = 0
+                }
+            }
+        }
+    } else {
+        if (present) { //if the swap should be from the present section to the selected section
+            let numInput: HTMLInputElement = document.getElementById('time-period-present-resource-select-input') as HTMLInputElement
+            if (numInput.value) { //makes sure that a number of resources is set by the player
+                if (+numInput.value <= pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources) { //makes sure the player can take more resources then there are
+                    resourcesTaken += +numInput.value
+                    pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources -= +numInput.value 
+                } else {
+                    resourcesGiven += pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources
+                    pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources = 0
+                }
+            }
+        } else { //if the swap should be from the selected section to the present section
+            let numInput: HTMLInputElement = document.getElementById('time-period-for-trade-resource-select-input') as HTMLInputElement
+            if (numInput.value) { //makes sure that a number of resources is set by the player
+                if (+numInput.value <= resourcesTaken) { //makes sure the player can take more resources then there are
+                    resourcesTaken -= +numInput.value
+                    pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources += +numInput.value
+                } else {
+                    pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources += resourcesTaken
+                    resourcesTaken = 0
+                }
+            }
+        }
+    }
+    FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
+}
 
 const SwapTroop = (start: Army, startIndex: number, target: Army): void => { //WIP: not quite working properly
     target.ta_troops.push(start.ta_troops[startIndex]) //adds the troops to the target
@@ -753,9 +835,7 @@ InitializeGame() //runs the initialize game function to start the game
   //use HTML Elements
     //this should make the board scale better
     //no need to make my own buttons and click handling
-//WIP: trading troops and resources between your ship and time periods
-  //selecting things to move
-    //selecting an amount of resources
+  //time period box on board should have icon of player that owns it
 //combat
   //conquering time periods
   //troop experience level
@@ -764,6 +844,7 @@ InitializeGame() //runs the initialize game function to start the game
   //training troops
 //integration
 //propagation
-//player board additional information
-//randomize player order at game start
-//players here section of the selected time period board
+//small things:
+  //player board additional information
+  //randomize player order at game start
+  //players here section of the selected time period board

@@ -152,6 +152,16 @@ body {
     flex-flow: column nowrap;
 }
 
+.resource-trade-card {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.resource-trade-card h4 {
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
 #trading-window-buttons {
     width: 90%;
     margin-left: auto;
