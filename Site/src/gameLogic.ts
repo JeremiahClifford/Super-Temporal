@@ -78,7 +78,7 @@ const TroopCardList = (a: Army, taken: boolean, target: Army): string => { //tak
         ` //adds the level of the troop to the troop card
         let selectButton: HTMLButtonElement = document.createElement('button') //creates the select button
         selectButton.className = 'swap-button'
-        selectButton.id = `${a.n_ownerIndex}-swap-button-${i}`
+        selectButton.id = `${taken}-${a.n_ownerIndex}-swap-button-${i}-${target.n_ownerIndex}`
         if (taken) { //adds the text to the button depending on wether it is selected or not
             selectButton.innerHTML = `Deselect`
         } else {
@@ -319,13 +319,14 @@ class Planet {
 //-----------------Trading----------------------
 //----------------------------------------------
 
-//holds onto the trading window
+//holds onto the trading window elements
 const tradingWindow: HTMLElement = document.getElementById('trading-window') as HTMLElement //the whole trading window
 const timePeriodPresent: HTMLElement = document.getElementById('time-period-present') as HTMLElement //the box where the things in the time period go
 const timePeriodForTrade: HTMLElement = document.getElementById('time-period-for-trade') as HTMLElement //box of the things that are coming from the time period
 const playerPresent: HTMLElement = document.getElementById('player-present') as HTMLElement //the box where the things the player has go
 const playerForTrade: HTMLElement = document.getElementById('player-for-trade') as HTMLElement //box of things the player is giving in the trade
 const tradeCancelButton: HTMLButtonElement = document.getElementById('trade-window-cancel-button') as HTMLButtonElement //cancel button
+const tradeSubmitButton: HTMLButtonElement = document.getElementById('trade-window-submit-button') as HTMLButtonElement //submit button
 
 let resourcesGiven: number = 0
 let resourcesTaken: number = 0
@@ -352,7 +353,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
     if (playerArmyIndex > -1) { //checks if the player has an army in the time period
         timePeriodPresent.innerHTML += TroopCardList(t.aa_armies[playerArmyIndex], false, troopsTaken)//if so: writes out the troops of that army
         for (let i = 0; i < t.aa_armies[playerArmyIndex].ta_troops.length; i++) { //gives the events to the buttons
-            let selectButton: HTMLButtonElement = document.getElementById(`${playerArmyIndex}-swap-button-${i}`) as HTMLButtonElement
+            let selectButton: HTMLButtonElement = document.getElementById(`${false}-${p}-swap-button-${i}-${troopsTaken.n_ownerIndex}`) as HTMLButtonElement
             selectButton.addEventListener('click', () => {
                 SwapTroop(t.aa_armies[playerArmyIndex], i, troopsTaken)
             })
@@ -370,7 +371,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
     ` //resets the text and adds a card for the resources in the time period
     timePeriodForTrade.innerHTML += TroopCardList(troopsTaken, true, t.aa_armies[playerArmyIndex])
     for (let i: number = 0; i < troopsTaken.ta_troops.length; i++) { //gives the events to the buttons
-        let selectButton: HTMLButtonElement = document.getElementById(`${troopsTaken.n_ownerIndex}-swap-button-${i}`) as HTMLButtonElement
+        let selectButton: HTMLButtonElement = document.getElementById(`${true}-${troopsTaken.n_ownerIndex}-swap-button-${i}-${p}`) as HTMLButtonElement
         selectButton.addEventListener('click', () => {
             SwapTroop(troopsTaken, i, t.aa_armies[playerArmyIndex])
         })
@@ -385,7 +386,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
     ` //resets the text and adds a card for the resources that the player has onboard
     playerPresent.innerHTML += TroopCardList(pa_players[p].a_troops, false, troopsGiven)
     for (let i = 0; i < pa_players[p].a_troops.ta_troops.length; i++) { //gives the events to the buttons
-        let selectButton: HTMLButtonElement = document.getElementById(`${p}-swap-button-${i}`) as HTMLButtonElement
+        let selectButton: HTMLButtonElement = document.getElementById(`${false}-${p}-swap-button-${i}-${troopsGiven.n_ownerIndex}`) as HTMLButtonElement
         selectButton.addEventListener('click', () => {
             SwapTroop(pa_players[p].a_troops, i, troopsGiven)
         })
@@ -398,7 +399,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
     ` //resets the text and adds a card for the resources in the time period
     playerForTrade.innerHTML += TroopCardList(troopsGiven, true, pa_players[p].a_troops)
     for (let i: number = 0; i < troopsGiven.ta_troops.length; i++) { //gives the events to the buttons
-        let selectButton: HTMLButtonElement = document.getElementById(`${troopsGiven.n_ownerIndex}-swap-button-${i}`) as HTMLButtonElement
+        let selectButton: HTMLButtonElement = document.getElementById(`${true}-${troopsGiven.n_ownerIndex}-swap-button-${i}-${p}`) as HTMLButtonElement
         selectButton.addEventListener('click', () => {
             SwapTroop(troopsGiven, i, pa_players[p].a_troops)
         })
@@ -432,6 +433,7 @@ const CloseTradeWindow = (p: number, tp: TimePeriod): void => { //cancels a trad
         tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
         troopsTaken.ta_troops = []
     }
+
     DrawBoard()
 }
 tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes  the cancel button work
@@ -443,20 +445,38 @@ const SwapTroop = (start: Army, startIndex: number, target: Army): void => { //W
     FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
 }
 
-const Trade = (p: number, t: TimePeriod, p_troopsGiven: Troop[], p_troopsTaken: Troop[], p_resourcesTaken: number, p_resourcesGiven: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
+const Trade = (p: number, tp: TimePeriod): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
+    tradingWindow.style.display = "none" //hides the trade window
+
     let playerArmyIndex: number = -1
-    for (let i: number = 0; i < t.aa_armies.length; i++) { //finds if the player already has an army in this time period
-        if (t.aa_armies[i].n_ownerIndex === p) {
+    for (let i: number = 0; i < tp.aa_armies.length; i++) { //finds if the player already has an army in this time period
+        if (tp.aa_armies[i].n_ownerIndex === p) {
             playerArmyIndex = i
         }
     }
     if (playerArmyIndex > -1) { //if they have an army here
-        //TODO: implement functionality
+        //swaps all the things around
+        //gives the player the resources they take
+        pa_players[p].n_resources += resourcesTaken
+        resourcesTaken = 0
+        //gives the time period the resources it has been given
+        tp.n_resources += resourcesGiven
+        resourcesGiven = 0
+        //moves the taken troops to the player
+        troopsTaken.ta_troops.forEach((t) => pa_players[p].a_troops.ta_troops.push(t))
+        pa_players[p].a_troops.ta_troops = SortTroops(pa_players[p].a_troops.ta_troops)
+        troopsTaken.ta_troops = []
+        //moves the given troops to the time period
+        troopsGiven.ta_troops.forEach((t) => tp.aa_armies[playerArmyIndex].ta_troops.push(t))
+        tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
+        troopsGiven.ta_troops = []
     } else { //if they don't have an army here
-        //TODO: implement functionality
+        //This should never happen as an empty army is created when the trade window is filled in if none is found
     }
-    //TODO: this should be just the opposite of cancel; move the given to the time period and taken to the player
+
+    DrawBoard()
 }
+tradeSubmitButton.addEventListener("click", () => Trade(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes  the submit button work
 
 //----------------------------------------------
 //-------------MAIN GAME LOGIC------------------
@@ -520,7 +540,7 @@ const b_moveButton: Button = new Button([10, 750], [123, 30], "green", "white", 
 
 const b_tradeButton: Button = new Button([165, 750], [120, 30], "green", "white", "20px Arial", [10, 22], "Trade Here", () => {
     if (pa_players[currentTurnIndex].b_canTrade) { //makes sure the player still has their trade action available
-        if (n_selectedPlanetIndex !== -1) { //makes sure that a time period is selected
+        if (n_selectedPlanetIndex === pa_players[currentTurnIndex].na_location[0] && n_selectedTimePeriodIndex === pa_players[currentTurnIndex].na_location[1]) { //makes sure that the correct time period is selected
             FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])
             pa_players[currentTurnIndex].b_canTrade = false //takes the player's trade action
         }
@@ -736,7 +756,6 @@ InitializeGame() //runs the initialize game function to start the game
 //trading troops and resources between your ship and time periods
   //WIP: selecting things to move
     //selecting an amount of resources
-  //functionality of trade() function to move the selected things back and forth
 //combat
   //conquering time periods
   //troop experience level
