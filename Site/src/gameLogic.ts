@@ -753,8 +753,8 @@ InitializeGame() //runs the initialize game function to start the game
   //use HTML Elements
     //this should make the board scale better
     //no need to make my own buttons and click handling
-//trading troops and resources between your ship and time periods
-  //WIP: selecting things to move
+//WIP: trading troops and resources between your ship and time periods
+  //selecting things to move
     //selecting an amount of resources
 //combat
   //conquering time periods
