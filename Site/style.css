@@ -4,16 +4,60 @@ body {
 }
 
 #top-layer {
-    width: 90%;
     margin-left: auto;
     margin-right: auto;
+
+    margin-top: 10px;
 
     display: flex;
     flex-flow: row wrap;
 }
 
+#time-period-board {
+    margin-right: 30px;
+
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+.time-period-board-column {
+    display: flex;
+    flex-flow: column nowrap;
+
+    width: 100px;
+}
+
+#age-numbers {
+    width: 25px;
+    margin-right: 12px;
+}
+
+#top-space, .planet-header {
+    height: 30px;
+}
+
+.planet-header p, .time-period-number p, .time-period-box p {
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+
+    height: fit-content;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.time-period-number, #top-space {
+    width: 100%;
+}
+
+.time-period-space, .planet-header, #top-space {
+    margin: 1px;
+    padding: 2px;
+    border: 3px solid black;
+}
+
 #selected-time-period-display {
-    width: 33%;
+    width: 25%;
     min-width: 450px;
     max-width: 550px;
 
@@ -58,7 +102,7 @@ body {
 }
 
 #player-list-display {
-    width: 33%;
+    width: 25%;
     min-width: 450px;
     max-width: 550px;
 
@@ -95,23 +139,34 @@ body {
 }
 
 #player-info {
-    width: 98%;
+    width: 90%;
     margin-left: auto;
     margin-right: auto;
 
     margin-top: 20px;
 
+    border: 3px solid black;
+    border-radius: 25px;
+
     display: flex;
     flex-flow: row wrap;
 }
 
-#location-spot, #resource-spot, #troop-spot {
-    width: 20%;
+.player-info-item {
+    width: fit-content;
     min-width: 200px;
     margin-left: auto;
     margin-right: auto;
 
     margin-bottom: 10px;
+}
+
+#control-buttons {
+
+    margin-top: 20px;
+
+    display: flex;
+    flex-flow: column nowrap;
 }
 
 #trading-window {

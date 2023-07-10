@@ -9,7 +9,8 @@
     </head>
     <body>
         <div id="top-layer">
-            <canvas width="500" height="800" id="viewport"></canvas>
+            <div id="time-period-board">
+            </div>
             <div id="selected-time-period-display">
                 <h1 id="planet-line">No Planet Selected</h1>
                 <h2 id="age-line">No Time Period Selected</h2>
@@ -38,13 +39,18 @@
             </div>
         </div>
         <div id="player-info">
-                <h4 id="location-spot">Location: none</h4>
-                <h4 id="resource-spot">Resources: 0</h4>
-                <div id="troop-spot">
+                <h4 id="location-spot" class="player-info-item">Location: none</h4>
+                <h4 id="resource-spot" class="player-info-item">Resources: 0</h4>
+                <div id="troop-spot" class="player-info-item">
                     <h4>Troops:</h4>
                     <div style="height:120px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" id="troop-list-spot">
                         None<br>None<br>None<br>None<br>None<br>None
                     </div>
+                </div>
+                <div id="control-buttons" class="player-info-item">
+                    <button id="travel-button" class="control-button">Travel</button>
+                    <button id="trade-button" class="control-button">Trade</button>
+                    <button id="end-turn-button" class="control-button">End turn</button>
                 </div>
         </div>
         <div id="trading-window">

@@ -20,9 +20,6 @@ const planetLabelHeight: number = 30 //how tall the planet's name should be at t
 const planetOverviewWidth: number = 75 //how wide the column that shows a particular planet should be drawn
 const timePeriodOverviewHeight: number = 70 //how tall the box that shows the time period overview should be
 
-const planetLabelFont: string = "15px Arial" //what size and font should the planet name labels be
-const boardNumberLabelWidth: number = 30 //how wide should the time period number labels be
-
 //----------------------------------------------
 //--------------Helper Functions----------------
 //----------------------------------------------
@@ -109,6 +106,7 @@ const DebugPlanets = (): void => { //function to print the info of all the plane
         console.log(` Time Periods:`)
         for (let i: number = 0; i < p.ta_timePeriods.length; i++) {
             console.log(`  Age ${i+1}:`)
+            console.log(`   Owner Index: ${p.ta_timePeriods[i].n_ownerIndex}`)
             console.log(`   Raw Level: ${p.ta_timePeriods[i].n_rawLevel}`)
             console.log(`   Level: ${p.ta_timePeriods[i].n_level}`)
             console.log(`   Raw Modifier: ${p.ta_timePeriods[i].n_rawModifierFactor}`)
@@ -125,43 +123,6 @@ const DebugPlanets = (): void => { //function to print the info of all the plane
 //----------------------------------------------
 //------------------Classes---------------------
 //----------------------------------------------
-
-class Button {
-
-    na_position: number[]
-    na_size: number[]
-    s_color: string
-    s_textColor: string
-    s_font: string
-    na_textOffset: number[]
-    s_text: string
-    f_action: Function
-
-    constructor (c_position: number[], c_size: number[], c_color: string, c_textColor: string, c_font: string, c_textOffset: number[], c_text: string, c_action: Function) {
-        this.na_position = c_position
-        this.na_size = c_size
-        this.s_color = c_color
-        this.s_textColor = c_textColor
-        this.s_font = c_font
-        this.na_textOffset = c_textOffset
-        this.s_text = c_text
-        this.f_action = c_action
-    }
-
-    Draw = (): void => {
-        //draws the button
-        context.fillStyle = this.s_color
-        context.fillRect(this.na_position[0], this.na_position[1], this.na_size[0], this.na_size[1])
-        //draws the text on the button
-        context.fillStyle = this.s_textColor
-        context.font = this.s_font
-        context.fillText(this.s_text, this.na_position[0] + this.na_textOffset[0], this.na_position[1] + this.na_textOffset[1])
-    }
-
-    OnClick = () => {
-        this.f_action()
-    }
-}
 
 class Player {
 
@@ -254,7 +215,8 @@ class TimePeriod {
     aa_armies: Army[]
 
     constructor (c_level: number, c_modifierFactor: number) {
-        this.n_ownerIndex = -1
+        //this.n_ownerIndex = -1
+        this.n_ownerIndex = Math.floor((Math.random() * pa_players.length) - 1)
         this.n_rawLevel = c_level
         this.n_level = Math.pow(2, this.n_rawLevel)
         this.n_rawModifierFactor = c_modifierFactor
@@ -269,18 +231,6 @@ class TimePeriod {
         this.n_resources = this.n_resourceProduction * 5 //TEMP: starts the time period with 5 turns worth of resources. not sure what I want this to be in the final version
         this.ba_buildings = []
         this.aa_armies = [new Army(-1, [new Troop(this.n_rawLevel, this.n_powerModifier * 1.25)])] //TEMP: not sure what troops time periods will start with if any
-    }
-
-    Draw = (p_widthOffset: number, p_heightOffset: number, p_planetsIndex: number, p_timePeriodIndex: number): void => {
-        context.fillStyle = boardBackgroundColor //sets the fill color to the background color
-        context.fillRect(p_widthOffset, p_heightOffset, planetOverviewWidth, timePeriodOverviewHeight) //draws a white square over the area where the planet is to be drawn
-        context.strokeStyle = boardOutlineColor //sets the stroke color to the outline
-        context.lineWidth = 3 //sets the width of the stroke line
-        if (p_planetsIndex === n_selectedPlanetIndex && p_timePeriodIndex === n_selectedTimePeriodIndex) { //checks if the current time period is the one that the player has selected
-            context.strokeStyle = "red" //sets the stroke color to a red
-            context.lineWidth = 4 //sets the width of the stroke line
-        }
-        context.strokeRect(p_widthOffset, p_heightOffset, planetOverviewWidth, timePeriodOverviewHeight) //draws a black square around the area where the planet is to be drawn
     }
 }
 
@@ -297,22 +247,6 @@ class Planet {
         this.ta_timePeriods = []
         for (let i: number = 0; i < numTimePeriods; i++) { //creates the specified number of time periods for the planets
             this.ta_timePeriods.push(new TimePeriod(i, Math.random() * maxModifierFactor)) //creates all of the planets, providing the power level and the random modifier
-        }
-    }
-
-    Draw = (p_widthOffset: number, p_planetIndex: number): void => {
-        //draws a label of the planets name at the top
-        context.fillStyle = boardBackgroundColor //sets the fill color to the background color
-        context.fillRect(p_widthOffset + timePeriodBoardShift, timePeriodBoardShift - planetLabelHeight, planetOverviewWidth, planetLabelHeight)
-        context.strokeStyle = boardOutlineColor //sets the stroke color to the outline color
-        context.lineWidth = 3 //sets the width of the stroke line
-        context.strokeRect(p_widthOffset + timePeriodBoardShift, timePeriodBoardShift - planetLabelHeight, planetOverviewWidth, planetLabelHeight) //draws the background for the planet's name
-        context.font = planetLabelFont //makes sure that the planet label font is set properly
-        context.fillStyle = "black" //sets the fill color to a black
-        context.fillText(`${this.s_name}`, timePeriodBoardShift + 2 + (p_planetIndex * planetOverviewWidth), timePeriodBoardShift - 10)
-
-        for (let i: number = 0; i < this.ta_timePeriods.length; i++) { //lops through all of the time periods of this planet and runs their draw function
-            this.ta_timePeriods[i].Draw(p_widthOffset + timePeriodBoardShift, (timePeriodOverviewHeight * i) + timePeriodBoardShift, p_planetIndex, i) //draws a border around the label of the planet's name
         }
     }
 }
@@ -467,7 +401,6 @@ const CloseTradeWindow = (p: number, tp: TimePeriod): void => { //cancels a trad
 
     DrawBoard()
 }
-tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes  the cancel button work
 
 const SwapResources = (player: boolean, present: boolean): void => { //moves resources from one box to another
     if (player) { //if the swap should be in the player section
@@ -560,7 +493,6 @@ const Trade = (p: number, tp: TimePeriod): void => { //function to move troops a
 
     DrawBoard()
 }
-tradeSubmitButton.addEventListener("click", () => Trade(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes  the submit button work
 
 //----------------------------------------------
 //-------------MAIN GAME LOGIC------------------
@@ -578,7 +510,10 @@ let currentPlayerIndex: number = 0 //TEMP: not sure how this will work when this
 
 const pa_planets: Planet[] = [] //stores the list of the planets in play
 
-//holds onto the display for the selected timer period and its parts
+//holds onto the time period board display
+const timePeriodBoard: HTMLElement = document.getElementById('time-period-board') as HTMLElement
+
+//holds onto the display for the selected time period and its parts
 const selectedTimePeriodDisplay: HTMLElement = document.getElementById('selected-time-period-display') as HTMLElement //the whole display
 const planetLine: HTMLElement = document.getElementById('planet-line') as HTMLElement //planet title
 const ageLine: HTMLElement = document.getElementById('age-line') as HTMLElement //time period title
@@ -603,107 +538,85 @@ const locationSpot: HTMLElement = document.getElementById('location-spot') as HT
 const resourceSpot: HTMLElement = document.getElementById('resource-spot') as HTMLElement //the line for the player's resources
 const troopListSpot: HTMLElement = document.getElementById('troop-list-spot') as HTMLElement //the scrolling box that shows what troops the player has
 
+//get the control buttons
+const travelButton: HTMLButtonElement = document.getElementById('travel-button') as HTMLButtonElement //travel button
+const tradeButton: HTMLButtonElement = document.getElementById('trade-button') as HTMLButtonElement //trade button
+const endTurnButton: HTMLButtonElement = document.getElementById('end-turn-button') as HTMLButtonElement //end turn button
+
 //stores the coordinates of the selected time period
 let n_selectedPlanetIndex: number = -1
 let n_selectedTimePeriodIndex: number = -1
-
-//gets the canvas and context from the HTML Page to be used to draw the game to the canvas on the page
-const canvas: HTMLCanvasElement = document.getElementById("viewport") as HTMLCanvasElement
-const context: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRenderingContext2D
-
-const ba_buttons: Button[] = [] //list to store all of the buttons that need to be drawn to the screen
-
-const b_moveButton: Button = new Button([10, 750], [123, 30], "green", "white", "20px Arial", [10, 22], "Travel Here", () => {
-    if (pa_players[currentTurnIndex].b_canMove) { //makes sure the player still has their move action available
-        if (n_selectedPlanetIndex !== -1) { //makes sure that a time period is selected
-            pa_players[currentPlayerIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] //moves the current player to the selected time period
-            pa_players[currentTurnIndex].b_canMove = false //takes the player's move action
-        }
-    }
-})
-
-const b_tradeButton: Button = new Button([165, 750], [120, 30], "green", "white", "20px Arial", [10, 22], "Trade Here", () => {
-    if (pa_players[currentTurnIndex].b_canTrade) { //makes sure the player still has their trade action available
-        if (n_selectedPlanetIndex === pa_players[currentTurnIndex].na_location[0] && n_selectedTimePeriodIndex === pa_players[currentTurnIndex].na_location[1]) { //makes sure that the correct time period is selected
-            FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])
-            pa_players[currentTurnIndex].b_canTrade = false //takes the player's trade action
-        }
-    }
-})
-
-const b_endTurnButton: Button = new Button([313, 750], [100, 30], "green", "white", "20px Arial", [10, 22], "End Turn", () => AdvanceTurn())
-ba_buttons.push(b_endTurnButton)
-
-const CheckForPressed = (e: MouseEvent): void => {
-    //finds the position on the canvas where the player clicked
-    const rect = canvas.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-
-    ba_buttons.forEach((b) => { //loops through every button on screen
-        if ((x > b.na_position[0] && x < b.na_position[0] + b.na_size[0]) && (y > b.na_position[1] && y < b.na_position[1] + b.na_size[1])) { //checks if the mouse was within the bounds of the button when it was clicked
-            b.OnClick() //if it was, execute the button's onclick function
-        }
-    })
-    //checks the contextual buttons
-    //move button
-    if ((x > b_moveButton.na_position[0] && x < b_moveButton.na_position[0] + b_moveButton.na_size[0]) && (y > b_moveButton.na_position[1] && y < b_moveButton.na_position[1] + b_moveButton.na_size[1])) { //checks if the mouse was within the bounds of the button when it was clicked
-        b_moveButton.OnClick() //if it was, execute the button's onclick function
-    }
-    //trade button
-    if ((x > b_tradeButton.na_position[0] && x < b_tradeButton.na_position[0] + b_tradeButton.na_size[0]) && (y > b_tradeButton.na_position[1] && y < b_tradeButton.na_position[1] + b_tradeButton.na_size[1])) { //checks if the mouse was within the bounds of the button when it was clicked
-        b_tradeButton.OnClick() //if it was, execute the button's onclick function
-    }
-
-    for (let i: number = 0; i < pa_planets.length; i++) { //checks all of the planet displays
-        for (let j: number = 0; j < pa_planets[0].ta_timePeriods.length; j++) { //checks all of the time period displays inm the planet
-            if ((x > (i * planetOverviewWidth) + timePeriodBoardShift && x < ((i + 1) * planetOverviewWidth) + timePeriodBoardShift) && (y > (j * timePeriodOverviewHeight) + timePeriodBoardShift && y < ((j + 1) * timePeriodOverviewHeight) + timePeriodBoardShift)) { //checks if the click was within the display of that time period
-                if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) { //checks if the clicked on time period is already selected
-                    //sets the selected indexes to the default none values if it is currently selected
-                    n_selectedPlanetIndex = -1
-                    n_selectedTimePeriodIndex = -1
-                } else {
-                    //sets the selected indexes to that time period
-                    n_selectedPlanetIndex = i
-                    n_selectedTimePeriodIndex = j
-                }
-            }
-        }
-    }
-
-    DrawBoard()
-}
-canvas.addEventListener('mousedown', (e) => CheckForPressed(e)) //sets an event listener to check if the player clicked on a button for every time they click on the canvas
 
 const DrawBoard = (): void => {
     
     CleanArmies() //makes sure that any empty armies are removed
 
-    context.fillStyle = gameBackgroundColor //sets the fill color to the game background color
-    context.fillRect(0, 0, canvas.width, canvas.height) //draws a dark blue square over the whole canvas
-
-    ba_buttons.forEach((b) => b.Draw()) //draws all of the buttons to the screen
-    //handles the buttons which are only shown if the corresponding action is available to the current player
-    if (pa_players[currentTurnIndex].b_canMove) { //if the player can move: draw the move button
-        b_moveButton.Draw()
+    //handles the time period board
+    timePeriodBoard.innerHTML = ``
+    let ageNumbers: HTMLElement = document.createElement('div')
+    ageNumbers.className = "time-period-board-column"
+    ageNumbers.id = "age-numbers"
+    //adds the numbers on the left of the board
+    //creates the top space that will be empty
+    let topSpace: HTMLElement = document.createElement('div')
+    topSpace.className = "time-period-board-space"
+    topSpace.id="top-space"
+    ageNumbers.appendChild(topSpace) //adds the top space
+    for (let i: number = 0; i < numTimePeriods; i++) { //creates each number in turn
+        let ageNumber: HTMLElement = document.createElement('div')
+        ageNumber.classList.add('time-period-space')
+        ageNumber.classList.add('time-period-number')
+        ageNumber.style.height = `${100 / (numTimePeriods + 1)}%`
+        ageNumber.innerHTML = `<p>${i+1}</p>`
+        ageNumbers.appendChild(ageNumber) //adds the number to the column
     }
-    if (pa_players[currentTurnIndex].b_canTrade) { //if the player can trade: draw the trade button
-        b_tradeButton.Draw()
-    }
+    timePeriodBoard.appendChild(ageNumbers) //adds the numbers column to the board
+    //adds each planet
+    for (let i: number = 0; i < numPlanets; i++) { //column for each planet
+        //creates the column
+        let planetColumn: HTMLElement = document.createElement('div')
+        planetColumn.className = "time-period-board-column"
+        planetColumn.id = `${pa_planets[i].s_name}-column`
 
-    for (let i: number = 0; i < numTimePeriods; i++) { //loops through all of the time period levels and draws a number on the side of the board
-        context.fillStyle = boardBackgroundColor //sets the fill color to the background color
-        context.fillRect(timePeriodBoardShift - boardNumberLabelWidth, timePeriodBoardShift  + (timePeriodOverviewHeight * i), boardNumberLabelWidth, timePeriodOverviewHeight) //draws a white background where the number will go
-        context.strokeStyle = boardOutlineColor //sets the stroke color to the outline color
-        context.lineWidth = 3 //sets the width of the stroke line
-        context.strokeRect(timePeriodBoardShift - boardNumberLabelWidth, timePeriodBoardShift  + (timePeriodOverviewHeight * i), boardNumberLabelWidth, timePeriodOverviewHeight) //draws a black border around where the number will go
-        context.font = planetLabelFont //makes sure that the planet label font is set properly
-        context.fillStyle = "black" //sets the fill color to a black
-        context.fillText(`${i+1}`, timePeriodBoardShift - (boardNumberLabelWidth * 0.8), timePeriodBoardShift  + ((timePeriodOverviewHeight * (i + 1)) - (timePeriodOverviewHeight * 0.4)))
-    }
+        let planetHeader: HTMLElement = document.createElement('div')
+        planetHeader.className = 'planet-header'
+        planetHeader.id = `${pa_planets[i].s_name}-header`
+        planetHeader.innerHTML = `<p>${pa_planets[i].s_name}</p>`
+        planetColumn.appendChild(planetHeader) //adds the name to the top
 
-    for (let i: number = 0; i < pa_planets.length; i++) { //loops through all of the planets
-        pa_planets[i].Draw(planetOverviewWidth * i, i) //runs their draw function
+        for (let j: number = 0; j < numTimePeriods; j++) { //adds all the planets
+            //creates the box for the time period
+            let timePeriodBox: HTMLElement = document.createElement('div')
+            timePeriodBox.classList.add("time-period-space")
+            timePeriodBox.classList.add("time-period-box")
+            timePeriodBox.id = `age-${j+1}-box`
+            timePeriodBox.style.height = `${100 / (numTimePeriods + 1)}%`
+            timePeriodBox.addEventListener('click', () => {
+                if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) {
+                    n_selectedPlanetIndex = -1
+                    n_selectedTimePeriodIndex = -1
+                    timePeriodBox.style.borderColor = `black`
+                } else {
+                    n_selectedPlanetIndex = i
+                    n_selectedTimePeriodIndex = j
+                    timePeriodBox.style.borderColor = `red`
+                }
+                DrawBoard()
+            })
+
+            if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) { //check if this one is selected
+                timePeriodBox.style.borderColor = `red` //if so: set the border to red
+            }
+            //add the info that should appear in the box
+            if (pa_planets[i].ta_timePeriods[j].n_ownerIndex > -1) { //if it is owned by a player
+                timePeriodBox.innerHTML = `<p>${pa_players[pa_planets[i].ta_timePeriods[j].n_ownerIndex].s_name}</p>` //TEMP: fill in their name
+                //TODO: put their icon
+            }
+
+            planetColumn.appendChild(timePeriodBox) //adds the box to the column
+        }
+
+        timePeriodBoard.appendChild(planetColumn) //adds the planet column to the board
     }
 
     //handles the drawing of the selected time periods info board
@@ -714,7 +627,7 @@ const DrawBoard = (): void => {
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === -1) { //checks if the time period is owner by a player
             ownerLine.innerHTML = `Owner: ${pa_planets[n_selectedPlanetIndex].s_name} natives` //if not: writes that it is owned by people from that planet
         } else {
-            ownerLine.innerHTML = `Owner: Player ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex + 1}` //if so: writes the owner of the time period
+            ownerLine.innerHTML = `Owner: ${pa_players[pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex].s_name}` //if so: writes the owner of the time period
         }
         powerLine.innerHTML = `Power Level: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_level + pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_powerModifier}` //writes the power level of the time period to the label
         resourcesLine.innerHTML = `Resources: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources}` //writes the number of resources in the time period
@@ -806,6 +719,7 @@ const InitializeGame = (): void => { //used to set up the game
 
     //initializes some style for the page
     document.body.style.backgroundColor = gameBackgroundColor //sets the background of the site to the gameBackgroundColor
+    timePeriodBoard.style.backgroundColor = boardBackgroundColor
     selectedTimePeriodDisplay.style.backgroundColor = boardBackgroundColor //sets the display background color to the same color as the canvas
     playerListDisplay.style.backgroundColor = boardBackgroundColor //sets the background color of the player list board to the board background color
     currentPlayerInfoBox.style.backgroundColor = boardBackgroundColor //sets the background color of the player info box to the board background color
@@ -816,6 +730,24 @@ const InitializeGame = (): void => { //used to set up the game
     tradingWindow.style.left = '5%'
     tradingWindow.style.top = '100px'
     tradingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
+
+    //makes buttons work
+    tradeSubmitButton.addEventListener("click", () => Trade(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes the trade submit button work
+    tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes  the cancel button work
+    travelButton.addEventListener("click", () => { //travel button functionality
+        if (pa_players[currentPlayerIndex].b_canMove && n_selectedPlanetIndex > -1 && n_selectedPlanetIndex !== pa_players[currentPlayerIndex].na_location[0] && n_selectedTimePeriodIndex !== pa_players[currentPlayerIndex].na_location[1]) { //makes sure the player can move this turn, has a time period selected, and are not already there
+            pa_players[currentPlayerIndex].b_canMove = false //takes the player's move action
+            pa_players[currentPlayerIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] //moves the player
+            DrawBoard() //redraws the board
+        }
+    })
+    tradeButton.addEventListener("click", ()  => { //trade button functionality
+        if (pa_players[currentPlayerIndex].b_canTrade && pa_players[currentPlayerIndex].na_location[0] === n_selectedPlanetIndex && pa_players[currentPlayerIndex].na_location[1] === n_selectedTimePeriodIndex) { //makes sure the player can trade this turn and is in the selected time period
+            pa_players[currentPlayerIndex].b_canTrade = false //takes the player's trade action
+            FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //starts the trade
+        }
+    })
+    endTurnButton.addEventListener("click", () => AdvanceTurn()) //end turn button functionality, makes the end turn button run the AdvanceTurn() function
 
     for (let i: number = 0; i < numPlanets; i++) { //creates the list of planets of the number specified in the tunable values
         pa_planets.push(new Planet(`Planet ${i+1}`))
@@ -834,11 +766,6 @@ InitializeGame() //runs the initialize game function to start the game
     //should lower power time periods start with more resources to balance it out: maybe, leaning probably
 
 //TODO: things that still need to be done
-//rework the time period board to not use the canvas
-  //use HTML Elements
-    //this should make the board scale better
-    //no need to make my own buttons and click handling
-  //time period box on board should have icon of player that owns it
 //combat
   //conquering time periods
   //troop experience level
@@ -853,5 +780,7 @@ InitializeGame() //runs the initialize game function to start the game
   //time period starting resources
 //small things:
   //player board additional information
+    //troops they have
+    //resources they have
   //randomize player order at game start
   //players here section of the selected time period board
