@@ -208,8 +208,10 @@ class Troop { //represents 1 fighting unit
 
     ProgressIntegration = (currentTimePeriodLevel: number): void => {
         if (currentTimePeriodLevel > this.n_rawLevel) {
+            this.n_modifier /= Math.pow(2, this.n_rawLevel)
             this.n_rawLevel++
             this.n_level = Math.pow(2, this.n_rawLevel)
+            this.n_modifier *= Math.pow(2, this.n_rawLevel)
         }
     }
 
@@ -783,6 +785,7 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
 
     if (currentTurnIndex === (pa_players.length - 1)) { //advances the player whose turn it is by on, making sure to loop around once at the end
         //TODO: here is where resource gen, troop training, building, combat, integration, propagation, etc should go
+        pa_planets.forEach((p) => p.ta_timePeriods.forEach((tp) => tp.aa_armies.forEach((a) => a.ta_troops.forEach((t) => t.ProgressIntegration(tp.n_rawLevel))))) //Integration: goes through every troop in every army in every time period in every planet and runs their integration function
         currentTurnIndex = 0 //loops around at the end of a full turn cycle
     } else {
         currentTurnIndex++ //moves the turn to the next player
@@ -842,8 +845,12 @@ InitializeGame() //runs the initialize game function to start the game
 //conquered time period controls
   //building buildings
   //training troops
-//integration
 //propagation
+//Starting conditions:
+  //player starting troops
+  //player starting resources
+  //time period starting troops
+  //time period starting resources
 //small things:
   //player board additional information
   //randomize player order at game start
