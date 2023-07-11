@@ -91,9 +91,6 @@ Combat:
 -Buildings can be destroyed in combat. Players can give orders to attack or avoid attacking
    buildings when attacking. They can also give order to either defend or sacrifice buildings
    when defending. Buildings can even be destroyed by defenders in scorched earth.
--TODO: figure out a way to store the various power levels of different troops in the same time
-   zone or ship
-    -does each individual troop need to be its own object?
 
 Order of a turn:
 1. Player can move their ship from one time zone to another once and can load or unload troops

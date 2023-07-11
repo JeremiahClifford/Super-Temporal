@@ -14,12 +14,6 @@ const gameBackgroundColor: string = "#03053c" //background color of the whole ga
 const boardBackgroundColor: string = "#e8e8e8" //color of the background of the various boards
 const boardOutlineColor: string = "#2c2c2c" //color of the outline of the various boards
 
-const timePeriodBoardShift: number = 40
-
-const planetLabelHeight: number = 30 //how tall the planet's name should be at the top of the display
-const planetOverviewWidth: number = 75 //how wide the column that shows a particular planet should be drawn
-const timePeriodOverviewHeight: number = 70 //how tall the box that shows the time period overview should be
-
 //----------------------------------------------
 //--------------Helper Functions----------------
 //----------------------------------------------
@@ -190,6 +184,10 @@ class Army {
         this.n_ownerIndex = c_ownerIndex
         this.ta_troops = c_troops
     }
+
+    DoIntegration = (currentTimePeriodLevel: number): void => { //goes through troop and runs integration
+        this.ta_troops.forEach((t) => t.ProgressIntegration(currentTimePeriodLevel))
+    }
 }
 
 class Building {
@@ -216,7 +214,7 @@ class TimePeriod {
 
     constructor (c_level: number, c_modifierFactor: number) {
         //this.n_ownerIndex = -1
-        this.n_ownerIndex = Math.floor((Math.random() * pa_players.length) - 1)
+        this.n_ownerIndex = Math.floor((Math.random() * (pa_players.length + 1)) - 1)
         this.n_rawLevel = c_level
         this.n_level = Math.pow(2, this.n_rawLevel)
         this.n_rawModifierFactor = c_modifierFactor
@@ -231,6 +229,18 @@ class TimePeriod {
         this.n_resources = this.n_resourceProduction * 5 //TEMP: starts the time period with 5 turns worth of resources. not sure what I want this to be in the final version
         this.ba_buildings = []
         this.aa_armies = [new Army(-1, [new Troop(this.n_rawLevel, this.n_powerModifier * 1.25)])] //TEMP: not sure what troops time periods will start with if any
+    }
+
+    DoCombat = (): void => {
+        if (this.aa_armies.length === 1) { //if only one army remains, that player's army conquers the time period
+            this.n_ownerIndex = this.aa_armies[0].n_ownerIndex
+        } else { //if there are multiple armies in the time period
+            //TODO: Implement combat
+        }
+    }
+
+    DoIntegration = (): void => { //goes through every army and runs integration
+        this.aa_armies.forEach((a) => a.DoIntegration(this.n_rawLevel))
     }
 }
 
@@ -248,6 +258,14 @@ class Planet {
         for (let i: number = 0; i < numTimePeriods; i++) { //creates the specified number of time periods for the planets
             this.ta_timePeriods.push(new TimePeriod(i, Math.random() * maxModifierFactor)) //creates all of the planets, providing the power level and the random modifier
         }
+    }
+
+    DoCombat = (): void => { //goes through every time period and does combat
+        this.ta_timePeriods.forEach((tp) => tp.DoCombat())
+    }
+    
+    DoIntegration = (): void => { //goes through every time period and runs integration
+        this.ta_timePeriods.forEach((tp) => tp.DoIntegration())
     }
 }
 
@@ -578,6 +596,7 @@ const DrawBoard = (): void => {
         planetColumn.className = "time-period-board-column"
         planetColumn.id = `${pa_planets[i].s_name}-column`
 
+        //adds the header to the top of the column
         let planetHeader: HTMLElement = document.createElement('div')
         planetHeader.className = 'planet-header'
         planetHeader.id = `${pa_planets[i].s_name}-header`
@@ -591,12 +610,12 @@ const DrawBoard = (): void => {
             timePeriodBox.classList.add("time-period-box")
             timePeriodBox.id = `age-${j+1}-box`
             timePeriodBox.style.height = `${100 / (numTimePeriods + 1)}%`
-            timePeriodBox.addEventListener('click', () => {
+            timePeriodBox.addEventListener('click', () => { //adds the event to each time period box to select it
                 if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) {
                     n_selectedPlanetIndex = -1
                     n_selectedTimePeriodIndex = -1
                     timePeriodBox.style.borderColor = `black`
-                } else {
+                } else { //deselects the box if it was already selected
                     n_selectedPlanetIndex = i
                     n_selectedTimePeriodIndex = j
                     timePeriodBox.style.borderColor = `red`
@@ -697,8 +716,10 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
     pa_players[currentTurnIndex].EndTurn() //removes any unused action from the player ending their turn
 
     if (currentTurnIndex === (pa_players.length - 1)) { //advances the player whose turn it is by on, making sure to loop around once at the end
-        //TODO: here is where resource gen, troop training, building, combat, integration, propagation, etc should go
-        pa_planets.forEach((p) => p.ta_timePeriods.forEach((tp) => tp.aa_armies.forEach((a) => a.ta_troops.forEach((t) => t.ProgressIntegration(tp.n_rawLevel))))) //Integration: goes through every troop in every army in every time period in every planet and runs their integration function
+        pa_planets.forEach((p) => {
+            p.DoCombat() //runs combat for all the planets
+            p.DoIntegration() //runs integration for all the planets
+        })
         currentTurnIndex = 0 //loops around at the end of a full turn cycle
     } else {
         currentTurnIndex++ //moves the turn to the next player
@@ -767,7 +788,7 @@ InitializeGame() //runs the initialize game function to start the game
 
 //TODO: things that still need to be done
 //combat
-  //conquering time periods
+  //combat between 2 or more armies
   //troop experience level
 //conquered time period controls
   //building buildings
