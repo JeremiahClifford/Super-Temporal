@@ -236,6 +236,13 @@ class TimePeriod {
             this.n_ownerIndex = this.aa_armies[0].n_ownerIndex
         } else { //if there are multiple armies in the time period
             //TODO: Implement combat
+            //IDEA: Ideas of how combat will work
+                //IDEA: troops have health equal to their power level but it goes down from combat
+                    //IDEA: troops heal only on the player's ship at the end of a turn cycle
+                //Every possible pair of armies face off 1 troop, they inflict damage equal to their power level, any that drop below 0 health die. others can stay to fight again
+                    //loop through every army, in turn, loop through every army after them in the aa_armies array and face off the top troop of each
+                        //with lots of troops this could end up taking a very long time, but also, with movement so limited that could be a good thing, turns may go very fast
+
         }
     }
 
