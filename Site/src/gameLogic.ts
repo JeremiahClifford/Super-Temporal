@@ -724,8 +724,10 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
 
     if (currentTurnIndex === (pa_players.length - 1)) { //advances the player whose turn it is by on, making sure to loop around once at the end
         pa_planets.forEach((p) => {
+            //TODO: resource gen, building building, and troop train can go here
             p.DoCombat() //runs combat for all the planets
             p.DoIntegration() //runs integration for all the planets
+            //TODO: Propagation can go here as propagation for the planet will happen after everything else for the planet. it can happen for one planet before integration and such for other planets as planets do not interact
         })
         currentTurnIndex = 0 //loops around at the end of a full turn cycle
     } else {
