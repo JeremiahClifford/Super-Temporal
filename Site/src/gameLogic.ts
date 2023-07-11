@@ -30,17 +30,19 @@ const TroopsString = (a: Army): string => { //gives a string representation of t
     //squashes troops of the same level into 1 line
     //arrays to store the types of power level and how many of them there are
     let troopTypes: number[] = [] //types of level
+    let troopHealth: number[] = []//health of the type
     let typeCounts: number[] = [] //number of each type
 
     for (let i: number = 0; i < a.ta_troops.length; i++) { //loops through the array and checks if this is the first of the power level
         if (troopTypes.indexOf(a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) > -1) { //if not: increments the count for that power level
-            for (let j: number = 0; j < troopTypes.length; j++) {
-                if (troopTypes[j] === a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) {
+            for (let j: number = 0; j < troopTypes.length; j++) { //loops through the types to check them against the current troop being checked
+                if (troopTypes[j] === a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) { //TODO: make sure that troops are only considered the same type if the also have the same health
                     typeCounts[j]++
                 }
             }
         } else {
             troopTypes.push(a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) //if so: adds that level to the bottom on the list and gives it a count of 1
+            troopHealth.push(a.ta_troops[i].n_health)
             typeCounts.push(1)
         }
     }
@@ -52,7 +54,7 @@ const TroopsString = (a: Army): string => { //gives a string representation of t
         output = `${pa_players[a.n_ownerIndex].s_name}:<br>${a.ta_troops.length} Troop(s):<br>` //adds the header to the output showing how many total troops the army has and the owner
     }
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
-        output += `${typeCounts[i]}x Level: ${troopTypes[i]}<br>` //adds a line of their info to the output string
+        output += `${typeCounts[i]}x Level: ${troopTypes[i]} Health: ${troopHealth[i]}<br>` //adds a line of their info to the output string
     }
     return output //returns the outputted list
 }
@@ -91,6 +93,23 @@ const CleanArmies = (): void => { //loops through every time zone and removes an
                 }
             }
         }
+    }
+}
+
+const Combat = (a1: Army, a2: Army): void => { //carries out combat between 2 armies
+    console.log(`combat`)
+    //both armies are sorted
+    a1.ta_troops = SortTroops(a1.ta_troops)
+    a2.ta_troops = SortTroops(a2.ta_troops)
+    //both troops deal damage to each other
+    a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
+    a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
+    //remove dead troops
+    if (a1.ta_troops[0].n_health <= 0) {
+        a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
+    }
+    if (a2.ta_troops[0].n_health <= 0) {
+        a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
     }
 }
 
@@ -154,11 +173,13 @@ class Troop { //represents 1 fighting unit
     n_rawLevel: number
     n_level: number
     n_modifier: number
+    n_health: number
 
     constructor (c_level: number, c_modifier: number) {
         this.n_rawLevel = c_level
         this.n_level = Math.pow(2, this.n_rawLevel)
         this.n_modifier = c_modifier
+        this.n_health = this.n_level + this.n_modifier
     }
 
     ProgressIntegration = (currentTimePeriodLevel: number): void => {
@@ -235,14 +256,17 @@ class TimePeriod {
         if (this.aa_armies.length === 1) { //if only one army remains, that player's army conquers the time period
             this.n_ownerIndex = this.aa_armies[0].n_ownerIndex
         } else { //if there are multiple armies in the time period
-            //TODO: Implement combat
-            //IDEA: Ideas of how combat will work
-                //IDEA: troops have health equal to their power level but it goes down from combat
-                    //IDEA: troops heal only on the player's ship at the end of a turn cycle
-                //Every possible pair of armies face off 1 troop, they inflict damage equal to their power level, any that drop below 0 health die. others can stay to fight again
-                    //loop through every army, in turn, loop through every army after them in the aa_armies array and face off the top troop of each
-                        //with lots of troops this could end up taking a very long time, but also, with movement so limited that could be a good thing, turns may go very fast
-
+            console.log('time period doing combat')
+            for (let i: number = 0; i < this.aa_armies.length - 1; i++) {
+                for (let j: number = i + 1; j < this.aa_armies.length; j++) {
+                    console.log(`running combat ${i} ${j}`)
+                    Combat(this.aa_armies[i], this.aa_armies[j])
+                }
+            }
+            CleanArmies() //removes empty armies
+            if (this.aa_armies.length === 1) { //if only one army remains, that player's army conquers the time period
+                this.n_ownerIndex = this.aa_armies[0].n_ownerIndex
+            }
         }
     }
 
@@ -765,7 +789,7 @@ const InitializeGame = (): void => { //used to set up the game
     tradeSubmitButton.addEventListener("click", () => Trade(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes the trade submit button work
     tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes  the cancel button work
     travelButton.addEventListener("click", () => { //travel button functionality
-        if (pa_players[currentPlayerIndex].b_canMove && n_selectedPlanetIndex > -1 && n_selectedPlanetIndex !== pa_players[currentPlayerIndex].na_location[0] && n_selectedTimePeriodIndex !== pa_players[currentPlayerIndex].na_location[1]) { //makes sure the player can move this turn, has a time period selected, and are not already there
+        if (pa_players[currentPlayerIndex].b_canMove && n_selectedPlanetIndex > -1 && (n_selectedPlanetIndex !== pa_players[currentPlayerIndex].na_location[0] || n_selectedTimePeriodIndex !== pa_players[currentPlayerIndex].na_location[1])) { //makes sure the player can move this turn, has a time period selected, and are not already there
             pa_players[currentPlayerIndex].b_canMove = false //takes the player's move action
             pa_players[currentPlayerIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] //moves the player
             DrawBoard() //redraws the board
@@ -796,9 +820,6 @@ InitializeGame() //runs the initialize game function to start the game
     //should lower power time periods start with more resources to balance it out: maybe, leaning probably
 
 //TODO: things that still need to be done
-//combat
-  //combat between 2 or more armies
-  //troop experience level
 //conquered time period controls
   //building buildings
   //training troops
@@ -814,3 +835,6 @@ InitializeGame() //runs the initialize game function to start the game
     //resources they have
   //randomize player order at game start
   //players here section of the selected time period board
+  //troop experience level
+  //fix troop types in troopString()
+    //see TODO in the function
