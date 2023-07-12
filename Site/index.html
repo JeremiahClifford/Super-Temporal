@@ -14,20 +14,35 @@
             <div id="selected-time-period-display">
                 <h1 id="planet-line">No Planet Selected</h1>
                 <h2 id="age-line">No Time Period Selected</h2>
-                <h3 id="owner-line">Owner: </h3>
-                <h3 id="power-line">Power Level: </h3>
-                <h3 id="resources-line">Resources: </h3>
-                <h3 id="resource-production-line">Resource Production Rate: </h3>
-                <div id="building-section">
-                    <h3>Buildings:</h3>
-                    <div style="height:120px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" id="building-list-box">
-                        None<br>None<br>None<br>None<br>None<br>None
+                <div id="selected-time-period-display-scrolling" style="border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;">
+                    <h3 id="owner-line">Owner: </h3>
+                    <h3 id="power-line">Power Level: </h3>
+                    <h3 id="resources-line">Resources: </h3>
+                    <h3 id="resource-production-line">Resource Production Rate: </h3>
+                    <div id="building-section" class="object-section">
+                        <h3>Buildings:</h3>
+                        <div style="height:120px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" id="building-list-box" class="list-box">
+                            None<br>None<br>None<br>None<br>None<br>None
+                        </div>
                     </div>
-                </div>
-                <div id="troop-section">
-                    <h3>Troops:</h3>
-                    <div style="height:120px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" id="troop-list-box">
-                        None<br>None<br>None<br>None<br>None<br>None
+                    <div id="troop-section" class="object-section">
+                        <h3>Troops:</h3>
+                        <div style="height:120px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" id="troop-list-box" class="list-box">
+                            None<br>None<br>None<br>None<br>None<br>None
+                        </div>
+                    </div>
+                    <div id="present-players-section" class="object-section">
+                        <h3>Present Players:</h3>
+                        <div style="height:120px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" id="present-players-list-box" class="list-box">
+                            None<br>None<br>None<br>None<br>None<br>None
+                        </div>
+                    </div>
+                    <div id="time-period-control-section" class="object-section">
+                        <h3>Controls:</h3>
+                        <div style="height:120px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" id="time-period-control-list-box" class="list-box">
+                            <button>Build buildings</button>
+                            <button>Train Troops</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -39,18 +54,20 @@
             </div>
         </div>
         <div id="player-info">
-                <h4 id="location-spot" class="player-info-item">Location: none</h4>
-                <h4 id="resource-spot" class="player-info-item">Resources: 0</h4>
+                <div id="control-buttons" class="player-info-item">
+                    <button id="travel-button" class="control-button">Travel</button>
+                    <button id="trade-button" class="control-button">Trade</button>
+                    <button id="end-turn-button" class="control-button">End turn</button>
+                </div>
+                <div id="middle-section" class="player-info-item">
+                    <h4 id="location-spot" class="player-info-text-item">Location: none</h4>
+                    <h4 id="resource-spot" class="player-info-text-item">Resources: 0</h4>
+                </div>
                 <div id="troop-spot" class="player-info-item">
                     <h4>Troops:</h4>
                     <div style="height:120px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" id="troop-list-spot">
                         None<br>None<br>None<br>None<br>None<br>None
                     </div>
-                </div>
-                <div id="control-buttons" class="player-info-item">
-                    <button id="travel-button" class="control-button">Travel</button>
-                    <button id="trade-button" class="control-button">Trade</button>
-                    <button id="end-turn-button" class="control-button">End turn</button>
                 </div>
         </div>
         <div id="trading-window">

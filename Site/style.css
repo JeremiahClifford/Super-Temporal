@@ -68,6 +68,10 @@ body {
     flex-flow: column nowrap;
 }
 
+#selected-time-period-display-scrolling {
+    height: 636px;
+}
+
 #planet-line, #age-line, #owner-line, #power-line, #resources-line, #resource-production-line {
     width: 90%;
     margin-left: auto;
@@ -78,7 +82,7 @@ body {
     padding: 5px;
 }
 
-#building-section, #troop-section {
+.object-section {
     width: 90%;
     margin-left: auto;
     margin-right: auto;
@@ -90,15 +94,33 @@ body {
     flex-flow: column nowrap;
 }
 
-#building-section h3, #troop-section h3 {
+.object-section h3 {
     margin-top: 0px;
     margin-bottom: 5px;
 }
 
-#building-list-box, #troop-list-box {
+#time-period-control-section {
+    display: none;
+}
+
+.list-box {
     width: 95%;
     margin-left: auto;
     margin-right: auto;
+}
+
+#time-period-control-list-box {
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+#time-period-control-list-box button {
+    width: 70%;
+    aspect-ratio: 6/1;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 #player-list-display {
@@ -167,6 +189,22 @@ body {
 
     display: flex;
     flex-flow: column nowrap;
+}
+
+.control-button {
+    aspect-ratio: 6/1;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+#middle-section {
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+.player-info-text-item {
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 #trading-window {

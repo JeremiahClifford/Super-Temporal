@@ -157,6 +157,10 @@ class Player {
         this.b_canTrade = false
     }
 
+    HealTroops = (): void => {
+        this.a_troops.ta_troops.forEach((t) => t.n_health = t.n_level + t.n_modifier)
+    }
+
     StartTurn = (): void => {
         this.b_canMove = true
         this.b_canTrade = true
@@ -574,9 +578,8 @@ const buildingSection: HTMLElement = document.getElementById('building-section')
 const buildingBox: HTMLElement = document.getElementById('building-list-box') as HTMLElement //box that holds list of buildings
 const troopSection: HTMLElement = document.getElementById('troop-section') as HTMLElement //troop list section
 const troopBox: HTMLElement = document.getElementById('troop-list-box') as HTMLElement //box that holds list of troops
-//TODO: add a box to the selected time period display that shows which players if any are there
-    //do so by looping through the player list and checking if they are at the selected time period
-    //make it a scrolling box
+const presentPlayersBox: HTMLElement = document.getElementById('present-players-list-box') as HTMLElement //box that holds the list pf players in this time period
+const controlSection: HTMLElement = document.getElementById('time-period-control-section') as HTMLElement //section with the controls for the time period owner
 
 const playerListDisplay: HTMLElement = document.getElementById('player-list-display') as HTMLElement //the section which has the list of players
 const playerListBox: HTMLElement = document.getElementById('player-list-box') as HTMLElement//the scrolling box that will show the list of players
@@ -646,6 +649,7 @@ const DrawBoard = (): void => {
                     n_selectedPlanetIndex = -1
                     n_selectedTimePeriodIndex = -1
                     timePeriodBox.style.borderColor = `black`
+                    controlSection.style.display = `none`
                 } else { //deselects the box if it was already selected
                     n_selectedPlanetIndex = i
                     n_selectedTimePeriodIndex = j
@@ -695,6 +699,24 @@ const DrawBoard = (): void => {
         } else {
             troopBox.innerHTML = `None` //if not: writes none to the list
         }
+        presentPlayersBox.innerHTML = `` //resets the present players box
+        let sa_presentPlayers: string[] = []
+        pa_players.forEach((p) => { //goes through all the players and stores the names of the ones in the selected location
+            if (p.na_location[0] === n_selectedPlanetIndex && p.na_location[1] === n_selectedTimePeriodIndex) {
+                sa_presentPlayers.push(p.s_name)
+            }
+        })
+        if (sa_presentPlayers.length > 0) {
+            sa_presentPlayers.forEach((n) => presentPlayersBox.innerHTML += `${n}<br>`) //adds all the saved names to the list
+        } else {
+            presentPlayersBox.innerHTML = `None`
+        }
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === currentTurnIndex) { //hides the controls if the player does not own the time period
+            controlSection.style.display = `block`
+        } else {
+            controlSection.style.display = `none`
+        }
+        
     }  else {
         //resets the display values when deselecting
         planetLine.innerHTML = `No Planet Selected` //resets the time period age
@@ -705,6 +727,7 @@ const DrawBoard = (): void => {
         resourceProductionLine.innerHTML = `Resource Production Rate: ` //resets the resource production rate label
         buildingBox.innerHTML = `` //resets the list of buildings
         troopBox.innerHTML = `` //resets the list of troops
+        presentPlayersBox.innerHTML = `` //resets the present players box
     }
 
     //handles the drawing of the players board
@@ -740,6 +763,16 @@ const DrawBoard = (): void => {
     } else {
         troopListSpot.innerHTML = `None`//if not: writes none
     }
+    if (!pa_players[currentTurnIndex].b_canMove) { //hides the travel button if the player does not have their travel action
+        travelButton.style.display = `none`
+    } else {
+        travelButton.style.display = `inline`
+    }
+    if (!pa_players[currentTurnIndex].b_canTrade) { //hides the trade button if the player does not have their trade action
+        tradeButton.style.display = `none`
+    } else {
+        tradeButton.style.display = `inline`
+    }
 }
 
 const AdvanceTurn = (): void => { //ends the current turn and starts the next one
@@ -747,6 +780,7 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
     pa_players[currentTurnIndex].EndTurn() //removes any unused action from the player ending their turn
 
     if (currentTurnIndex === (pa_players.length - 1)) { //advances the player whose turn it is by on, making sure to loop around once at the end
+        pa_players.forEach((p) => p.HealTroops()) //heals the troops on the ships of all players
         pa_planets.forEach((p) => {
             //TODO: resource gen, building building, and troop train can go here
             p.DoCombat() //runs combat for all the planets
@@ -820,9 +854,12 @@ InitializeGame() //runs the initialize game function to start the game
     //should lower power time periods start with more resources to balance it out: maybe, leaning probably
 
 //TODO: things that still need to be done
-//conquered time period controls
+//WIP: conquered time period controls
   //building buildings
   //training troops
+  //list to show queue of things being build and trained
+    //also has to have a queue in the time period to store the things that need to be made
+      //should be reference in addition to the things already made when showing a list of options to build or train so that the player can't make duplicates
 //propagation
 //Starting conditions:
   //player starting troops
@@ -834,7 +871,6 @@ InitializeGame() //runs the initialize game function to start the game
     //troops they have
     //resources they have
   //randomize player order at game start
-  //players here section of the selected time period board
   //troop experience level
   //fix troop types in troopString()
     //see TODO in the function
