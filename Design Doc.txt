@@ -97,7 +97,7 @@ Order of a turn:
    and / or resources once per turn in any order but only once each.
 2. Player troops heal
 3. Resource Generation for each time zone
-4. Troop training for each time zone
+4. Troop training and building building for each time zone
 5. Combat for each time zone that has combat
    5a. Buildings destroyed if applicable
    5b. Troops killed

@@ -14,8 +14,9 @@ const gameBackgroundColor: string = "#03053c" //background color of the whole ga
 const boardBackgroundColor: string = "#e8e8e8" //color of the background of the various boards
 const boardOutlineColor: string = "#2c2c2c" //color of the outline of the various boards
 
-
 const trainTroopCost: number = 10 //how many resources should it cost to train a troop
+const latenessFactor: number = 0.5 //by what factor should later time period resources be reduced
+
 //----------------------------------------------
 //--------------Helper Functions----------------
 //----------------------------------------------
@@ -26,7 +27,7 @@ const SortTroops = (ta: Troop[]): Troop[] => { //sorts the troops of an army in 
     })
 }
 
-const TroopsString = (a: Army): string => { //gives a string representation of the player's or time period's list of troops
+const TroopsString = (a: Army, useName: boolean): string => { //gives a string representation of the player's or time period's list of troops
     a.ta_troops = SortTroops(a.ta_troops) //sorts the troops so they are in a good order to be printed
 
     //squashes troops of the same level into 1 line
@@ -50,11 +51,14 @@ const TroopsString = (a: Army): string => { //gives a string representation of t
     }
 
     let output: string = ``
-    if (a.n_ownerIndex === -1) {
-        output = `Natives:<br>${a.ta_troops.length} Troop(s):<br>` //adds the header to the output showing how many total troops the army has and the owner
-    } else {
-        output = `${pa_players[a.n_ownerIndex].s_name}:<br>${a.ta_troops.length} Troop(s):<br>` //adds the header to the output showing how many total troops the army has and the owner
+    if (useName) { //if this use case requires the name of the owner to distinguish, add the name of the owner. only really used on the selected time period display as multiple armies owned by multiple players can appear there
+        if (a.n_ownerIndex === -1) {
+            output = `Natives:<br>` //adds the header to the output showing how many total troops the army has and the owner
+        } else {
+            output = `${pa_players[a.n_ownerIndex].s_name}:<br>` //adds the header to the output showing how many total troops the army has and the owner
+        }
     }
+    output += `${a.ta_troops.length} Troop(s):<br>` //adds th e number of troops
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
         output += `${typeCounts[i]}x Level: ${troopTypes[i]} Health: ${troopHealth[i]}<br>` //adds a line of their info to the output string
     }
@@ -262,12 +266,16 @@ class TimePeriod {
         } else {
             this.n_powerModifier = Math.round(this.n_powerModifier)
         }
-        this.n_resourceProduction = baseResourceProduction * (1 + ((maxModifierFactor - c_modifierFactor) * resourceRateAdjuster)) //sets the resource production bonus to the inverse of the troop power bonus to balance time periods that have good troops with lower resource production
+        this.n_resourceProduction = baseResourceProduction * (1 + ((maxModifierFactor - c_modifierFactor) * resourceRateAdjuster)) - (c_level * latenessFactor) //sets the resource production bonus to the inverse of the troop power bonus to balance time periods that have good troops with lower resource production
         this.n_resourceProduction = Math.round(this.n_resourceProduction * 100) *0.01 //truncates the resource modifier to 2 decimals
         this.n_resources = this.n_resourceProduction * 5 //TEMP: starts the time period with 5 turns worth of resources. not sure what I want this to be in the final version
         this.ba_buildings = []
         this.aa_armies = [new Army(-1, [new Troop(this.n_rawLevel, this.n_powerModifier * 1.25)])] //TEMP: not sure what troops time periods will start with if any
         this.boa_buildQueue = []
+    }
+
+    GenerateResources = (): void => {
+        this.n_resources += this.n_resourceProduction
     }
 
     StartTroopTraining = (): void  => {
@@ -341,7 +349,11 @@ class Planet {
         }
     }
 
-    ProgressBuildQueues = (): void => {
+    DoResourceGen = (): void => { //runs resource gen for every time period
+        this.ta_timePeriods.forEach((tp) => tp.GenerateResources())
+    }
+
+    ProgressBuildQueues = (): void => { //runs the build queue for every time period
         this.ta_timePeriods.forEach((tp) => tp.ProgressBuildQueue())
     }
 
@@ -603,7 +615,7 @@ const Trade = (p: number, tp: TimePeriod): void => { //function to move troops a
 
 const pa_players: Player[] = [] //stores the list of players in the game
 
-for (let i: number = 0; i < 10; i++) {  //TEMP:
+for (let i: number = 0; i < 5; i++) {  //TEMP:
     const testPlayer: Player = new Player(i, `Test Player ${i+1}`)
     pa_players.push(testPlayer)
 }
@@ -747,7 +759,7 @@ const DrawBoard = (): void => {
         troopBox.innerHTML = `` //resets the text in the troop box
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies.length > 0) { //if there are any armies in the time period
             for (let i: number = 0; i < pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies.length; i++) { //if so:loops through all of armies in the time period to be written out
-                troopBox.innerHTML += TroopsString(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies[i])
+                troopBox.innerHTML += TroopsString(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies[i], true)
             }
         } else {
             troopBox.innerHTML = `None` //if not: writes none to the list
@@ -798,24 +810,26 @@ const DrawBoard = (): void => {
     }
 
     //handles the drawing of the players board
-    //TODO: add the stuff that the player has to their card
     playerListBox.innerHTML = ``
     pa_players.forEach((p) => {
-        if (p.na_location[0] === -1) {
-            playerListBox.innerHTML += `
-                <div class="player-card">
-                    <h3>${p.s_name}</h3>
-                    <h4>Location: Nowhere</h4>
-                </div>
-            `
+        //creates the string
+        let playerHTML: string = `<div class="player-card">`
+        if (p === pa_players[currentTurnIndex]) { //if p is the player whose turn it is
+            playerHTML += `<h3>${p.s_name}*</h3>` //adds the player's name with a star
         } else {
-            playerListBox.innerHTML += `
-                <div class="player-card">
-                    <h3>${p.s_name}</h3>
-                    <h4>Location: ${pa_planets[p.na_location[0]].s_name} Age ${p.na_location[1] + 1}</h4>
-                </div>
-            `
+            playerHTML += `<h3>${p.s_name}</h3>` //adds the player's name without the star
         }
+        if (p.na_location[0] === -1) { //adds the player's location if they have one
+            playerHTML += `<h4>Location: Nowhere</h4>` //if they don't
+        } else { //if they do
+            playerHTML += `<h4>Location: ${pa_planets[p.na_location[0]].s_name} Age ${p.na_location[1] + 1}</h4>`
+        }
+        playerHTML += `<h3>Resources: ${p.n_resources}</h3>` //adds the player's resources
+        playerHTML += `<div style="height:60px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" class="player-list-troop-list-spot">` //starts the player's troop list
+        playerHTML += TroopsString(p.a_troops, false) //adds their list of troops
+        playerHTML += `</div>` //closes the trop list div
+        playerHTML += `</div>` //closes the div
+        playerListBox.innerHTML += playerHTML //adds the generated player card to the list
     })
 
     //handles the drawing of the current player info board
@@ -826,7 +840,7 @@ const DrawBoard = (): void => {
     }
     resourceSpot.innerHTML = `Resources: ${pa_players[currentPlayerIndex].n_resources}` //fills in the line showing the player's resources
     if (pa_players[currentPlayerIndex].a_troops.ta_troops.length > 0) { //checks if the player has any troops onboard
-        troopListSpot.innerHTML = `${TroopsString(pa_players[currentPlayerIndex].a_troops)}` //writes the player's TroopString to the box
+        troopListSpot.innerHTML = `${TroopsString(pa_players[currentPlayerIndex].a_troops, false)}` //writes the player's TroopString to the box
     } else {
         troopListSpot.innerHTML = `None`//if not: writes none
     }
@@ -850,6 +864,7 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
         pa_players.forEach((p) => p.HealTroops()) //heals the troops on the ships of all players
         pa_planets.forEach((p) => {
             //TODO: resource gen, building building, and troop train can go here
+            p.DoResourceGen() //run resource gen for each planet
             p.ProgressBuildQueues() //runs the build queues for all the planets
             p.DoCombat() //runs combat for all the planets
             p.DoIntegration() //runs integration for all the planets
@@ -939,10 +954,8 @@ InitializeGame() //runs the initialize game function to start the game
   //time period starting troops
   //time period starting resources
 //small things:
-  //player board additional information
-    //troops they have
-    //resources they have
-  //randomize player order at game start
-  //troop experience level
   //fix troop types in troopString()
     //see TODO in the function
+//stretch goals for first version
+  //randomize player order at game start
+  //troop experience level
