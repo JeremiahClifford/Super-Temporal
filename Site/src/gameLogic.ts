@@ -815,7 +815,7 @@ const DrawBoard = (): void => {
         //creates the string
         let playerHTML: string = `<div class="player-card">`
         if (p === pa_players[currentTurnIndex]) { //if p is the player whose turn it is
-            playerHTML += `<h3>${p.s_name}*</h3>` //adds the player's name with a star
+            playerHTML += `<h3>--[${p.s_name}]--</h3>` //adds the player's name with a star
         } else {
             playerHTML += `<h3>${p.s_name}</h3>` //adds the player's name without the star
         }
