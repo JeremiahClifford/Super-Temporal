@@ -14,6 +14,8 @@ const gameBackgroundColor: string = "#03053c" //background color of the whole ga
 const boardBackgroundColor: string = "#e8e8e8" //color of the background of the various boards
 const boardOutlineColor: string = "#2c2c2c" //color of the outline of the various boards
 
+
+const trainTroopCost: number = 10 //how many resources should it cost to train a troop
 //----------------------------------------------
 //--------------Helper Functions----------------
 //----------------------------------------------
@@ -222,7 +224,17 @@ class Building {
     constructor (c_name: string) {
         this.s_name = c_name
     }
+}
 
+class BuildOrder {
+
+    tb_target: Troop | Building
+    n_turnsRemaining: number
+
+    constructor (c_target: Troop | Building, c_turns: number = 1) {
+        this.tb_target = c_target
+        this.n_turnsRemaining = c_turns
+    }
 }
 
 class TimePeriod {
@@ -236,6 +248,7 @@ class TimePeriod {
     n_resourceProduction: number
     ba_buildings: Building[]
     aa_armies: Army[]
+    boa_buildQueue: BuildOrder[]
 
     constructor (c_level: number, c_modifierFactor: number) {
         //this.n_ownerIndex = -1
@@ -254,6 +267,39 @@ class TimePeriod {
         this.n_resources = this.n_resourceProduction * 5 //TEMP: starts the time period with 5 turns worth of resources. not sure what I want this to be in the final version
         this.ba_buildings = []
         this.aa_armies = [new Army(-1, [new Troop(this.n_rawLevel, this.n_powerModifier * 1.25)])] //TEMP: not sure what troops time periods will start with if any
+        this.boa_buildQueue = []
+    }
+
+    StartTroopTraining = (): void  => {
+        this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier)))
+    }
+
+    ProgressBuildQueue = (): void => {
+        if (this.boa_buildQueue.length > 0) { //makes sure to run the progression only if there is something in the queue
+            this.boa_buildQueue[0].n_turnsRemaining-- //reduces the turns remaining by 1
+            if (this.boa_buildQueue[0].n_turnsRemaining <= 0) { //if the build order has no turns remaining
+                if (this.boa_buildQueue[0].tb_target.constructor === Troop) { //if a troop is being trained
+                    //finds which army, if any, is the owner's
+                    let ownerArmyIndex: number = -1
+                    for (let i: number = 0; i < this.aa_armies.length; i++) {
+                        if (this.aa_armies[i].n_ownerIndex === this.n_ownerIndex) {
+                            ownerArmyIndex = i
+                        }
+                    }
+                    //add the troop to the army
+                    if (ownerArmyIndex > -1) { //if the owner has an army present
+                        this.aa_armies[ownerArmyIndex].ta_troops.push(this.boa_buildQueue[0].tb_target as Troop) //add the troop
+                    } else { //if they don't
+                        this.aa_armies.push(new Army(this.n_ownerIndex, [])) //Make one
+                        ownerArmyIndex = this.aa_armies.length -1 //set the owner index
+                        this.aa_armies[ownerArmyIndex].ta_troops.push(this.boa_buildQueue[0].tb_target as Troop) //add the troop
+                    }
+                } else { //if a building is being built
+                    //TODO:
+                }
+            }
+            this.boa_buildQueue = this.boa_buildQueue.filter((bo) => bo !== this.boa_buildQueue[0]) //removes the completed build from the list
+        }
     }
 
     DoCombat = (): void => {
@@ -293,6 +339,10 @@ class Planet {
         for (let i: number = 0; i < numTimePeriods; i++) { //creates the specified number of time periods for the planets
             this.ta_timePeriods.push(new TimePeriod(i, Math.random() * maxModifierFactor)) //creates all of the planets, providing the power level and the random modifier
         }
+    }
+
+    ProgressBuildQueues = (): void => {
+        this.ta_timePeriods.forEach((tp) => tp.ProgressBuildQueue())
     }
 
     DoCombat = (): void => { //goes through every time period and does combat
@@ -580,6 +630,9 @@ const troopSection: HTMLElement = document.getElementById('troop-section') as HT
 const troopBox: HTMLElement = document.getElementById('troop-list-box') as HTMLElement //box that holds list of troops
 const presentPlayersBox: HTMLElement = document.getElementById('present-players-list-box') as HTMLElement //box that holds the list pf players in this time period
 const controlSection: HTMLElement = document.getElementById('time-period-control-section') as HTMLElement //section with the controls for the time period owner
+const trainTroopButton: HTMLButtonElement = document.getElementById('train-troop-button') as HTMLButtonElement //button to train a troop
+const buildQueueSection: HTMLElement = document.getElementById('build-queue-section') as HTMLElement //section for the build queue
+const buildQueueBox: HTMLElement = document.getElementById('build-queue-list-box') as HTMLElement //list box of the build queue
 
 const playerListDisplay: HTMLElement = document.getElementById('player-list-display') as HTMLElement //the section which has the list of players
 const playerListBox: HTMLElement = document.getElementById('player-list-box') as HTMLElement//the scrolling box that will show the list of players
@@ -716,6 +769,19 @@ const DrawBoard = (): void => {
         } else {
             controlSection.style.display = `none`
         }
+        buildQueueBox.innerHTML = `` //resets the build queue box
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue.length > 0) {
+            let i: number = 1
+            pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue.forEach((bo) => {
+                if (bo.tb_target.constructor === Troop) { //if next up is a troop
+                    buildQueueBox.innerHTML += `${i++}> Troop: ${bo.tb_target.ToString()} Turns Remaining: ${bo.n_turnsRemaining}<br>`
+                } else { //if next up is a building
+                    //TODO:
+                }
+            })
+        } else {
+            buildQueueBox.innerHTML = `None`
+        }
         
     }  else {
         //resets the display values when deselecting
@@ -728,6 +794,7 @@ const DrawBoard = (): void => {
         buildingBox.innerHTML = `` //resets the list of buildings
         troopBox.innerHTML = `` //resets the list of troops
         presentPlayersBox.innerHTML = `` //resets the present players box
+        buildQueueBox.innerHTML = `` //resets the build queue box
     }
 
     //handles the drawing of the players board
@@ -783,6 +850,7 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
         pa_players.forEach((p) => p.HealTroops()) //heals the troops on the ships of all players
         pa_planets.forEach((p) => {
             //TODO: resource gen, building building, and troop train can go here
+            p.ProgressBuildQueues() //runs the build queues for all the planets
             p.DoCombat() //runs combat for all the planets
             p.DoIntegration() //runs integration for all the planets
             //TODO: Propagation can go here as propagation for the planet will happen after everything else for the planet. it can happen for one planet before integration and such for other planets as planets do not interact
@@ -840,6 +908,13 @@ const InitializeGame = (): void => { //used to set up the game
     for (let i: number = 0; i < numPlanets; i++) { //creates the list of planets of the number specified in the tunable values
         pa_planets.push(new Planet(`Planet ${i+1}`))
     }
+    trainTroopButton.addEventListener("click", () => {
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources >= trainTroopCost) { //makes sure that the time period can afford to train the troop
+            pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].StartTroopTraining() //starts training a troop
+            pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources -= trainTroopCost //charges the train troop cost
+            DrawBoard() //redraws the board
+        }
+    }) //makes the button to train troops work
 
     DrawBoard() //draws the board when the page loads
 }
@@ -856,10 +931,7 @@ InitializeGame() //runs the initialize game function to start the game
 //TODO: things that still need to be done
 //WIP: conquered time period controls
   //building buildings
-  //training troops
-  //list to show queue of things being build and trained
-    //also has to have a queue in the time period to store the things that need to be made
-      //should be reference in addition to the things already made when showing a list of options to build or train so that the player can't make duplicates
+    //building menu should be reference in addition to the things already made when showing a list of options to build or train so that the player can't make duplicates
 //propagation
 //Starting conditions:
   //player starting troops
