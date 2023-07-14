@@ -14,7 +14,7 @@ const gameBackgroundColor: string = "#03053c" //background color of the whole ga
 const boardBackgroundColor: string = "#e8e8e8" //color of the background of the various boards
 const boardOutlineColor: string = "#2c2c2c" //color of the outline of the various boards
 
-const trainTroopCost: number = 10 //how many resources should it cost to train a troop
+const trainTroopCost: number = 50 //how many resources should it cost to train a troop
 const latenessFactor: number = 0.5 //by what factor should later time period resources be reduced
 
 //----------------------------------------------
@@ -241,6 +241,48 @@ class BuildOrder {
     }
 }
 
+class PropagationOrder {
+
+    b_adding: boolean //refers to if this order is to add something or remove something
+
+    constructor (c_adding: boolean) {
+        this.b_adding = c_adding
+    }
+}
+
+class ResourcePropagationOrder extends PropagationOrder {
+
+    n_amount: number
+
+    constructor (c_adding: boolean, c_amount: number) {
+        super(c_adding)
+
+        this.n_amount = c_amount
+    }
+}
+
+class TroopPropagationOrder extends PropagationOrder {
+
+    t_target: Troop
+
+    constructor (c_adding: boolean, c_target: Troop) {
+        super(c_adding)
+        
+        this.t_target = c_target
+    }
+}
+
+class ConquestPropagationOrder extends PropagationOrder {
+
+    n_newOwnerIndex: number
+
+    constructor (c_adding: boolean, c_newOwnerIndex: number) {
+        super(c_adding)
+
+        this.n_newOwnerIndex = c_newOwnerIndex
+    }
+}
+
 class TimePeriod {
 
     n_ownerIndex: number
@@ -253,6 +295,7 @@ class TimePeriod {
     ba_buildings: Building[]
     aa_armies: Army[]
     boa_buildQueue: BuildOrder[]
+    pa_propagationOrders: (ResourcePropagationOrder | TroopPropagationOrder | ConquestPropagationOrder)[]
 
     constructor (c_level: number, c_modifierFactor: number) {
         //this.n_ownerIndex = -1
@@ -272,10 +315,12 @@ class TimePeriod {
         this.ba_buildings = []
         this.aa_armies = [new Army(-1, [new Troop(this.n_rawLevel, this.n_powerModifier * 1.25)])] //TEMP: not sure what troops time periods will start with if any
         this.boa_buildQueue = []
+        this.pa_propagationOrders = []
     }
 
     GenerateResources = (): void => {
         this.n_resources += this.n_resourceProduction
+        //TODO: create propagation order in next time period
     }
 
     StartTroopTraining = (): void  => {
@@ -302,8 +347,10 @@ class TimePeriod {
                         ownerArmyIndex = this.aa_armies.length -1 //set the owner index
                         this.aa_armies[ownerArmyIndex].ta_troops.push(this.boa_buildQueue[0].tb_target as Troop) //add the troop
                     }
+                    //TODO: create propagation order in next time period
                 } else { //if a building is being built
                     //TODO:
+                    //TODO: create propagation order in next time period
                 }
             }
             this.boa_buildQueue = this.boa_buildQueue.filter((bo) => bo !== this.boa_buildQueue[0]) //removes the completed build from the list
@@ -324,12 +371,38 @@ class TimePeriod {
             CleanArmies() //removes empty armies
             if (this.aa_armies.length === 1) { //if only one army remains, that player's army conquers the time period
                 this.n_ownerIndex = this.aa_armies[0].n_ownerIndex
+                //TODO: create propagation order in next time period
             }
         }
     }
 
     DoIntegration = (): void => { //goes through every army and runs integration
         this.aa_armies.forEach((a) => a.DoIntegration(this.n_rawLevel))
+    }
+
+    DoPropagation = (p_pIndex: number, p_tIndex: number): void => {
+        this.pa_propagationOrders.forEach((po) => {
+            if (po.constructor === ResourcePropagationOrder) { //handles resource propagation orders
+                if (po.b_adding) { //if the order is to add
+                    this.n_resources += po.n_amount
+                } else { //if the order is to remove
+                    this.n_resources -= po.n_amount
+                    if (this.n_resources < 0) { //makes sure resources don't drop below 0
+                        this.n_resources = 0
+                    }
+                }
+            }
+            if (po.constructor === TroopPropagationOrder) { //handles troop propagation orders
+                //TODO:
+            }
+            if (po.constructor === ConquestPropagationOrder) { //handles conquest propagation orders
+                //TODO:
+            }
+            //adds a new propagation order for the next time period to continue the propagation down the timeline
+            if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(JSON.parse(JSON.stringify(po))) //adds a deep copy of the propagation order to the next time zone
+            }
+        })
     }
 }
 
@@ -363,6 +436,12 @@ class Planet {
     
     DoIntegration = (): void => { //goes through every time period and runs integration
         this.ta_timePeriods.forEach((tp) => tp.DoIntegration())
+    }
+
+    DoPropagation = (p_pIndex: number): void => {
+        for (let i: number = this.ta_timePeriods.length - 1; i >= 0; i--) { //does propagation for all time periods in reverse order
+            this.ta_timePeriods[i].DoPropagation(p_pIndex, i)
+        }
     }
 }
 
@@ -862,13 +941,14 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
 
     if (currentTurnIndex === (pa_players.length - 1)) { //advances the player whose turn it is by on, making sure to loop around once at the end
         pa_players.forEach((p) => p.HealTroops()) //heals the troops on the ships of all players
+        let pIndex = 0;
         pa_planets.forEach((p) => {
             //TODO: resource gen, building building, and troop train can go here
             p.DoResourceGen() //run resource gen for each planet
             p.ProgressBuildQueues() //runs the build queues for all the planets
             p.DoCombat() //runs combat for all the planets
             p.DoIntegration() //runs integration for all the planets
-            //TODO: Propagation can go here as propagation for the planet will happen after everything else for the planet. it can happen for one planet before integration and such for other planets as planets do not interact
+            p.DoPropagation(pIndex++) //runs propagation for all planets
         })
         currentTurnIndex = 0 //loops around at the end of a full turn cycle
     } else {
@@ -923,6 +1003,7 @@ const InitializeGame = (): void => { //used to set up the game
     for (let i: number = 0; i < numPlanets; i++) { //creates the list of planets of the number specified in the tunable values
         pa_planets.push(new Planet(`Planet ${i+1}`))
     }
+    trainTroopButton.innerHTML += ` - ${trainTroopCost}`
     trainTroopButton.addEventListener("click", () => {
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources >= trainTroopCost) { //makes sure that the time period can afford to train the troop
             pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].StartTroopTraining() //starts training a troop
