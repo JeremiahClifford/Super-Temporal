@@ -394,6 +394,7 @@ class TimePeriod {
             }
             if (po.constructor === TroopPropagationOrder) { //handles troop propagation orders
                 //TODO:
+                (po.t_target as Troop).ProgressIntegration(this.n_rawLevel + 1) //increases the level of the troop before the propagation order is passed on but after iut has been added so that when it is processed in the next time period it is already the proper level
             }
             if (po.constructor === ConquestPropagationOrder) { //handles conquest propagation orders
                 //TODO:
@@ -403,6 +404,7 @@ class TimePeriod {
                 pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(JSON.parse(JSON.stringify(po))) //adds a deep copy of the propagation order to the next time zone
             }
         })
+        this.pa_propagationOrders = [] //clears out the propagation order list when they have all been done
     }
 }
 
@@ -681,6 +683,7 @@ const Trade = (p: number, tp: TimePeriod): void => { //function to move troops a
         troopsGiven.ta_troops.forEach((t) => tp.aa_armies[playerArmyIndex].ta_troops.push(t))
         tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
         troopsGiven.ta_troops = []
+        //TODO: add some propagation orders to propagate the trade results
     } else { //if they don't have an army here
         //This should never happen as an empty army is created when the trade window is filled in if none is found
     }
