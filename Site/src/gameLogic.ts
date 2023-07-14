@@ -1041,5 +1041,6 @@ InitializeGame() //runs the initialize game function to start the game
   //fix troop types in troopString()
     //see TODO in the function
 //stretch goals for first version
+  //IDEA: player turns in snake order: one way on one turn cycle then the opposite on the next turn cycle
   //randomize player order at game start
   //troop experience level
