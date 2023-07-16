@@ -272,6 +272,17 @@ class TroopPropagationOrder extends PropagationOrder {
     }
 }
 
+class BuildingPropagationOrder extends PropagationOrder {
+
+    b_target: Building
+
+    constructor (c_adding: boolean, c_target: Building) {
+        super(c_adding)
+
+        this.b_target = c_target
+    }
+}
+
 class ConquestPropagationOrder extends PropagationOrder {
 
     n_newOwnerIndex: number
@@ -420,6 +431,13 @@ class TimePeriod {
                         }
                     }
                     (po.t_target as Troop).ProgressIntegration(this.n_rawLevel + 1) //increases the level of the troop before the propagation order is passed on but after iut has been added so that when it is processed in the next time period it is already the proper level
+                }
+                if (po.constructor === BuildingPropagationOrder) { //handles building propagation orders
+                    if ((po as BuildingPropagationOrder).b_adding) { //if the building is being added
+                        this.ba_buildings.push((po as BuildingPropagationOrder).b_target) //adds the building
+                    } else { //if the building is being removed
+                        //TODO: same logic as troop removing
+                    }
                 }
                 if (po.constructor === ConquestPropagationOrder) { //handles conquest propagation orders
                     //override the various attributes
