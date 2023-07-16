@@ -436,7 +436,12 @@ class TimePeriod {
                     if ((po as BuildingPropagationOrder).b_adding) { //if the building is being added
                         this.ba_buildings.push((po as BuildingPropagationOrder).b_target) //adds the building
                     } else { //if the building is being removed
-                        //TODO: same logic as troop removing
+                        for (let i: number = 0; i < this.ba_buildings.length; i++) {
+                            if (this.ba_buildings[i] === (po as BuildingPropagationOrder).b_target) {
+                                this.ba_buildings = this.ba_buildings.filter((b) => b !== this.ba_buildings[i]) //removes the building that matches
+                                break //exits the loop so only one troop is removed
+                            } //if no troop matches, none are removed
+                        }
                     }
                 }
                 if (po.constructor === ConquestPropagationOrder) { //handles conquest propagation orders
