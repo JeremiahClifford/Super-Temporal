@@ -339,9 +339,11 @@ class TimePeriod {
         this.b_propagationBlocked = false
     }
 
-    GenerateResources = (): void => {
+    GenerateResources = (p_pIndex: number, p_tIndex: number): void => {
         this.n_resources += this.n_resourceProduction
-        //TODO: create propagation order in next time period
+        if (p_tIndex !== numTimePeriods + 1) { //makes sure that this time period is not the last in the list
+            pa_planets[p_pIndex].ta_timePeriods[p_tIndex].pa_propagationOrders.push(new ResourcePropagationOrder(true, this.n_resourceProduction))
+        }
     }
 
     StartTroopTraining = (): void  => {
@@ -478,8 +480,9 @@ class Planet {
         }
     }
 
-    DoResourceGen = (): void => { //runs resource gen for every time period
-        this.ta_timePeriods.forEach((tp) => tp.GenerateResources())
+    DoResourceGen = (p_pIndex: number): void => { //runs resource gen for every time period
+        let n_tIndex: number = 0
+        this.ta_timePeriods.forEach((tp) => tp.GenerateResources(p_pIndex, n_tIndex++))
     }
 
     ProgressBuildQueues = (): void => { //runs the build queue for every time period
@@ -1008,11 +1011,12 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
         let pIndex = 0;
         pa_planets.forEach((p) => {
             p.ta_timePeriods.forEach((TA) => TA.b_hasCombat = false) //resets the combat tracker in every time period
-            p.DoResourceGen() //run resource gen for each planet
+            p.DoResourceGen(pIndex) //run resource gen for each planet
             p.ProgressBuildQueues() //runs the build queues for all the planets
             p.DoCombat() //runs combat for all the planets
             p.DoIntegration() //runs integration for all the planets
-            p.DoPropagation(pIndex++) //runs propagation for all planets
+            p.DoPropagation(pIndex) //runs propagation for all planets
+            pIndex++ //increments the pIndex so the next planet has the correct index
         })
         currentTurnIndex = 0 //loops around at the end of a full turn cycle
     } else {
