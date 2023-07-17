@@ -1097,7 +1097,7 @@ InitializeGame() //runs the initialize game function to start the game
   //building buildings
     //building menu should be reference in addition to the things already made when showing a list of options to build or train so that the player can't make duplicates
 //propagation
-  //creating propagation orders when certain events happen
+  //WIP: creating propagation orders when certain events happen
 //Starting conditions:
   //player starting troops
   //player starting resources
