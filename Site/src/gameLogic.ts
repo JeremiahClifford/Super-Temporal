@@ -95,7 +95,7 @@ const CleanArmies = (): void => { //loops through every time zone and removes an
         for (let j: number = 0; j < pa_planets[i].ta_timePeriods.length; j++) { //loops through all of the time periods
             for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].aa_armies.length; k++) { //loops through all of the armies
                 if (pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops.length === 0) { //checks if the army is empty
-                    pa_planets[i].ta_timePeriods[j].aa_armies = pa_planets[i].ta_timePeriods[j].aa_armies.filter((a) => a.ta_troops.length !== 0) //if so: removes it WIP: not how splice() works, see SwapTroops() for reference
+                    pa_planets[i].ta_timePeriods[j].aa_armies = pa_planets[i].ta_timePeriods[j].aa_armies.filter((a) => a.ta_troops.length !== 0) //if so: removes it
                 }
             }
         }
@@ -342,7 +342,7 @@ class TimePeriod {
     GenerateResources = (p_pIndex: number, p_tIndex: number): void => {
         this.n_resources += this.n_resourceProduction
         if (p_tIndex !== numTimePeriods + 1) { //makes sure that this time period is not the last in the list
-            pa_planets[p_pIndex].ta_timePeriods[p_tIndex].pa_propagationOrders.push(new ResourcePropagationOrder(true, this.n_resourceProduction))
+            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ResourcePropagationOrder(true, this.n_resourceProduction))
         }
     }
 
@@ -350,7 +350,7 @@ class TimePeriod {
         this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier)))
     }
 
-    ProgressBuildQueue = (): void => {
+    ProgressBuildQueue = (p_pIndex: number, p_tIndex: number): void => {
         if (this.boa_buildQueue.length > 0) { //makes sure to run the progression only if there is something in the queue
             this.boa_buildQueue[0].n_turnsRemaining-- //reduces the turns remaining by 1
             if (this.boa_buildQueue[0].n_turnsRemaining <= 0) { //if the build order has no turns remaining
@@ -370,7 +370,9 @@ class TimePeriod {
                         ownerArmyIndex = this.aa_armies.length -1 //set the owner index
                         this.aa_armies[ownerArmyIndex].ta_troops.push(this.boa_buildQueue[0].tb_target as Troop) //add the troop
                     }
-                    //TODO: create propagation order in next time period
+                    if (p_tIndex !== numTimePeriods + 1) { //makes sure that this time period is not the last in the list
+                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, this.boa_buildQueue[0].tb_target)) //create propagation order in next time period
+                    }
                 } else { //if a building is being built
                     //TODO:
                     //TODO: create propagation order in next time period
@@ -485,8 +487,9 @@ class Planet {
         this.ta_timePeriods.forEach((tp) => tp.GenerateResources(p_pIndex, n_tIndex++))
     }
 
-    ProgressBuildQueues = (): void => { //runs the build queue for every time period
-        this.ta_timePeriods.forEach((tp) => tp.ProgressBuildQueue())
+    ProgressBuildQueues = (p_pIndex: number): void => { //runs the build queue for every time period
+        let n_tIndex: number = 0
+        this.ta_timePeriods.forEach((tp) => tp.ProgressBuildQueue(p_pIndex, n_tIndex++))
     }
 
     DoCombat = (): void => { //goes through every time period and does combat
@@ -1012,7 +1015,7 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
         pa_planets.forEach((p) => {
             p.ta_timePeriods.forEach((TA) => TA.b_hasCombat = false) //resets the combat tracker in every time period
             p.DoResourceGen(pIndex) //run resource gen for each planet
-            p.ProgressBuildQueues() //runs the build queues for all the planets
+            p.ProgressBuildQueues(pIndex) //runs the build queues for all the planets
             p.DoCombat() //runs combat for all the planets
             p.DoIntegration() //runs integration for all the planets
             p.DoPropagation(pIndex) //runs propagation for all planets
