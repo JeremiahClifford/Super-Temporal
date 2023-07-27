@@ -341,7 +341,7 @@ class TimePeriod {
 
     GenerateResources = (p_pIndex: number, p_tIndex: number): void => {
         this.n_resources += this.n_resourceProduction
-        if (p_tIndex !== numTimePeriods + 1) { //makes sure that this time period is not the last in the list
+        if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
             pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ResourcePropagationOrder(true, this.n_resourceProduction))
         }
     }
@@ -390,10 +390,8 @@ class TimePeriod {
             }
             this.b_propagationBlocked = true //conquest creates a propagation block
         } else { //if there are multiple armies in the time period
-            console.log('time period doing combat')
             for (let i: number = 0; i < this.aa_armies.length - 1; i++) {
                 for (let j: number = i + 1; j < this.aa_armies.length; j++) {
-                    console.log(`running combat ${i} ${j}`)
                     Combat(this.aa_armies[i], this.aa_armies[j])
                 }
             }
@@ -904,7 +902,7 @@ const DrawBoard = (): void => {
     //handles the drawing of the selected time periods info board
     if (n_selectedPlanetIndex != -1) {
         planetLine.innerHTML = `${pa_planets[n_selectedPlanetIndex].s_name}` //writes which planet is selected
-        ageLine.innerHTML = `Age ${n_selectedTimePeriodIndex}` //writes which time period is selected
+        ageLine.innerHTML = `Age ${n_selectedTimePeriodIndex + 1}` //writes which time period is selected
         //writes the relevant info from the time period
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === -1) { //checks if the time period is owner by a player
             ownerLine.innerHTML = `Owner: ${pa_planets[n_selectedPlanetIndex].s_name} natives` //if not: writes that it is owned by people from that planet
