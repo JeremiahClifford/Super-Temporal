@@ -206,7 +206,7 @@ class Troop { //represents 1 fighting unit
     }
 }
 
-class Army {
+class Army { //a group of fighting units as well a number to store which player owns it
 
     n_ownerIndex: number
     ta_troops: Troop[]
@@ -382,10 +382,12 @@ class TimePeriod {
         }
     }
 
-    DoCombat = (): void => {
+    DoCombat = (p_pIndex: number, p_tIndex: number): void => {
         if (this.aa_armies.length === 1) { //if only one army remains, that player's army conquers the time period
             this.n_ownerIndex = this.aa_armies[0].n_ownerIndex //sets the new owner
-            //TODO: create propagation order in next time period
+            if (p_tIndex !== numTimePeriods + 1) { //makes sure that this time period is not the last in the list
+                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(true, this.n_ownerIndex, this.n_resources, this.ba_buildings, this.aa_armies)) //create propagation order in next time period
+            }
             this.b_propagationBlocked = true //conquest creates a propagation block
         } else { //if there are multiple armies in the time period
             console.log('time period doing combat')
@@ -399,7 +401,9 @@ class TimePeriod {
             CleanArmies() //removes empty armies
             if (this.aa_armies.length === 1) { //if only one army remains, that player's army conquers the time period
                 this.n_ownerIndex = this.aa_armies[0].n_ownerIndex //sets the new owner
-                //TODO: create propagation order in next time period
+                if (p_tIndex !== numTimePeriods + 1) { //makes sure that this time period is not the last in the list
+                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(true, this.n_ownerIndex, this.n_resources, this.ba_buildings, this.aa_armies)) //create propagation order in next time period
+                }
                 this.b_propagationBlocked = true //conquest creates a propagation block
             }
         }
@@ -453,6 +457,7 @@ class TimePeriod {
                     this.n_ownerIndex = po.n_newOwnerIndex
                     this.n_resources = po.n_newResources
                     this.ba_buildings = po.ba_newBuildings
+                    po.aa_newArmies.forEach((a) => a.DoIntegration(this.n_level))
                     this.aa_armies = po.aa_newArmies
                     po.aa_newArmies.forEach((a) => a.DoIntegration(this.n_rawLevel + 1)) //integrates the armies so they are the proper level when propagated to the next time period
                 }
@@ -492,8 +497,9 @@ class Planet {
         this.ta_timePeriods.forEach((tp) => tp.ProgressBuildQueue(p_pIndex, n_tIndex++))
     }
 
-    DoCombat = (): void => { //goes through every time period and does combat
-        this.ta_timePeriods.forEach((tp) => tp.DoCombat())
+    DoCombat = (p_pIndex: number): void => { //goes through every time period and does combat
+        let tIndex: number = 0
+        this.ta_timePeriods.forEach((tp) => tp.DoCombat(p_pIndex, tIndex++))
     }
     
     DoIntegration = (): void => { //goes through every time period and runs integration
@@ -718,7 +724,7 @@ const SwapTroop = (start: Army, startIndex: number, target: Army): void => { //W
     FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
 }
 
-const Trade = (p: number, tp: TimePeriod): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
+const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
     tradingWindow.style.display = "none" //hides the trade window
 
     let playerArmyIndex: number = -1
@@ -731,23 +737,31 @@ const Trade = (p: number, tp: TimePeriod): void => { //function to move troops a
         //swaps all the things around
         //gives the player the resources they take
         pa_players[p].n_resources += resourcesTaken
-        //TODO: add the propagation order to propagate the trade results in next time period
+        if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ResourcePropagationOrder(false, resourcesTaken)) //add the propagation order to propagate the trade results in next time period
+        }
         resourcesTaken = 0
         //gives the time period the resources it has been given
         tp.n_resources += resourcesGiven
-        //TODO: add the propagation order to propagate the trade results in next time period
+        if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ResourcePropagationOrder(true, resourcesGiven)) //add the propagation order to propagate the trade results in next time period
+        }
         resourcesGiven = 0
         //moves the taken troops to the player
         troopsTaken.ta_troops.forEach((t) => {
             pa_players[p].a_troops.ta_troops.push(t)
-            //TODO: add the propagation order to propagate the trade results in next time period
+            if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, JSON.parse(JSON.stringify(t)))) //add the propagation order to propagate the trade results in next time period
+            }
         })
         pa_players[p].a_troops.ta_troops = SortTroops(pa_players[p].a_troops.ta_troops)
         troopsTaken.ta_troops = []
         //moves the given troops to the time period
         troopsGiven.ta_troops.forEach((t) => {
             tp.aa_armies[playerArmyIndex].ta_troops.push(t)
-            //TODO: add the propagation order to propagate the trade results in next time period
+            if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, JSON.parse(JSON.stringify(t)))) //add the propagation order to propagate the trade results in next time period
+            }
         })
         tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
         troopsGiven.ta_troops = []
@@ -1016,7 +1030,7 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
             p.ta_timePeriods.forEach((TA) => TA.b_hasCombat = false) //resets the combat tracker in every time period
             p.DoResourceGen(pIndex) //run resource gen for each planet
             p.ProgressBuildQueues(pIndex) //runs the build queues for all the planets
-            p.DoCombat() //runs combat for all the planets
+            p.DoCombat(pIndex) //runs combat for all the planets
             p.DoIntegration() //runs integration for all the planets
             p.DoPropagation(pIndex) //runs propagation for all planets
             pIndex++ //increments the pIndex so the next planet has the correct index
@@ -1054,7 +1068,7 @@ const InitializeGame = (): void => { //used to set up the game
     tradingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
 
     //makes buttons work
-    tradeSubmitButton.addEventListener("click", () => Trade(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes the trade submit button work
+    tradeSubmitButton.addEventListener("click", () => Trade(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex], n_selectedPlanetIndex, n_selectedTimePeriodIndex)) //makes the trade submit button work
     tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) //makes  the cancel button work
     travelButton.addEventListener("click", () => { //travel button functionality
         if (pa_players[currentPlayerIndex].b_canMove && n_selectedPlanetIndex > -1 && (n_selectedPlanetIndex !== pa_players[currentPlayerIndex].na_location[0] || n_selectedTimePeriodIndex !== pa_players[currentPlayerIndex].na_location[1])) { //makes sure the player can move this turn, has a time period selected, and are not already there
@@ -1099,8 +1113,6 @@ InitializeGame() //runs the initialize game function to start the game
 //WIP: conquered time period controls
   //building buildings
     //building menu should be reference in addition to the things already made when showing a list of options to build or train so that the player can't make duplicates
-//propagation
-  //WIP: creating propagation orders when certain events happen
 //Starting conditions:
   //player starting troops
   //player starting resources
