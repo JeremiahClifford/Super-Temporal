@@ -421,30 +421,6 @@ class TimePeriod {
                 this.b_propagationBlocked = true //conquest creates a propagation block
             }
         }
-        /*if (this.aa_armies.length === 1 && this.aa_armies[this.aa_armies.length -1].n_ownerIndex != this.n_ownerIndex) { //if only one army remains, that player's army conquers the time period
-            this.n_ownerIndex = this.aa_armies[0].n_ownerIndex //sets the new owner
-            if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
-                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(true, this.n_ownerIndex, this.n_resources, this.ba_buildings, this.aa_armies)) //create propagation order in next time period
-                console.log(`Adding Propagation Order: ${(pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders[pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.length - 1] as ConquestPropagationOrder).n_newOwnerIndex} to Planet ${p_pIndex} Time Period ${p_tIndex}`) //TEMP: debug
-            }
-            this.b_propagationBlocked = true //conquest creates a propagation block
-        } else { //if there are multiple armies in the time period
-            for (let i: number = 0; i < this.aa_armies.length - 1; i++) {
-                for (let j: number = i + 1; j < this.aa_armies.length; j++) {
-                    Combat(this.aa_armies[i], this.aa_armies[j])
-                }
-            }
-            this.b_hasCombat = true
-            CleanArmies() //removes empty armies
-            if (this.aa_armies.length === 1 && this.aa_armies[this.aa_armies.length -1].n_ownerIndex != this.n_ownerIndex) { //if only one army remains, that player's army conquers the time period
-                this.n_ownerIndex = this.aa_armies[0].n_ownerIndex //sets the new owner
-                if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
-                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(true, this.n_ownerIndex, this.n_resources, this.ba_buildings, this.aa_armies)) //create propagation order in next time period
-                    console.log(`Adding Propagation Order: ${(pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders[pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.length - 1] as ConquestPropagationOrder).n_newOwnerIndex} to Planet ${p_pIndex} Time Period ${p_tIndex}`) //TEMP: debug
-                }
-                this.b_propagationBlocked = true //conquest creates a propagation block
-            }
-        }*/
     }
 
     DoIntegration = (): void => { //goes through every army and runs integration
@@ -890,7 +866,7 @@ const DrawBoard = (): void => {
         let ageNumber: HTMLElement = document.createElement('div')
         ageNumber.classList.add('time-period-space')
         ageNumber.classList.add('time-period-number')
-        ageNumber.style.height = `${100 / (numTimePeriods + 1)}%`
+        ageNumber.style.height = `${95 / numTimePeriods}%`
         ageNumber.innerHTML = `<p>${i+1}</p>`
         ageNumbers.appendChild(ageNumber) //adds the number to the column
     }
@@ -908,6 +884,7 @@ const DrawBoard = (): void => {
         planetHeader.id = `${pa_planets[i].s_name}-header`
         planetHeader.innerHTML = `<p>${pa_planets[i].s_name}</p>`
         planetColumn.appendChild(planetHeader) //adds the name to the top
+        planetColumn.style.width = `${95 / numPlanets}%`
 
         for (let j: number = 0; j < numTimePeriods; j++) { //adds all the planets
             //creates the box for the time period
@@ -915,7 +892,7 @@ const DrawBoard = (): void => {
             timePeriodBox.classList.add("time-period-space")
             timePeriodBox.classList.add("time-period-box")
             timePeriodBox.id = `age-${j+1}-box`
-            timePeriodBox.style.height = `${100 / (numTimePeriods + 1)}%`
+            timePeriodBox.style.height = `${95 / numTimePeriods}%`
             timePeriodBox.addEventListener('click', () => { //adds the event to each time period box to select it
                 if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) {
                     n_selectedPlanetIndex = -1
@@ -937,6 +914,9 @@ const DrawBoard = (): void => {
             if (pa_planets[i].ta_timePeriods[j].n_ownerIndex > -1) { //if it is owned by a player
                 timePeriodBox.innerHTML = `<p>${pa_players[pa_planets[i].ta_timePeriods[j].n_ownerIndex].s_name}</p>` //TEMP: fill in their name
                 //TODO: put their icon
+            } else { //if time period is controlled by natives
+                timePeriodBox.innerHTML = `<p>Uncolonized</p>` //TEMP: fill in "Uncolonized"
+                //TODO: put uncolonized icon
             }
 
             planetColumn.appendChild(timePeriodBox) //adds the box to the column
