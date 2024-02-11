@@ -216,7 +216,10 @@ class Army { //a group of fighting units as well a number to store which player 
     }
 
     DoIntegration = (currentTimePeriodLevel: number): void => { //goes through troop and runs integration
-        this.ta_troops.forEach((t) => t.ProgressIntegration(currentTimePeriodLevel))
+        this.ta_troops.forEach((t) => {
+            console.log(t.ToString())
+            t.ProgressIntegration(currentTimePeriodLevel)
+        })
     }
 }
 
@@ -275,7 +278,7 @@ class TroopPropagationOrder extends PropagationOrder {
     }
 
     ToString () {
-        return `Type: Troop | Adding: ${this.b_adding} | Troop: ${this.t_target.ToString()}`
+        return `Type: Troop | Adding: ${this.b_adding} | Troop: ${(this.t_target as Troop).ToString()}`
     }
 }
 
@@ -424,6 +427,7 @@ class TimePeriod {
     }
 
     DoIntegration = (): void => { //goes through every army and runs integration
+        console.log(`Integrating Time Period ${this.n_rawLevel}`)
         this.aa_armies.forEach((a) => a.DoIntegration(this.n_rawLevel))
     }
 
@@ -448,7 +452,8 @@ class TimePeriod {
                 if (po.constructor === TroopPropagationOrder) { //handles troop propagation orders
                     console.log((po as TroopPropagationOrder).ToString()) //TEMP: debug
                     if (po.b_adding) { //if the troop is being added
-                        this.aa_armies[0].ta_troops.push(po.t_target) //adds the troop
+                        //this.aa_armies[0].ta_troops.push(po.t_target) //adds the troop
+                        this.aa_armies[0].ta_troops.push(JSON.parse(JSON.stringify((po.t_target as Troop)))) //adds the troop
                         this.aa_armies[0].ta_troops[this.aa_armies[0].ta_troops.length - 1].ProgressIntegration(this.n_rawLevel) //increases the level of the troop before the propagation order is passed on but after it has been added so that when it is processed in the next time period it is already the proper level
                         this.aa_armies[0].ta_troops = SortTroops(this.aa_armies[0].ta_troops) //sorts the army with the new troop
                     } else { //if the troop is being removed
@@ -523,6 +528,7 @@ class Planet {
     }
     
     DoIntegration = (): void => { //goes through every time period and runs integration
+        console.log(`Integrating ${this.s_name}`)
         this.ta_timePeriods.forEach((tp) => tp.DoIntegration())
     }
 
