@@ -102,7 +102,7 @@ Order of a turn:
    5a. Buildings destroyed if applicable
    5b. Troops killed ---
 6. Integration even in time zones with combat ---
-7. Propagation -X-
+7. Propagation ---
 
 Win Condition:
 -Control every time period on the map

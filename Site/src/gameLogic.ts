@@ -1139,8 +1139,6 @@ InitializeGame() //runs the initialize game function to start the game
     //should lower power time periods start with more resources to balance it out: maybe, leaning probably
 
 //TODO: things that still need to be done
-//WIP: propagation
-  //make troop propagation work: currently crashes
 //Buildings
   //different types that have different effects
     //buildings with passive bonuses
