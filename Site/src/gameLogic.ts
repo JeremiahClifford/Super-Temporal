@@ -453,7 +453,7 @@ class TimePeriod {
                     console.log((po as TroopPropagationOrder).ToString()) //TEMP: debug
                     if (po.b_adding) { //if the troop is being added
                         //this.aa_armies[0].ta_troops.push(po.t_target) //adds the troop
-                        this.aa_armies[0].ta_troops.push(JSON.parse(JSON.stringify((po.t_target as Troop)))) //adds the troop
+                        this.aa_armies[0].ta_troops.push((po.t_target as Troop)) //adds the troop
                         this.aa_armies[0].ta_troops[this.aa_armies[0].ta_troops.length - 1].ProgressIntegration(this.n_rawLevel) //increases the level of the troop before the propagation order is passed on but after it has been added so that when it is processed in the next time period it is already the proper level
                         this.aa_armies[0].ta_troops = SortTroops(this.aa_armies[0].ta_troops) //sorts the army with the new troop
                     } else { //if the troop is being removed
@@ -488,7 +488,7 @@ class TimePeriod {
                 }
                 //adds a new propagation order for the next time period to continue the propagation down the timeline
                 if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
-                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(JSON.parse(JSON.stringify(po))) //adds a deep copy of the propagation order to the next time zone
+                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(po) //adds a copy of the propagation order to the next time zone
                 }
             })
         }
@@ -777,7 +777,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
         troopsTaken.ta_troops.forEach((t) => {
             pa_players[p].a_troops.ta_troops.push(t)
             if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
-                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, JSON.parse(JSON.stringify(t)))) //add the propagation order to propagate the trade results in next time period
+                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, t)) //add the propagation order to propagate the trade results in next time period
             }
         })
         pa_players[p].a_troops.ta_troops = SortTroops(pa_players[p].a_troops.ta_troops)
@@ -786,7 +786,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
         troopsGiven.ta_troops.forEach((t) => {
             tp.aa_armies[playerArmyIndex].ta_troops.push(t)
             if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
-                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, JSON.parse(JSON.stringify(t)))) //add the propagation order to propagate the trade results in next time period
+                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, t)) //add the propagation order to propagate the trade results in next time period
             }
         })
         tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
