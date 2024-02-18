@@ -803,7 +803,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
 //-------------MAIN GAME LOGIC------------------
 //----------------------------------------------
 
-const pa_players: Player[] = [] //stores the list of players in the game
+let pa_players: Player[] = [] //stores the list of players in the game
 
 for (let i: number = 0; i < 5; i++) {  //TEMP:
     const testPlayer: Player = new Player(i, `Test Player ${i+1}`)
@@ -1050,6 +1050,18 @@ const DrawBoard = (): void => {
     }
 }
 
+const shufflePlayers = (p_playerArray: Player[]): Player[] => {
+    let outArray: Player[] = [] //declare array for shuffled players
+
+    while (p_playerArray.length > 0) {
+        let index: number = Math.floor(Math.random() * p_playerArray.length) //randomly pick the index to take
+        outArray.push(p_playerArray[index]) //add that player to the list
+        p_playerArray.splice(index, 1)
+    }
+
+    return outArray //return shuffled array
+}
+
 const AdvanceTurn = (): void => { //ends the current turn and starts the next one
 
     pa_players[currentTurnIndex].EndTurn() //removes any unused action from the player ending their turn
@@ -1065,6 +1077,7 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
             p.DoPropagation(pIndex) //runs propagation for all planets
             pIndex++ //increments the pIndex so the next planet has the correct index
         })
+        pa_players = shufflePlayers(pa_players) //randomize the order of the players
         currentTurnIndex = 0 //loops around at the end of a full turn cycle
     } else {
         currentTurnIndex++ //moves the turn to the next player
@@ -1079,7 +1092,7 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
 
 const InitializeGame = (): void => { //used to set up the game
 
-    //TODO: randomize order of players
+    pa_players = shufflePlayers(pa_players) //randomize the order of the players
     currentTurnIndex = 0
     pa_players[currentTurnIndex].StartTurn()
 
@@ -1156,6 +1169,4 @@ InitializeGame() //runs the initialize game function to start the game
   //fix troop types in troopString()
     //see TODO in the function
 //stretch goals for first version
-  //IDEA: player turns in snake order: one way on one turn cycle then the opposite on the next turn cycle
-  //randomize player order at game start
   //troop experience level
