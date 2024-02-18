@@ -329,6 +329,7 @@ class TimePeriod {
     pa_propagationOrders: (ResourcePropagationOrder | TroopPropagationOrder | ConquestPropagationOrder)[]
     b_hasCombat: boolean
     b_propagationBlocked: boolean
+    b_conquested: boolean
 
     constructor (c_level: number, c_modifierFactor: number) {
         this.n_ownerIndex = -1 //sets the owner to the natives
@@ -351,6 +352,7 @@ class TimePeriod {
         this.pa_propagationOrders = []
         this.b_hasCombat = false
         this.b_propagationBlocked = false
+        this.b_conquested = false
     }
 
     GenerateResources = (p_pIndex: number, p_tIndex: number): void => {
@@ -398,12 +400,16 @@ class TimePeriod {
 
     DoCombat = (p_pIndex: number, p_tIndex: number): void => {
         this.b_hasCombat = false //resets has combat to false so if no combat takes place it is properly marked
+        if (this.b_conquested) { //if the time period was conquested in the previous turn, now pass on the propagation order
+            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(true, this.n_ownerIndex, this.n_resources, this.ba_buildings, this.aa_armies)) //create propagation order in next time period
+            this.b_conquested = false //clear the boolean for if it was just conquested so that a new propagation order is not passed on next turn
+        }
         if (this.aa_armies.length === 1) { //if there is only one army in the time period
             if (this.aa_armies[this.aa_armies.length -1].n_ownerIndex != this.n_ownerIndex) { //if the owner of the only army is different from the owner of the time period, that army conquers the time period
                 this.n_ownerIndex = this.aa_armies[0].n_ownerIndex //sets the new owner
                 if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
-                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(true, this.n_ownerIndex, this.n_resources, this.ba_buildings, this.aa_armies)) //create propagation order in next time period
-                    console.log(`Adding Propagation Order: ${(pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders[pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.length - 1] as ConquestPropagationOrder).n_newOwnerIndex} to Planet ${p_pIndex} Time Period ${p_tIndex}`) //TEMP: debug
+                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders = [] //clears the propagation orders of the next time period as the conquest makes them redundant
+                    this.b_conquested = true
                 }
                 this.b_propagationBlocked = true //conquest creates a propagation block
             }
@@ -418,8 +424,8 @@ class TimePeriod {
             if (this.aa_armies.length === 1 && this.aa_armies[this.aa_armies.length -1].n_ownerIndex != this.n_ownerIndex) { //if only one army remains, that player's army conquers the time period
                 this.n_ownerIndex = this.aa_armies[0].n_ownerIndex //sets the new owner
                 if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
-                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(true, this.n_ownerIndex, this.n_resources, this.ba_buildings, this.aa_armies)) //create propagation order in next time period
-                    console.log(`Adding Propagation Order: ${(pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders[pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.length - 1] as ConquestPropagationOrder).n_newOwnerIndex} to Planet ${p_pIndex} Time Period ${p_tIndex}`) //TEMP: debug
+                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders = [] //clears the propagation orders of the next time period as the conquest makes them redundant
+                    this.b_conquested = true
                 }
                 this.b_propagationBlocked = true //conquest creates a propagation block
             }
@@ -432,13 +438,9 @@ class TimePeriod {
     }
 
     DoPropagation = (p_pIndex: number, p_tIndex: number): void => {
-        console.log(`Doing Propagation for Planet ${p_pIndex} Time Period ${p_tIndex}`)
-        console.log(this.pa_propagationOrders) //TEMP: debug
-        console.log(`${this.b_hasCombat}, ${this.b_propagationBlocked}`) //TEMP: debug
         if (!this.b_hasCombat && !this.b_propagationBlocked) { //only does propagation if there is no combat and the time period is not propagation blocked
             this.pa_propagationOrders.forEach((po) => {
                 if (po.constructor === ResourcePropagationOrder) { //handles resource propagation orders
-                    console.log((po as ResourcePropagationOrder).ToString()) //TEMP: debug
                     if (po.b_adding) { //if the order is to add
                         this.n_resources += po.n_amount
                     } else { //if the order is to remove
@@ -450,7 +452,6 @@ class TimePeriod {
                     console.log(`${(po as ResourcePropagationOrder).ToString()} completed`)
                 }
                 if (po.constructor === TroopPropagationOrder) { //handles troop propagation orders
-                    console.log((po as TroopPropagationOrder).ToString()) //TEMP: debug
                     if (po.b_adding) { //if the troop is being added
                         //this.aa_armies[0].ta_troops.push(po.t_target) //adds the troop
                         this.aa_armies[0].ta_troops.push((po.t_target as Troop)) //adds the troop
