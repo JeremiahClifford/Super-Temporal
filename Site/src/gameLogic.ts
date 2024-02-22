@@ -330,6 +330,7 @@ class TimePeriod {
     b_hasCombat: boolean
     b_propagationBlocked: boolean
     b_conquested: boolean
+    b_scorchedEarth: boolean //resources will continue to propagate to conquested time periods, which will be propagation blocked, unless the time period before is set to scorched earth, i.e. the player has told the people to destroy the resources before they are conquested. this can lead to another player getting resources that you generate or losing resources that you take and thus don't leave behind but if you go scorched earth the time periods disconnect and the latter time period gets a fresh start resource-wise. Troops and buildings don't propagate as those would all be lost in the battle for control. Conquest propagation orders don't go for obvious reasons.
 
     constructor (c_level: number, c_modifierFactor: number) {
         this.n_ownerIndex = -1 //sets the owner to the natives
@@ -353,6 +354,7 @@ class TimePeriod {
         this.b_hasCombat = false
         this.b_propagationBlocked = false
         this.b_conquested = false
+        this.b_scorchedEarth = false
     }
 
     GenerateResources = (p_pIndex: number, p_tIndex: number): void => {
@@ -438,20 +440,20 @@ class TimePeriod {
     }
 
     DoPropagation = (p_pIndex: number, p_tIndex: number): void => {
-        if (!this.b_hasCombat && !this.b_propagationBlocked) { //only does propagation if there is no combat and the time period is not propagation blocked
+        if (!this.b_hasCombat) { //only does propagation if there is no combat
             this.pa_propagationOrders.forEach((po) => {
                 if (po.constructor === ResourcePropagationOrder) { //handles resource propagation orders
-                    if (po.b_adding) { //if the order is to add
+                    if (po.b_adding && !pa_planets[p_pIndex].ta_timePeriods[p_tIndex].b_scorchedEarth) { //if the order is to add and the previous time period is not scorched earth
                         this.n_resources += po.n_amount
                     } else { //if the order is to remove
                         this.n_resources -= po.n_amount
-                        if (this.n_resources < 0) { //makes sure resources don't drop below 0
-                            this.n_resources = 0
-                        }
+                            if (this.n_resources < 0) { //makes sure resources don't drop below 0
+                                this.n_resources = 0
+                            }
                     }
                     console.log(`${(po as ResourcePropagationOrder).ToString()} completed`)
                 }
-                if (po.constructor === TroopPropagationOrder) { //handles troop propagation orders
+                if (po.constructor === TroopPropagationOrder && !this.b_propagationBlocked) { //handles troop propagation orders if this time period is not propagation blocked
                     if (po.b_adding) { //if the troop is being added
                         //this.aa_armies[0].ta_troops.push(po.t_target) //adds the troop
                         this.aa_armies[0].ta_troops.push((po.t_target as Troop)) //adds the troop
@@ -466,7 +468,7 @@ class TimePeriod {
                         }
                     }
                 }
-                if (po.constructor === BuildingPropagationOrder) { //handles building propagation orders
+                if (po.constructor === BuildingPropagationOrder && !this.b_propagationBlocked) { //handles building propagation orders if this time period is not propagation blocked
                     if ((po as BuildingPropagationOrder).b_adding) { //if the building is being added
                         this.ba_buildings.push((po as BuildingPropagationOrder).b_target) //adds the building
                     } else { //if the building is being removed
@@ -478,7 +480,7 @@ class TimePeriod {
                         }
                     }
                 }
-                if (po.constructor === ConquestPropagationOrder) { //handles conquest propagation orders
+                if (po.constructor === ConquestPropagationOrder && !this.b_propagationBlocked) { //handles conquest propagation orders if this time period is not propagation blocked
                     //override the various attributes
                     this.n_ownerIndex = po.n_newOwnerIndex
                     this.n_resources = po.n_newResources
@@ -833,6 +835,7 @@ const troopBox: HTMLElement = document.getElementById('troop-list-box') as HTMLE
 const presentPlayersBox: HTMLElement = document.getElementById('present-players-list-box') as HTMLElement //box that holds the list pf players in this time period
 const controlSection: HTMLElement = document.getElementById('time-period-control-section') as HTMLElement //section with the controls for the time period owner
 const trainTroopButton: HTMLButtonElement = document.getElementById('train-troop-button') as HTMLButtonElement //button to train a troop
+const scorchedEarthButton: HTMLButtonElement = document.getElementById('scorched-earth-button') as HTMLButtonElement //button for scorched earth
 const buildQueueSection: HTMLElement = document.getElementById('build-queue-section') as HTMLElement //section for the build queue
 const buildQueueBox: HTMLElement = document.getElementById('build-queue-list-box') as HTMLElement //list box of the build queue
 
@@ -975,6 +978,7 @@ const DrawBoard = (): void => {
         } else {
             controlSection.style.display = `none`
         }
+        scorchedEarthButton.innerHTML = `Scorched Earth: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth ? "True" : "False"}`
         buildQueueBox.innerHTML = `` //resets the build queue box
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue.length > 0) {
             let i: number = 1
@@ -1077,7 +1081,7 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
             p.DoPropagation(pIndex) //runs propagation for all planets
             pIndex++ //increments the pIndex so the next planet has the correct index
         })
-        pa_players = shufflePlayers(pa_players) //randomize the order of the players
+        //pa_players = shufflePlayers(pa_players) //randomize the order of the players
         currentTurnIndex = 0 //loops around at the end of a full turn cycle
     } else {
         currentTurnIndex++ //moves the turn to the next player
@@ -1092,7 +1096,7 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
 
 const InitializeGame = (): void => { //used to set up the game
 
-    pa_players = shufflePlayers(pa_players) //randomize the order of the players
+    //pa_players = shufflePlayers(pa_players) //randomize the order of the players
     currentTurnIndex = 0
     pa_players[currentTurnIndex].StartTurn()
 
@@ -1139,6 +1143,11 @@ const InitializeGame = (): void => { //used to set up the game
             DrawBoard() //redraws the board
         }
     }) //makes the button to train troops work
+    //scorchedEarthButton.innerHTML += `${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth}`
+    scorchedEarthButton.addEventListener("click", () => {
+        pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth = !pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth //toggles the scorched earth of the selected time period
+        DrawBoard() //redraws the board
+    }) //makes the scorched earth button work
 
     DrawBoard() //draws the board when the page loads
 }
