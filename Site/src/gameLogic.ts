@@ -17,6 +17,8 @@ const boardOutlineColor: string = "#2c2c2c" //color of the outline of the variou
 const trainTroopCost: number = 50 //how many resources should it cost to train a troop
 const latenessFactor: number = 0.5 //by what factor should later time period resources be reduced
 
+const darkAges: boolean = false //should dark ages be in play and affect power values
+
 //----------------------------------------------
 //--------------Helper Functions----------------
 //----------------------------------------------
@@ -128,6 +130,9 @@ const DebugPlanets = (): void => { //function to print the info of all the plane
             console.log(`   Raw Level: ${p.ta_timePeriods[i].n_rawLevel}`)
             console.log(`   Level: ${p.ta_timePeriods[i].n_level}`)
             console.log(`   Raw Modifier: ${p.ta_timePeriods[i].n_rawModifierFactor}`)
+            if (darkAges) {
+                console.log(`   Dark Age Value: ${p.ta_timePeriods[i].n_darkAgeValue}`)
+            }
             console.log(`   Power Modifier: ${p.ta_timePeriods[i].n_powerModifier}`)
             console.log(`   Effective Level: ${p.ta_timePeriods[i].n_level + p.ta_timePeriods[i].n_powerModifier}`)
             console.log(`   Resources: ${p.ta_timePeriods[i].n_resources}`)
@@ -323,6 +328,7 @@ class TimePeriod {
     n_powerModifier: number
     n_resources: number
     n_resourceProduction: number
+    n_darkAgeValue: number
     ba_buildings: Building[]
     aa_armies: Army[]
     boa_buildQueue: BuildOrder[]
@@ -332,21 +338,28 @@ class TimePeriod {
     b_conquested: boolean
     b_scorchedEarth: boolean //resources will continue to propagate to conquested time periods, which will be propagation blocked, unless the time period before is set to scorched earth, i.e. the player has told the people to destroy the resources before they are conquested. this can lead to another player getting resources that you generate or losing resources that you take and thus don't leave behind but if you go scorched earth the time periods disconnect and the latter time period gets a fresh start resource-wise. Troops and buildings don't propagate as those would all be lost in the battle for control. Conquest propagation orders don't go for obvious reasons.
 
-    constructor (c_level: number, c_modifierFactor: number) {
+    constructor (c_level: number, c_modifierFactor: number, c_darkAgeValue: number) {
         this.n_ownerIndex = -1 //sets the owner to the natives
         //this.n_ownerIndex = Math.floor((Math.random() * (pa_players.length + 1)) - 1) //TEMP: gives the time period a random owner
         this.n_rawLevel = c_level
         this.n_level = Math.pow(2, this.n_rawLevel)
         this.n_rawModifierFactor = c_modifierFactor
         this.n_powerModifier = c_modifierFactor * this.n_level
+        if (darkAges) {
+            this.n_powerModifier *= Math.abs(c_darkAgeValue) / 2
+        }
         if (this.n_powerModifier < 1) { //truncates the troop power modifier to 2 decimals if less than zero or whole number if more than zero to keep things tidy
             this.n_powerModifier = Math.round(this.n_powerModifier * 100) *0.01
         } else {
             this.n_powerModifier = Math.round(this.n_powerModifier)
         }
         this.n_resourceProduction = baseResourceProduction * (1 + ((maxModifierFactor - c_modifierFactor) * resourceRateAdjuster)) - (c_level * latenessFactor) //sets the resource production bonus to the inverse of the troop power bonus to balance time periods that have good troops with lower resource production
+        if (darkAges) {
+            this.n_resourceProduction *= Math.abs(c_darkAgeValue) / 2
+        }
         this.n_resourceProduction = Math.round(this.n_resourceProduction * 100) *0.01 //truncates the resource modifier to 2 decimals
         this.n_resources = this.n_resourceProduction * 5 //TEMP: starts the time period with 5 turns worth of resources. not sure what I want this to be in the final version
+        this.n_darkAgeValue = c_darkAgeValue
         this.ba_buildings = []
         this.aa_armies = [new Army(-1, [new Troop(this.n_rawLevel, this.n_powerModifier * 1.25)])] //TEMP: not sure what troops time periods will start with if any
         this.boa_buildQueue = []
@@ -435,7 +448,6 @@ class TimePeriod {
     }
 
     DoIntegration = (): void => { //goes through every army and runs integration
-        console.log(`Integrating Time Period ${this.n_rawLevel}`)
         this.aa_armies.forEach((a) => a.DoIntegration(this.n_rawLevel))
     }
 
@@ -504,14 +516,14 @@ class Planet {
     s_name: string
     ta_timePeriods: TimePeriod[]
 
-    constructor (c_name: string) {
+    constructor (c_name: string, c_darkAgePoint: number) {
 
         this.s_name = c_name
 
         //generate the time periods
         this.ta_timePeriods = []
         for (let i: number = 0; i < numTimePeriods; i++) { //creates the specified number of time periods for the planets
-            this.ta_timePeriods.push(new TimePeriod(i, Math.random() * maxModifierFactor)) //creates all of the planets, providing the power level and the random modifier
+            this.ta_timePeriods.push(new TimePeriod(i, Math.random() * maxModifierFactor, i - c_darkAgePoint)) //creates all of the planets, providing the power level, the random modifier, and the dark age value
         }
     }
 
@@ -1133,7 +1145,8 @@ const InitializeGame = (): void => { //used to set up the game
     endTurnButton.addEventListener("click", () => AdvanceTurn()) //end turn button functionality, makes the end turn button run the AdvanceTurn() function
 
     for (let i: number = 0; i < numPlanets; i++) { //creates the list of planets of the number specified in the tunable values
-        pa_planets.push(new Planet(`Planet ${i+1}`))
+        let darkAgePoint: number = Math.floor((Math.random() * Math.floor(numTimePeriods / 3)) + Math.floor(numTimePeriods / 3))
+        pa_planets.push(new Planet(`Planet ${i+1}`, darkAgePoint))
     }
     trainTroopButton.innerHTML += ` - ${trainTroopCost}`
     trainTroopButton.addEventListener("click", () => {
@@ -1143,7 +1156,6 @@ const InitializeGame = (): void => { //used to set up the game
             DrawBoard() //redraws the board
         }
     }) //makes the button to train troops work
-    //scorchedEarthButton.innerHTML += `${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth}`
     scorchedEarthButton.addEventListener("click", () => {
         pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth = !pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth //toggles the scorched earth of the selected time period
         DrawBoard() //redraws the board

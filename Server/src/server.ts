@@ -5,7 +5,7 @@ const app = express()
 
 const fs = require('fs')
 
-//data from the json files
+//data from the json file
 let settings = require('../data/settings.json')
 
 //settings to make data parsing and connecting work
