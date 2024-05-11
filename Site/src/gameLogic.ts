@@ -8,6 +8,8 @@ const numTimePeriods: number = 10 //stores how many time periods each planet sho
 const maxModifierFactor: number = 0.05 //how high should the variance between time periods be allowed to get
 const baseResourceProduction: number = 10 //base number of resource generation that each time period generates
 const resourceRateAdjuster: number = 10 //number that the inverted modifier is multiplied by to make the differences between the resource production of different time periods substantial
+const warehouseBonusPercent: number = 0.05 //percent added to one of increase of resources if time period has a warehouse
+const resourceGenPropagates: boolean = false //should resources added to a time period by normal resource gen propagate. Added because in testing, resource numbers got out of control
 
 const gameBackgroundColor: string = "#03053c" //background color of the whole game
 
@@ -19,10 +21,15 @@ const latenessFactor: number = 0.5 //by what factor should later time period res
 
 const darkAges: boolean = false //should dark ages be in play and affect power values
 
+const troopTrainBaseTime: number = 3 //how long it takes to train a troop by default
+const trainingCampDiscount: number = 1 //how many turns the training camp reduces troop training by
+const healthRecoveryPercent: number = 0.1 //how much health do troops recover per turn
+
 //----------------------------------------------
 //--------------Helper Functions----------------
 //----------------------------------------------
 
+//#region Helper Function
 const SortTroops = (ta: Troop[]): Troop[] => { //sorts the troops of an army in descending order of power
     return ta.sort((a, b) => { //uses the built in sort method
         return (b.n_level + b.n_modifier) - (a.n_level + a.n_modifier)
@@ -142,11 +149,21 @@ const DebugPlanets = (): void => { //function to print the info of all the plane
         }
     })
 }
+//#endregion Helper Functions
 
 //----------------------------------------------
-//------------------Classes---------------------
+//-------------Classes and Enums----------------
 //----------------------------------------------
 
+//#region Enums
+enum BuildingType {
+    Training_Camp = 0, //makes training troops faster
+    Warehouse = 1, //increases resource production (thematically reduces resource losses to spoilage)
+    Fortress = 2 //gives bonus to defending troops //WIP: not implemented yet
+}
+//#endregion Enums
+
+//#region Classes
 class Player {
 
     s_name: string
@@ -205,6 +222,12 @@ class Troop { //represents 1 fighting unit
         }
     }
 
+    Recover = (): void => {
+        if (this.n_health < this.n_level) {
+            this.n_health += (this.n_level * healthRecoveryPercent)
+        }
+    }
+
     ToString = (): string => {
         return `Level: ${this.n_level + this.n_modifier}`
     }
@@ -222,8 +245,14 @@ class Army { //a group of fighting units as well a number to store which player 
 
     DoIntegration = (currentTimePeriodLevel: number): void => { //goes through troop and runs integration
         this.ta_troops.forEach((t) => {
-            console.log(t.ToString())
+            console.log(t.ToString()) //TEMP:
             t.ProgressIntegration(currentTimePeriodLevel)
+        })
+    }
+
+    DoRecovery = (): void => {
+        this.ta_troops.forEach((t) => {
+            t.Recover()
         })
     }
 }
@@ -231,9 +260,11 @@ class Army { //a group of fighting units as well a number to store which player 
 class Building {
 
     s_name: string
+    bt_type: BuildingType
 
-    constructor (c_name: string) {
+    constructor (c_name: string, c_type: BuildingType) {
         this.s_name = c_name
+        this.bt_type = c_type
     }
 }
 
@@ -248,6 +279,7 @@ class BuildOrder {
     }
 }
 
+//#region Propagation Objects
 class PropagationOrder {
 
     b_adding: boolean //refers to if this order is to add something or remove something
@@ -318,6 +350,7 @@ class ConquestPropagationOrder extends PropagationOrder {
         return `Type: Conquest | Adding: ${this.b_adding} | New Owner: ${this.n_newOwnerIndex}`
     }
 }
+//#endregion Propagation Objects
 
 class TimePeriod {
 
@@ -371,14 +404,28 @@ class TimePeriod {
     }
 
     GenerateResources = (p_pIndex: number, p_tIndex: number): void => {
-        this.n_resources += this.n_resourceProduction
-        if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
-            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ResourcePropagationOrder(true, this.n_resourceProduction))
+        this.ba_buildings.forEach((b) => { //check all buildings in this time period
+            if (b.bt_type === 1) { //if there is a warehouse
+                this.n_resources += (this.n_resourceProduction * (warehouseBonusPercent + 1.0)) //produce increased resources
+                return //and exit function
+            }
+        })
+        this.n_resources += this.n_resourceProduction //otherwise produce normal resources
+        if (resourceGenPropagates) { //check the rule for if resource gen should propagate
+            if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
+                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ResourcePropagationOrder(true, this.n_resourceProduction))
+            }
         }
     }
 
     StartTroopTraining = (): void  => {
-        this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier)))
+        this.ba_buildings.forEach((b) => { //check all buildings in this time period
+            if (b.bt_type === 0) { //if there is a training camp
+                this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier), troopTrainBaseTime - trainingCampDiscount)) //reduced training time
+                return //and exit function
+            }
+        })
+        this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier), troopTrainBaseTime)) //otherwise normal training time
     }
 
     ProgressBuildQueue = (p_pIndex: number, p_tIndex: number): void => {
@@ -449,6 +496,12 @@ class TimePeriod {
 
     DoIntegration = (): void => { //goes through every army and runs integration
         this.aa_armies.forEach((a) => a.DoIntegration(this.n_rawLevel))
+    }
+
+    DoRecovery = (): void => { //goes through every army and runs recovery if there was no combat
+        if (!this.b_hasCombat) {
+            this.aa_armies.forEach((a) => a.DoRecovery())
+        }
     }
 
     DoPropagation = (p_pIndex: number, p_tIndex: number): void => {
@@ -543,8 +596,12 @@ class Planet {
     }
     
     DoIntegration = (): void => { //goes through every time period and runs integration
-        console.log(`Integrating ${this.s_name}`)
+        console.log(`Integrating ${this.s_name}`) //TEMP:
         this.ta_timePeriods.forEach((tp) => tp.DoIntegration())
+    }
+
+    DoRecovery = (): void => {
+        this.ta_timePeriods.forEach((tp) => tp.DoRecovery())
     }
 
     DoPropagation = (p_pIndex: number): void => {
@@ -553,11 +610,13 @@ class Planet {
         }
     }
 }
+//#endregion Classes
 
 //----------------------------------------------
 //-----------------Trading----------------------
 //----------------------------------------------
 
+//#region Trading
 //holds onto the trading window elements
 const tradingWindow: HTMLElement = document.getElementById('trading-window') as HTMLElement //the whole trading window
 const timePeriodPresent: HTMLElement = document.getElementById('time-period-present') as HTMLElement //the box where the things in the time period go
@@ -758,7 +817,7 @@ const SwapResources = (player: boolean, present: boolean): void => { //moves res
     FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
 }
 
-const SwapTroop = (start: Army, startIndex: number, target: Army): void => { //WIP: not quite working properly
+const SwapTroop = (start: Army, startIndex: number, target: Army): void => { //moves troops from one box to another
     target.ta_troops.push(start.ta_troops[startIndex]) //adds the troops to the target
     target.ta_troops = SortTroops(target.ta_troops) //sorts the target
     start.ta_troops =  start.ta_troops.filter((t) => t !== start.ta_troops[startIndex]) //removes the troop from where it started
@@ -812,11 +871,13 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
 
     DrawBoard()
 }
+//#endregion Trading
 
 //----------------------------------------------
 //-------------MAIN GAME LOGIC------------------
 //----------------------------------------------
 
+//#region Main Game Logic
 let pa_players: Player[] = [] //stores the list of players in the game
 
 for (let i: number = 0; i < 5; i++) {  //TEMP:
@@ -1090,6 +1151,7 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
             p.ProgressBuildQueues(pIndex) //runs the build queues for all the planets
             p.DoCombat(pIndex) //runs combat for all the planets
             p.DoIntegration() //runs integration for all the planets
+            p.DoRecovery() //runs recovery for all planets
             p.DoPropagation(pIndex) //runs propagation for all planets
             pIndex++ //increments the pIndex so the next planet has the correct index
         })
@@ -1165,6 +1227,7 @@ const InitializeGame = (): void => { //used to set up the game
 }
 
 InitializeGame() //runs the initialize game function to start the game
+//#endregion Main Game Logic
 
 //WIP: Ideas / sections that need thought
   //how does the game start, no one has a time periods so do they start with troops and choose which to conquer to start: probably
@@ -1174,7 +1237,7 @@ InitializeGame() //runs the initialize game function to start the game
     //should lower power time periods start with more resources to balance it out: maybe, leaning probably
 
 //TODO: things that still need to be done
-//Buildings
+//WIP: Buildings
   //different types that have different effects
     //buildings with passive bonuses
     //maybe buildings with active affects with cool downs
@@ -1191,3 +1254,4 @@ InitializeGame() //runs the initialize game function to start the game
     //see TODO in the function
 //stretch goals for first version
   //troop experience level
+  //more building types
