@@ -2,6 +2,7 @@
 //--------------Tunable Values------------------
 //----------------------------------------------
 
+//#region Tunable Values
 const numPlanets: number = 5 //number of planets that the game should have
 const numTimePeriods: number = 10 //stores how many time periods each planet should have
 
@@ -24,6 +25,8 @@ const darkAges: boolean = false //should dark ages be in play and affect power v
 const troopTrainBaseTime: number = 3 //how long it takes to train a troop by default
 const trainingCampDiscount: number = 1 //how many turns the training camp reduces troop training by
 const healthRecoveryPercent: number = 0.1 //how much health do troops recover per turn
+const fortressProtectionPercent: number = 0.8 //how much damage do troops take if they are in a fortress
+//#endregion Tunable Values
 
 //----------------------------------------------
 //--------------Helper Functions----------------
@@ -111,19 +114,47 @@ const CleanArmies = (): void => { //loops through every time zone and removes an
     }
 }
 
-const Combat = (a1: Army, a2: Army): void => { //carries out combat between 2 armies
+const Combat = (a1: Army, a2: Army, fortress: number = 0): void => { //carries out combat between 2 armies. if one of the armies is the defender and has a fortress, the fortress number will be 1 or 2
     //both armies are sorted
     a1.ta_troops = SortTroops(a1.ta_troops)
     a2.ta_troops = SortTroops(a2.ta_troops)
-    //both troops deal damage to each other
-    a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
-    a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
-    //remove dead troops
-    if (a1.ta_troops[0].n_health <= 0) {
-        a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
-    }
-    if (a2.ta_troops[0].n_health <= 0) {
-        a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
+    switch (fortress) {
+        case 0: //neither army has a fortress
+            //both troops deal damage to each other
+            a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
+            a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
+            //remove dead troops
+            if (a1.ta_troops[0].n_health <= 0) {
+                a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
+            }
+            if (a2.ta_troops[0].n_health <= 0) {
+                a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
+            }
+            break;
+        case 1: //army 1 has the fortress
+            //both troops deal damage to each other
+            a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier) * fortressProtectionPercent //army 1 takes less damage because they have a fortress
+            a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
+            //remove dead troops
+            if (a1.ta_troops[0].n_health <= 0) {
+                a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
+            }
+            if (a2.ta_troops[0].n_health <= 0) {
+                a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
+            }
+            break;
+        case 2: //army 2 has the fortress
+            //both troops deal damage to each other
+            a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
+            a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier) * fortressProtectionPercent //army 2 takes less damage because they have a fortress
+            //remove dead troops
+            if (a1.ta_troops[0].n_health <= 0) {
+                a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
+            }
+            if (a2.ta_troops[0].n_health <= 0) {
+                a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
+            }
+            break;
     }
 }
 
@@ -159,7 +190,7 @@ const DebugPlanets = (): void => { //function to print the info of all the plane
 enum BuildingType {
     Training_Camp = 0, //makes training troops faster
     Warehouse = 1, //increases resource production (thematically reduces resource losses to spoilage)
-    Fortress = 2 //gives bonus to defending troops //WIP: not implemented yet
+    Fortress = 2 //gives bonus to defending troops
 }
 //#endregion Enums
 
@@ -265,6 +296,21 @@ class Building {
     constructor (c_name: string, c_type: BuildingType) {
         this.s_name = c_name
         this.bt_type = c_type
+    }
+
+    ToString = (): string => {
+        switch (this.bt_type) {
+            case 0:
+                return `Training Camp`
+                break;
+            case 1:
+                return `Warehouse`
+                break;
+            case 2:
+                return `Fortress`
+                break;
+        }
+        return `Unknown (error)`
     }
 }
 
@@ -476,9 +522,25 @@ class TimePeriod {
                 this.b_propagationBlocked = true //conquest creates a propagation block
             }
         } else { //if there is more than one army, they do combat
+            let hasFortress: boolean = false
+            this.ba_buildings.forEach((b) => {
+                if (b.bt_type === 2) { //if the building is a fortress
+                    hasFortress = true
+                }
+            })
             for (let i: number = 0; i < this.aa_armies.length - 1; i++) { //loops through the armies
-                for (let j: number = i + 1; j < this.aa_armies.length; j++) {
-                    Combat(this.aa_armies[i], this.aa_armies[j]) //has the troops of those armies fight each other
+                if (this.aa_armies[i].n_ownerIndex === this.n_ownerIndex) { //if the current army is the army of the time period
+                    for (let j: number = i + 1; j < this.aa_armies.length; j++) {
+                        Combat(this.aa_armies[i], this.aa_armies[j], (1 * (hasFortress ? 1 : 0))) //has the troops of those armies fight each other. if there is a fortress, feed 1 into the fortress parameter, if not feed 0
+                    }
+                } else {
+                    for (let j: number = i + 1; j < this.aa_armies.length; j++) {
+                        if (this.aa_armies[j].n_ownerIndex === this.n_ownerIndex) { //if the current second army is the army of the time period
+                            Combat(this.aa_armies[i], this.aa_armies[j], (2 * (hasFortress ? 1 : 0))) //has the troops of those armies fight each other. if there is a fortress, feed 2 into the fortress parameter, if not feed 0
+                        } else { //if neither army is the army oif the time period
+                            Combat(this.aa_armies[i], this.aa_armies[j]) //has the troops of those armies fight each other
+                        }
+                    }
                 }
             }
             this.b_hasCombat = true
@@ -1229,18 +1291,7 @@ const InitializeGame = (): void => { //used to set up the game
 InitializeGame() //runs the initialize game function to start the game
 //#endregion Main Game Logic
 
-//WIP: Ideas / sections that need thought
-  //how does the game start, no one has a time periods so do they start with troops and choose which to conquer to start: probably
-    //what troops to they start with
-    //what troops to time periods start with
-  //do time periods start the game with some resources
-    //should lower power time periods start with more resources to balance it out: maybe, leaning probably
-
 //TODO: things that still need to be done
-//WIP: Buildings
-  //different types that have different effects
-    //buildings with passive bonuses
-    //maybe buildings with active affects with cool downs
 //WIP: conquered time period controls
   //building buildings
     //building menu should be reference in addition to the things already made when showing a list of options to build or train so that the player can't make duplicates
@@ -1249,9 +1300,11 @@ InitializeGame() //runs the initialize game function to start the game
   //player starting resources
   //time period starting troops
   //time period starting resources
+    //should time periods with lower power start with more resources?
 //small things:
   //fix troop types in troopString()
     //see TODO in the function
 //stretch goals for first version
   //troop experience level
   //more building types
+  //maybe buildings with active abilities with cool downs
