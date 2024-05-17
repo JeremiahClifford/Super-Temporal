@@ -282,3 +282,16 @@ body {
 
     margin-bottom: 10px;
 }
+
+#building-window {
+    border: 3px solid black;
+
+    display: flex;
+    flex-flow: column nowrap;
+
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+
+    margin-top: 20px;
+}
