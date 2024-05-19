@@ -239,16 +239,18 @@ class Troop { //represents 1 fighting unit
     n_level: number
     n_modifier: number
     n_health: number
+    n_id: number
 
-    constructor (c_level: number, c_modifier: number) {
-        this.n_rawLevel = c_level
+    constructor (c_rawLevel: number, c_modifier: number) {
+        this.n_rawLevel = c_rawLevel
         this.n_level = Math.pow(2, this.n_rawLevel)
         this.n_modifier = c_modifier
         this.n_health = this.n_level + this.n_modifier
+        this.n_id = Math.random() //TEMP:
     }
 
-    ProgressIntegration = (currentTimePeriodLevel: number): void => {
-        if (currentTimePeriodLevel > this.n_rawLevel) {
+    ProgressIntegration = (c_currentTimePeriodLevel: number): void => {
+        if (c_currentTimePeriodLevel > this.n_rawLevel) {
             this.n_modifier /= Math.pow(2, this.n_rawLevel)
             this.n_rawLevel++
             this.n_level = Math.pow(2, this.n_rawLevel)
@@ -296,9 +298,25 @@ class Building {
     s_name: string
     bt_type: BuildingType
 
-    constructor (c_name: string, c_type: BuildingType) {
-        this.s_name = c_name
+    constructor (c_type: BuildingType, c_name: string = `default`) {
         this.bt_type = c_type
+        this.s_name = c_name
+        if (c_name === `default`) {
+            switch (this.bt_type) {
+                case 0:
+                    this.s_name = `Training Camp`
+                    break
+                case 1:
+                    this.s_name = `Warehouse`
+                    break
+                case 2:
+                    this.s_name = `Fortress`
+                    break
+            }
+        } else {
+            this.s_name = c_name
+        }
+        console.log(`Created Building: ${this.s_name}`)
     }
 }
 
@@ -338,6 +356,7 @@ class ResourcePropagationOrder extends PropagationOrder {
     }
 }
 
+
 class TroopPropagationOrder extends PropagationOrder {
 
     t_target: Troop
@@ -345,7 +364,8 @@ class TroopPropagationOrder extends PropagationOrder {
     constructor (c_adding: boolean, c_target: Troop) {
         super(c_adding)
         
-        this.t_target = c_target
+        //manually copy over the troop
+        this.t_target = new Troop(c_target.n_rawLevel, c_target.n_modifier)
     }
 
     ToString () {
@@ -360,7 +380,8 @@ class BuildingPropagationOrder extends PropagationOrder {
     constructor (c_adding: boolean, c_target: Building) {
         super(c_adding)
 
-        this.b_target = c_target
+        //manually copy over the building
+        this.b_target = new Building(c_target.bt_type, c_target.s_name)
     }
 }
 
@@ -376,8 +397,21 @@ class ConquestPropagationOrder extends PropagationOrder {
 
         this.n_newOwnerIndex = c_newOwnerIndex
         this.n_newResources = c_newResources
-        this.ba_newBuildings = c_newBuildings
-        this.aa_newArmies = c_newArmies
+        //manually copy over the buildings array
+        this.ba_newBuildings = []
+        for (let i: number = 0; i < c_newBuildings.length; i++) {
+            this.ba_newBuildings.push(new Building(c_newBuildings[i].bt_type, c_newBuildings[i].s_name))
+        }
+        //manually copy over the armies array
+        this.aa_newArmies = []
+        for (let i: number = 0; i < c_newArmies.length; i++) {
+            //copy over the troops array of the armies
+            let ta_newTroops: Troop[] = []
+            for (let j: number = 0; j < c_newArmies[i].ta_troops.length; j++) {
+                ta_newTroops.push(new Troop(c_newArmies[i].ta_troops[j].n_rawLevel, c_newArmies[i].ta_troops[j].n_modifier))
+            }
+            this.aa_newArmies.push(new Army(c_newArmies[i].n_ownerIndex, ta_newTroops))
+        }
     }
 
     ToString () {
@@ -465,13 +499,13 @@ class TimePeriod {
     StartBuilding = (p_type: number): void => {
         switch (p_type) {
             case 0:
-                this.boa_buildQueue.push(new BuildOrder(new Building("Training Camp", 0), buildingTime))
+                this.boa_buildQueue.push(new BuildOrder(new Building(0), buildingTime))
                 break;
             case 1:
-                this.boa_buildQueue.push(new BuildOrder(new Building("Warehouse", 1), buildingTime))
+                this.boa_buildQueue.push(new BuildOrder(new Building(1), buildingTime))
                 break;
             case 2:
-                this.boa_buildQueue.push(new BuildOrder(new Building("Fortress", 2), buildingTime))
+                this.boa_buildQueue.push(new BuildOrder(new Building(2), buildingTime))
                 break;
         }
     }
@@ -561,7 +595,7 @@ class TimePeriod {
     }
 
     DoIntegration = (): void => { //goes through every army and runs integration
-        this.aa_armies.forEach((a) => a.DoIntegration(this.n_rawLevel))
+        this.aa_armies.forEach((a) => (a as Army).DoIntegration(this.n_rawLevel))
     }
 
     DoRecovery = (): void => { //goes through every army and runs recovery if there was no combat
@@ -582,7 +616,10 @@ class TimePeriod {
                                 this.n_resources = 0
                             }
                     }
-                    //console.log(`${(po as ResourcePropagationOrder).ToString()} completed`) //TEMP:
+                    //adds a new propagation order for the next time period to continue the propagation down the timeline
+                    if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ResourcePropagationOrder(po.b_adding, po.n_amount)) //add the new propagation order, manually copied, to the next time period
+                    }
                 }
                 if (po.constructor === TroopPropagationOrder && !this.b_propagationBlocked) { //handles troop propagation orders if this time period is not propagation blocked
                     if (po.b_adding) { //if the troop is being added
@@ -598,6 +635,10 @@ class TimePeriod {
                             } //if no troop matches, none are removed
                         }
                     }
+                    //adds a new propagation order for the next time period to continue the propagation down the timeline
+                    if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(po.b_adding, po.t_target)) //add the new propagation order, manually copied, to the next time period
+                    }
                 }
                 if (po.constructor === BuildingPropagationOrder && !this.b_propagationBlocked) { //handles building propagation orders if this time period is not propagation blocked
                     if ((po as BuildingPropagationOrder).b_adding) { //if the building is being added
@@ -607,8 +648,12 @@ class TimePeriod {
                             if (this.ba_buildings[i] === (po as BuildingPropagationOrder).b_target) {
                                 this.ba_buildings = this.ba_buildings.filter((b) => b !== this.ba_buildings[i]) //removes the building that matches
                                 break //exits the loop so only one building is removed
-                            } //if no troop matches, none are removed
+                            } //if no building matches, none are removed
                         }
+                    }
+                    //adds a new propagation order for the next time period to continue the propagation down the timeline
+                    if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new BuildingPropagationOrder(po.b_adding, po.b_target)) //add the new propagation order, manually copied, to the next time period
                     }
                 }
                 if (po.constructor === ConquestPropagationOrder && !this.b_propagationBlocked) { //handles conquest propagation orders if this time period is not propagation blocked
@@ -616,13 +661,12 @@ class TimePeriod {
                     this.n_ownerIndex = po.n_newOwnerIndex
                     this.n_resources = po.n_newResources
                     this.ba_buildings = po.ba_newBuildings
-                    po.aa_newArmies.forEach((a) => a.DoIntegration(this.n_level))
                     this.aa_armies = po.aa_newArmies
-                    po.aa_newArmies.forEach((a) => a.DoIntegration(this.n_rawLevel + 1)) //integrates the armies so they are the proper level when propagated to the next time period
-                }
-                //adds a new propagation order for the next time period to continue the propagation down the timeline
-                if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
-                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(po) //adds a copy of the propagation order to the next time zone
+                    this.aa_armies.forEach((a) => a.DoIntegration(this.n_rawLevel)) //integrates the armies so they are the proper level when propagated to the next time period
+                    //adds a new propagation order for the next time period to continue the propagation down the timeline
+                    if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(po.b_adding, po.n_newOwnerIndex, po.n_newResources, po.ba_newBuildings, po.aa_newArmies)) //add the new propagation order, manually copied, to the next time period
+                    }
                 }
             })
         }
@@ -663,7 +707,7 @@ class Planet {
     
     DoIntegration = (): void => { //goes through every time period and runs integration
         //console.log(`Integrating ${this.s_name}`) //TEMP:
-        this.ta_timePeriods.forEach((tp) => tp.DoIntegration())
+        this.ta_timePeriods.forEach((tp) => (tp as TimePeriod).DoIntegration())
     }
 
     DoRecovery = (): void => {
@@ -1380,8 +1424,6 @@ InitializeGame() //runs the initialize game function to start the game
 
 //TODO: things that still need to be done
 //Bugs
-  //troops in time periods get infinite levels from somewhere
-  //buildings in time periods are being duplicated
 //WIP: conquered time period controls
   //building buildings
     //building menu needs styling work
