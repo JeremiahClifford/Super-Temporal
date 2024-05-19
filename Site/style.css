@@ -286,12 +286,23 @@ body {
 #building-window {
     border: 3px solid black;
 
+    background-color: white;
+
     display: flex;
     flex-flow: column nowrap;
 
-    width: 90%;
+    width: 50%;
     margin-left: auto;
     margin-right: auto;
 
     margin-top: 20px;
+}
+
+#building-window button {
+    width: 50%;
+    aspect-ratio: 6/1;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }

@@ -988,7 +988,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
 const buildingWindow: HTMLElement = document.getElementById('building-window') as HTMLElement //the whole building window
 
 const FillInBuildWindow = (): void => {
-    buildingWindow.style.display = "block" //shows the build window
+    buildingWindow.style.display = "flex" //shows the build window
 
     let hasTrainingCamp: boolean = false
     let hasWarehouse: boolean = false
@@ -1330,6 +1330,8 @@ const AdvanceTurn = (): void => { //ends the current turn and starts the next on
 
     pa_players[currentTurnIndex].EndTurn() //removes any unused action from the player ending their turn
 
+    CloseBuildWindow() //closes the build window
+
     if (currentTurnIndex === (pa_players.length - 1)) { //advances the player whose turn it is by on, making sure to loop around once at the end
         pa_players.forEach((p) => p.HealTroops()) //heals the troops on the ships of all players
         let pIndex = 0;
@@ -1369,6 +1371,7 @@ const InitializeGame = (): void => { //used to set up the game
     currentPlayerInfoBox.style.backgroundColor = boardBackgroundColor //sets the background color of the player info box to the board background color
 
     tradingWindow.style.backgroundColor = boardBackgroundColor //set the background color of the trading window
+    buildingWindow.style.backgroundColor = boardBackgroundColor //sets the background color of the building window
     //sets up the central position of the trading window
     tradingWindow.style.position = 'fixed'
     tradingWindow.style.left = '5%'
@@ -1376,7 +1379,7 @@ const InitializeGame = (): void => { //used to set up the game
     tradingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
     //sets up the central position of the building window
     buildingWindow.style.position = 'fixed'
-    buildingWindow.style.left = '5%'
+    buildingWindow.style.left = '25%'
     buildingWindow.style.top = '100px'
     buildingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
 
@@ -1423,10 +1426,7 @@ InitializeGame() //runs the initialize game function to start the game
 //#endregion Main Game Logic
 
 //TODO: things that still need to be done
-//Bugs
-//WIP: conquered time period controls
-  //building buildings
-    //building menu needs styling work
+//Bugs:
 //Starting conditions:
   //player starting troops
   //player starting resources
