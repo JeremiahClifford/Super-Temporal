@@ -46,22 +46,28 @@ const TroopsString = (a: Army, useName: boolean): string => { //gives a string r
     a.ta_troops = SortTroops(a.ta_troops) //sorts the troops so they are in a good order to be printed
 
     //squashes troops of the same level into 1 line
-    //arrays to store the types of power level and how many of them there are
-    let troopTypes: number[] = [] //types of level
-    let troopHealth: number[] = []//health of the type
-    let typeCounts: number[] = [] //number of each type
+    type troopType = {
+        n_level: number
+        n_health: number
+        n_count: number
+    }
+    let troopTypes: troopType[] = []
+    let found: boolean = false
 
-    for (let i: number = 0; i < a.ta_troops.length; i++) { //loops through the array and checks if this is the first of the power level
-        if (troopTypes.indexOf(a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) > -1) { //if not: increments the count for that power level
-            for (let j: number = 0; j < troopTypes.length; j++) { //loops through the types to check them against the current troop being checked
-                if (troopTypes[j] === a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) { //TODO: make sure that troops are only considered the same type if the also have the same health
-                    typeCounts[j]++
-                }
+    for (let i: number = 0; i < a.ta_troops.length; i++) { //loops through the army
+        found = false
+        for (let j: number = 0; j < troopTypes.length; j++) { //loops through the saved troop types
+            if (troopTypes[j].n_level === (a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) && troopTypes[j].n_health === a.ta_troops[i].n_health) { //checks if the troop type matches
+                troopTypes[j].n_count++ //if so: increment the count
+                found = true
             }
-        } else {
-            troopTypes.push(a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) //if so: adds that level to the bottom on the list and gives it a count of 1
-            troopHealth.push(a.ta_troops[i].n_health)
-            typeCounts.push(1)
+        }
+        if (!found) { //if not: add new type to the list
+            troopTypes.push({
+                n_level: a.ta_troops[i].n_level + a.ta_troops[i].n_modifier,
+                n_health: a.ta_troops[i].n_health,
+                n_count: 1
+            })
         }
     }
 
@@ -75,7 +81,7 @@ const TroopsString = (a: Army, useName: boolean): string => { //gives a string r
     }
     output += `${a.ta_troops.length} Troop(s):<br>` //adds th e number of troops
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
-        output += `${typeCounts[i]}x Level: ${troopTypes[i]} Health: ${troopHealth[i]}<br>` //adds a line of their info to the output string
+        output += `${troopTypes[i].n_count}x Level: ${troopTypes[i].n_level} Health: ${troopTypes[i].n_health}<br>` //adds a line of their info to the output string
     }
     return output //returns the outputted list
 }
@@ -210,8 +216,8 @@ class Player {
 
     constructor (c_index: number, c_name: string) {
         this.s_name = c_name
-        this.a_troops = new Army(c_index, [new Troop(1, 0), new Troop(1, 0.1), new Troop(1, 0)]) //TEMP: not sure what troops players will start with if any
-        this.n_resources = 600
+        this.a_troops = new Army(c_index, [new Troop(1, 0), new Troop(1, 0)]) //TEMP: not sure what troops players will start with if any
+        this.n_resources = 0
         this.na_location = [-1, -1]
 
         this.b_canMove = false
@@ -259,8 +265,11 @@ class Troop { //represents 1 fighting unit
     }
 
     Recover = (): void => {
-        if (this.n_health < this.n_level) {
+        if (this.n_health < this.n_level + this.n_modifier) {
             this.n_health += (this.n_level * healthRecoveryPercent)
+        }
+        if (this.n_health > this.n_level + this.n_modifier) {
+            this.n_health = this.n_level + this.n_modifier
         }
     }
 
@@ -1433,10 +1442,8 @@ InitializeGame() //runs the initialize game function to start the game
   //time period starting troops
   //time period starting resources
     //should time periods with lower power start with more resources?
-//small things:
-  //fix troop types in troopString()
-    //see TODO in the function
-//stretch goals for first version
+//Small Things:
+//Stretch Goals:
   //troop experience level
   //more building types
   //maybe buildings with active abilities with cool downs
