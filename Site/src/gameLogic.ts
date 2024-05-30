@@ -247,20 +247,26 @@ class Troop { //represents 1 fighting unit
     n_health: number
     n_id: number
 
-    constructor (c_rawLevel: number, c_modifier: number) {
+    constructor (c_rawLevel: number, c_modifier: number, c_health: number = -1) {
         this.n_rawLevel = c_rawLevel
         this.n_level = Math.pow(2, this.n_rawLevel)
         this.n_modifier = c_modifier
-        this.n_health = this.n_level + this.n_modifier
+        if (c_health === -1) {
+            this.n_health = this.n_level + this.n_modifier
+        } else {
+            this.n_health = c_health
+        }
         this.n_id = Math.random() //TEMP:
     }
 
     ProgressIntegration = (c_currentTimePeriodLevel: number): void => {
-        if (c_currentTimePeriodLevel > this.n_rawLevel) {
+        if (this.n_rawLevel < c_currentTimePeriodLevel) {
+            this.n_health /= (this.n_level + this.n_modifier) //reduce the health to the percentage of the max
             this.n_modifier /= Math.pow(2, this.n_rawLevel)
             this.n_rawLevel++
             this.n_level = Math.pow(2, this.n_rawLevel)
             this.n_modifier *= Math.pow(2, this.n_rawLevel)
+            this.n_health *= (this.n_level + this.n_modifier) //remultiply by the new max health to get the integrated health
         }
     }
 
@@ -365,7 +371,6 @@ class ResourcePropagationOrder extends PropagationOrder {
     }
 }
 
-
 class TroopPropagationOrder extends PropagationOrder {
 
     t_target: Troop
@@ -374,7 +379,7 @@ class TroopPropagationOrder extends PropagationOrder {
         super(c_adding)
         
         //manually copy over the troop
-        this.t_target = new Troop(c_target.n_rawLevel, c_target.n_modifier)
+        this.t_target = new Troop(c_target.n_rawLevel, c_target.n_modifier, c_target.n_health)
     }
 
     ToString () {
@@ -417,7 +422,7 @@ class ConquestPropagationOrder extends PropagationOrder {
             //copy over the troops array of the armies
             let ta_newTroops: Troop[] = []
             for (let j: number = 0; j < c_newArmies[i].ta_troops.length; j++) {
-                ta_newTroops.push(new Troop(c_newArmies[i].ta_troops[j].n_rawLevel, c_newArmies[i].ta_troops[j].n_modifier))
+                ta_newTroops.push(new Troop(c_newArmies[i].ta_troops[j].n_rawLevel, c_newArmies[i].ta_troops[j].n_modifier, c_newArmies[i].ta_troops[j].n_health))
             }
             this.aa_newArmies.push(new Army(c_newArmies[i].n_ownerIndex, ta_newTroops))
         }
@@ -1447,3 +1452,4 @@ InitializeGame() //runs the initialize game function to start the game
   //troop experience level
   //more building types
   //maybe buildings with active abilities with cool downs
+  //unique buildings that can only be built in that specific time period once and are better than normal buildings
