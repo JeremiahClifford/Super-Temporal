@@ -545,7 +545,7 @@ class TimePeriod {
                         this.aa_armies[ownerArmyIndex].ta_troops.push(this.boa_buildQueue[0].tb_target as Troop) //add the troop
                     }
                     if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
-                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, this.boa_buildQueue[0].tb_target)) //create propagation order in next time period
+                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, new Troop(this.boa_buildQueue[0].tb_target.n_rawLevel, this.boa_buildQueue[0].tb_target.n_modifier))) //create propagation order in next time period
                     }
                 } else { //if a building is being built
                     this.ba_buildings.push(this.boa_buildQueue[0].tb_target as Building) //add the building
