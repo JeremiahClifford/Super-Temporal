@@ -13,7 +13,6 @@ const warehouseBonusPercent: number = 0.05 //percent added to one of increase of
 const resourceGenPropagates: boolean = false //should resources added to a time period by normal resource gen propagate. Added because in testing, resource numbers got out of control
 
 const gameBackgroundColor: string = "#03053c" //background color of the whole game
-
 const boardBackgroundColor: string = "#e8e8e8" //color of the background of the various boards
 const boardOutlineColor: string = "#2c2c2c" //color of the outline of the various boards
 

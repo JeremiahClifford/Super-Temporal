@@ -1,0 +1,30 @@
+{
+    "Server": {
+        "Port": 4050
+    },
+    "Game": {
+        "shufflePlayers": false,
+
+        "numPlanets": 5,
+        "numTimePeriods": 10,
+
+        "maxModifierFactor": 0.05,
+        "baseResourceProduction": 10,
+        "resourceRateAdjuster": 10,
+        "warehouseBonusPercent": 0.05,
+        "resourceGenPropagates": false,
+
+        "trainTroopCost": 10,
+        "latenessFactor": 0.5,
+
+        "darkAges": false,
+
+        "troopTrainBaseTime": 3,
+        "trainingCampDiscount": 1,
+        "healthRecoveryPercent": 0.1,
+        "fortressProtectionPercent": 0.8,
+
+        "buildingCost": 500,
+        "buildingTime": 5
+    }
+}
