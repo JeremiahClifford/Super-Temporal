@@ -1,6 +1,5 @@
 // data from the json files
 let settings = require('./data/settings.json') // settings that the server are setup on
-let responseFile = require('./data/responseFile.json') // file used to send something back to clients when a response is not needed
 
 //----------------------------------------------
 //--------------Tunable Values------------------
@@ -671,6 +670,15 @@ for (let i: number = 0; i < 5; i++) {  //TEMP:
 let currentTurnIndex: number //stores which player is currently up
 
 const pa_planets: Planet[] = [] //stores the list of the planets in play
+
+const Initialize = (): void => {
+    currentTurnIndex = 0
+
+    for (let i: number = 0; i < numPlanets; i++) { //creates the list of planets of the number specified in the tunable values
+        let darkAgePoint: number = Math.floor((Math.random() * Math.floor(numTimePeriods / 3)) + Math.floor(numTimePeriods / 3))
+        pa_planets.push(new Planet(`Planet ${i+1}`, darkAgePoint))
+    }
+}
 //#endregion Main Game Logic
 
 //----------------------------------------------
@@ -701,11 +709,69 @@ app.get("/", (request: any, response: any) => {
     response.send("Server Page")
 })
 
+app.get("/gamestate", (request: any, response: any) => {
+    let gamestateOut: string = ``
+    
+    // TEMP: testing
+    gamestateOut += `{` // file open
+    // players
+    gamestateOut += `"numPlayers": ${pa_players.length},`
+    gamestateOut += `"players": {` // players open
+    for (let i: number = 0; i < pa_players.length-1; i++) { // loop through all but the last player
+        gamestateOut += `"${i}": {` // specific player open
+        // Fill in the Player Data
+        gamestateOut += `"name": "${pa_players[i].s_name}"` // TEMP: remove when taking code from above
+        // TODO: Fill in the rest of the player data [2]
+        gamestateOut +=  `},` // specific player close
+    }
+    gamestateOut += `"${pa_players.length-1}": {` // specific player open
+    // Fill in the last Player Data
+    gamestateOut += `"name": "${pa_players[pa_players.length-1].s_name}"`
+    // TODO: Fill in the rest of the player data (code above[2])
+    gamestateOut +=  `}` // last specific player close
+    gamestateOut +=  `},` // players close
+    // basic values
+    gamestateOut += `"currentTurnIndex": ${currentTurnIndex},`
+    gamestateOut += `"numPlanets": ${numPlanets},`
+    gamestateOut += `"numTimePeriods": ${numTimePeriods},`
+    // planets
+    gamestateOut += `"planets": {` // planets open
+    for (let i: number = 0; i < pa_planets.length-1; i++) { // loop through all but last planet
+        gamestateOut += `"${i}": {` // specific planet open
+        // Fill in planet data [0]
+        gamestateOut += `"name": "${pa_planets[i].s_name}",`
+        gamestateOut += `"time_periods": {` // time periods open
+        for (let j: number = 0; j < pa_planets[i].ta_timePeriods.length-1; j++) { // loop through all but last time period
+            gamestateOut += `"${j}": {` // specific time period open
+            // TODO: Fill in time periods data [1]
+            gamestateOut += `},` // specific time period close
+        }
+        gamestateOut += `"${pa_planets[i].ta_timePeriods.length-1}": {` // specific time period open
+        // TODO: Fill in time periods data (code above [1])
+        // End [1]
+        gamestateOut += `}` // specific time period close
+        gamestateOut += `}` // time periods close
+        // End [0]
+        gamestateOut += `},` // specific planet close
+    }
+    // get last planet without following comma
+    gamestateOut += `"${pa_planets.length-1}": {` // specific planet open
+    // TODO: fill in planet data (code above [0])
+    gamestateOut += `"name": "${pa_planets[pa_planets.length-1].s_name}"` // TEMP: remove when taking code from above
+    gamestateOut += `}` // specific planet close
+    gamestateOut += `}` // planets close
+
+    gamestateOut += `}` // file close
+
+    // TODO: fill in  the values of the gamestate
+
+    response.send(JSON.stringify(gamestateOut))
+})
+
+Initialize() // Initializes the game
+
 // opens the server on the specified port
 app.listen(settings.Server.Port, () => {
     console.log(`Listen on the port ${settings.Server.Port}`)
 })
-//TODO:
-// - app.get for the game state for the client to initialize
-
 //#endregion Main Server Logic
