@@ -963,11 +963,18 @@ const Initialize = (): void => {
     fetch(`http://${ip}:${port}/gamestate`, {method: "GET"})
        .then(res => res.json())
        .then((gamestateImport) => {
+            console.log(gamestateImport) // TEMP: debug
             let gamestateJSON = JSON.parse(gamestateImport)
             // Load in players from the gamestate
             let playersIn = gamestateJSON.players
+            console.log(playersIn) // TEMP: debug
             for (let i: number = 0; i < gamestateJSON.numPlayers; i++) {
-                let newPlayer = new Player(i, playersIn[`${i}`].name)
+                let newPlayer = new Player(i, playersIn[i].name)
+                newPlayer.n_resources = playersIn[i].resources
+                newPlayer.b_canMove = playersIn[i].canMove === 1 ? true : false
+                newPlayer.b_canTrade = playersIn[i].canTrade === 1 ? true : false
+                newPlayer.na_location[0] = playersIn[i].location[0]
+                newPlayer.na_location[1] = playersIn[i].location[1]
                 // TODO: set then parameters of the player from the ones loaded in
                 pa_players.push(newPlayer) // add the loaded in player to the list
             }
@@ -977,6 +984,7 @@ const Initialize = (): void => {
             numTimePeriods = gamestateJSON.numTimePeriods
             // Load in planets from the gamestate
             let planetsIn = gamestateJSON.planets
+            console.log(planetsIn) // TEMP: debug
             for (let i: number = 0; i < numPlanets; i++) {
                 let newPlanet: Planet = new Planet(planetsIn[`${i}`].name, 0) // TEMP: dark age point not set across
                 // TODO: set the parameters of the time periods to the ones loaded in
