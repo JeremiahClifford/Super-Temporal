@@ -135,7 +135,7 @@ class Player {
 
     constructor (c_index: number, c_name: string) {
         this.s_name = c_name
-        this.a_troops = new Army(c_index, [new Troop(1, 0), new Troop(1, 0)]) //TEMP: not sure what troops players will start with if any
+        this.a_troops = new Army(c_index, [new Troop(1, 0), new Troop(1, 0)]) // TEMP: not sure what troops players will start with if any
         this.n_resources = 0
         this.na_location = [-1, -1]
 
@@ -158,7 +158,7 @@ class Player {
     }
 }
 
-class Troop { //represents 1 fighting unit
+class Troop { // represents 1 fighting unit
 
     n_rawLevel: number
     n_level: number
@@ -203,7 +203,7 @@ class Troop { //represents 1 fighting unit
     }
 }
 
-class Army { //a group of fighting units as well a number to store which player owns it
+class Army { // a group of fighting units as well a number to store which player owns it
 
     n_ownerIndex: number
     ta_troops: Troop[]
@@ -660,16 +660,16 @@ class Planet {
 //----------------------------------------------
 
 //#region Main Game Logic
-let pa_players: Player[] = [] //stores the list of players in the game
+let pa_players: Player[] = [] // stores the list of players in the game
 
-for (let i: number = 0; i < 5; i++) {  //TEMP:
+for (let i: number = 0; i < 5; i++) {  // TEMP:
     const testPlayer: Player = new Player(i, `Test Player ${i+1}`)
     pa_players.push(testPlayer)
 }
 
-let currentTurnIndex: number //stores which player is currently up
+let currentTurnIndex: number // stores which player is currently up
 
-const pa_planets: Planet[] = [] //stores the list of the planets in play
+const pa_planets: Planet[] = [] // stores the list of the planets in play
 
 const Initialize = (): void => {
     currentTurnIndex = 0
@@ -711,55 +711,59 @@ app.get("/", (request: any, response: any) => {
 
 app.get("/gamestate", (request: any, response: any) => {
     let gamestateOut: string = ``
-    
-    // TEMP: testing
+
     gamestateOut += `{` // file open
+    
     // players
-    gamestateOut += `"numPlayers": ${pa_players.length},`
-    gamestateOut += `"players": {` // players open
-    for (let i: number = 0; i < pa_players.length-1; i++) { // loop through all but the last player
-        gamestateOut += `"${i}": {` // specific player open
+    gamestateOut += `"numPlayers": ${pa_players.length},` // for the client to know how long to loop when loading in the players
+    gamestateOut += `"players": [` // players open
+    for (let i: number = 0; i < pa_players.length; i++) { // loop through all players
+        gamestateOut += `{` // specific player open
         // Fill in the Player Data
-        gamestateOut += `"name": "${pa_players[i].s_name}"` // TEMP: remove when taking code from above
-        // TODO: Fill in the rest of the player data [2]
-        gamestateOut +=  `},` // specific player close
+        // Fill in the rest of the player data
+        gamestateOut += `"name": "${pa_players[i].s_name}",` // TEMP: remove when taking code from above
+        
+        // Troops
+        gamestateOut += `"troops": [` // troops open
+        // TODO: troop data
+        gamestateOut += `],` // troops close
+
+        gamestateOut += `"resources": ${pa_players[i].n_resources},`
+        gamestateOut += `"canMove": "${pa_players[i].b_canMove ? 1 : 0}",`
+        gamestateOut += `"canTrade": "${pa_players[i].b_canTrade ? 1 : 0}",`
+
+        gamestateOut += `"location": [` // location open
+        gamestateOut += `${pa_players[i].na_location[0]},`
+        gamestateOut += `${pa_players[i].na_location[1]}`
+        gamestateOut += `]` // location close
+
+        gamestateOut += `${i === pa_players.length-1 ? "}" : "},"}` // specific player close | if its the last one, leave out the trailing comma
     }
-    gamestateOut += `"${pa_players.length-1}": {` // specific player open
-    // Fill in the last Player Data
-    gamestateOut += `"name": "${pa_players[pa_players.length-1].s_name}"`
-    // TODO: Fill in the rest of the player data (code above[2])
-    gamestateOut +=  `}` // last specific player close
-    gamestateOut +=  `},` // players close
+    gamestateOut +=  `],` // players close
+    
     // basic values
     gamestateOut += `"currentTurnIndex": ${currentTurnIndex},`
     gamestateOut += `"numPlanets": ${numPlanets},`
     gamestateOut += `"numTimePeriods": ${numTimePeriods},`
+    
     // planets
-    gamestateOut += `"planets": {` // planets open
-    for (let i: number = 0; i < pa_planets.length-1; i++) { // loop through all but last planet
-        gamestateOut += `"${i}": {` // specific planet open
-        // Fill in planet data [0]
+    gamestateOut += `"planets": [` // planets open
+    for (let i: number = 0; i < pa_planets.length; i++) { // loop through all planets
+        gamestateOut += `{` // specific planet open
+        // Fill in planet data
         gamestateOut += `"name": "${pa_planets[i].s_name}",`
-        gamestateOut += `"time_periods": {` // time periods open
-        for (let j: number = 0; j < pa_planets[i].ta_timePeriods.length-1; j++) { // loop through all but last time period
-            gamestateOut += `"${j}": {` // specific time period open
-            // TODO: Fill in time periods data [1]
-            gamestateOut += `},` // specific time period close
+
+        gamestateOut += `"time_periods": [` // time periods open
+        for (let j: number = 0; j < pa_planets[i].ta_timePeriods.length; j++) { // loop through all time periods
+            gamestateOut += `{` // specific time period open
+            // TODO: Fill in time periods data
+            gamestateOut += `${j === pa_planets[i].ta_timePeriods.length-1 ? "}" : "},"}` // specific time period close | if its the last one, leave out the trailing comma
         }
-        gamestateOut += `"${pa_planets[i].ta_timePeriods.length-1}": {` // specific time period open
-        // TODO: Fill in time periods data (code above [1])
-        // End [1]
-        gamestateOut += `}` // specific time period close
-        gamestateOut += `}` // time periods close
-        // End [0]
-        gamestateOut += `},` // specific planet close
+        gamestateOut += `]` // time periods close
+        
+        gamestateOut += `${i === pa_planets.length-1 ? "}" : "},"}` // specific planet close | if its the last one, leave out the trailing comma
     }
-    // get last planet without following comma
-    gamestateOut += `"${pa_planets.length-1}": {` // specific planet open
-    // TODO: fill in planet data (code above [0])
-    gamestateOut += `"name": "${pa_planets[pa_planets.length-1].s_name}"` // TEMP: remove when taking code from above
-    gamestateOut += `}` // specific planet close
-    gamestateOut += `}` // planets close
+    gamestateOut += `]` // planets close
 
     gamestateOut += `}` // file close
 
