@@ -205,7 +205,6 @@ class Building {
         } else {
             this.s_name = c_name
         }
-        console.log(`Created Building: ${this.s_name}`)
     }
 }
 
@@ -1012,7 +1011,14 @@ const Initialize = (): void => {
                     newTimePeriod.n_powerModifier = timePeriodsIn[j].powerModifier
                     newTimePeriod.n_resources = timePeriodsIn[j].resources
                     newTimePeriod.n_resourceProduction  = timePeriodsIn[j].resourceProduction
-                    // TODO: buildings
+                    
+                    // Buildings
+                    let buildingsIn = timePeriodsIn[j].buildings
+                    for (let k: number = 0; k < buildingsIn.length; k++) {
+                        let newBuilding: Building = new Building(buildingsIn[k].type, buildingsIn[k].name) // create the new building and fill in its data
+                        newTimePeriod.ba_buildings.push(newBuilding) // push the building to the time period
+                    }
+
                     // TODO: armies
                     // TODO: build orders
                     // TODO: propagation orders
@@ -1020,6 +1026,8 @@ const Initialize = (): void => {
                     newTimePeriod.b_propagationBlocked = timePeriodsIn[j].propagationBlocked
                     newTimePeriod.b_conquested = timePeriodsIn[j].conquested
                     newTimePeriod.b_scorchedEarth = timePeriodsIn[j].scorchedEarth
+
+                    newPlanet.ta_timePeriods[j] = newTimePeriod // set the newly loaded time period to be the correct time period in the planet
                 }
 
                 pa_planets.push(newPlanet) // add the loaded in planet to the list

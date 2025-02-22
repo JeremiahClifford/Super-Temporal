@@ -239,7 +239,6 @@ class Building {
         } else {
             this.s_name = c_name
         }
-        console.log(`Created Building: ${this.s_name}`)
     }
 }
 
@@ -746,6 +745,9 @@ app.get("/gamestate", (request: any, response: any) => {
     gamestateOut += `"numPlanets": ${numPlanets},`
     gamestateOut += `"numTimePeriods": ${numTimePeriods},`
     
+    // tunable values
+    // TODO:
+
     // planets
     gamestateOut += `"planets": [` // planets open
     for (let i: number = 0; i < pa_planets.length; i++) { // loop through all planets
@@ -766,7 +768,19 @@ app.get("/gamestate", (request: any, response: any) => {
             gamestateOut += `"resources": ${pa_planets[i].ta_timePeriods[j].n_resources},`
             gamestateOut += `"resourceProduction": ${pa_planets[i].ta_timePeriods[j].n_rawLevel},`
             gamestateOut += `"darkAgeValue": ${pa_planets[i].ta_timePeriods[j].n_darkAgeValue},`
-            // TODO: buildings
+            
+            // Buildings
+            gamestateOut += `"buildings": [` // buildings open
+            for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].ba_buildings.length; k++) {
+                gamestateOut += `{` // specific building open
+
+                gamestateOut += `"name": "${pa_planets[i].ta_timePeriods[j].ba_buildings[k].s_name}",`
+                gamestateOut += `"type": ${pa_planets[i].ta_timePeriods[j].ba_buildings[k].bt_type.valueOf()}`
+
+                gamestateOut += `${k === pa_planets[i].ta_timePeriods[j].ba_buildings.length-1 ? "}" : "},"}` // specific building close | if its the last one, leave out the trailing comma
+            }
+            gamestateOut += `],` // buildings close
+
             // TODO: armies
             // TODO: build orders
             // TODO: propagation orders
