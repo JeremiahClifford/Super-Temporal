@@ -1,5 +1,6 @@
 // data from the json files
 let settings = require('./data/settings.json') // settings that the server are setup on
+let playerListJSON = require('./data/playerList.json') // list of players that will be in the game
 
 //----------------------------------------------
 //--------------Tunable Values------------------
@@ -95,18 +96,6 @@ const Combat = (a1: Army, a2: Army, fortress: number = 0): void => { //carries o
             }
             break;
     }
-}
-
-const shufflePlayers = (p_playerArray: Player[]): Player[] => {
-    let outArray: Player[] = [] //declare array for shuffled players
-
-    while (p_playerArray.length > 0) {
-        let index: number = Math.floor(Math.random() * p_playerArray.length) //randomly pick the index to take
-        outArray.push(p_playerArray[index]) //add that player to the list
-        p_playerArray.splice(index, 1)
-    }
-
-    return outArray //return shuffled array
 }
 //#endregion Helper Functions
 
@@ -662,9 +651,9 @@ class Planet {
 //#region Main Game Logic
 let pa_players: Player[] = [] // stores the list of players in the game
 
-for (let i: number = 0; i < 5; i++) {  // TEMP:
-    const testPlayer: Player = new Player(i, `Test Player ${i+1}`)
-    pa_players.push(testPlayer)
+for (let i: number = 0; i < playerListJSON.Players.length; i++) {
+    const playerIn: Player = new Player(i, playerListJSON.Players[i])
+    pa_players.push(playerIn)
 }
 
 let currentTurnIndex: number // stores which player is currently up
@@ -721,7 +710,7 @@ app.get("/gamestate", (request: any, response: any) => {
         gamestateOut += `{` // specific player open
         // Fill in the Player Data
         // Fill in the rest of the player data
-        gamestateOut += `"name": "${pa_players[i].s_name}",` // TEMP: remove when taking code from above
+        gamestateOut += `"name": "${pa_players[i].s_name}",`
         
         // Troops
         gamestateOut += `"troops": [` // troops open
