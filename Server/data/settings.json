@@ -26,5 +26,33 @@
 
         "buildingCost": 500,
         "buildingTime": 5
-    }
+    },
+    "planet_names": [
+        "Planet A",
+        "Planet B",
+        "Planet C",
+        "Planet D",
+        "Planet E",
+        "Planet F",
+        "Planet G",
+        "Planet H",
+        "Planet I",
+        "Planet J",
+        "Planet K",
+        "Planet L",
+        "Planet M",
+        "Planet N",
+        "Planet O",
+        "Planet P",
+        "Planet Q",
+        "Planet R",
+        "Planet S",
+        "Planet T",
+        "Planet U",
+        "Planet V",
+        "Planet W",
+        "Planet X",
+        "Planet Y",
+        "Planet Z"
+    ]
 }

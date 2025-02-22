@@ -54,7 +54,7 @@ const CleanArmies = (): void => { //loops through every time zone and removes an
     }
 }
 
-const Combat = (a1: Army, a2: Army, fortress: number = 0): void => { //carries out combat between 2 armies. if one of the armies is the defender and has a fortress, the fortress number will be 1 or 2
+const Combat = (a1: Army, a2: Army, fortress: number = 0): void => { // carries out combat between 2 armies. if one of the armies is the defender and has a fortress, the fortress number will be 1 or 2
     //both armies are sorted
     a1.ta_troops = SortTroops(a1.ta_troops)
     a2.ta_troops = SortTroops(a2.ta_troops)
@@ -96,6 +96,18 @@ const Combat = (a1: Army, a2: Army, fortress: number = 0): void => { //carries o
             }
             break;
     }
+}
+
+const SelectPlanetName = (): string => { // selects a name from the list of options and returns it if it is unused. if it is used it returns a new name recursively. called when creating planets at initialization.
+    let availablePlanetNames = settings.planet_names // get the list of possible planet names from the settings file
+
+    let selectedName: string = availablePlanetNames[Math.floor(Math.random() * availablePlanetNames.length)]    
+    for (let i: number = 0; i < pa_planets.length; i++) {
+        if (selectedName === pa_planets[i].s_name) {
+            return SelectPlanetName()
+        }
+    }
+    return selectedName
 }
 //#endregion Helper Functions
 
@@ -662,9 +674,13 @@ const pa_planets: Planet[] = [] // stores the list of the planets in play
 const Initialize = (): void => {
     currentTurnIndex = 0
 
-    for (let i: number = 0; i < numPlanets; i++) { //creates the list of planets of the number specified in the tunable values
+    for (let i: number = 0; i < numPlanets; i++) { // creates the list of planets of the number specified in the tunable values
         let darkAgePoint: number = Math.floor((Math.random() * Math.floor(numTimePeriods / 3)) + Math.floor(numTimePeriods / 3))
-        pa_planets.push(new Planet(`Planet ${i+1}`, darkAgePoint))
+        if (numPlanets < settings.planet_names.length) { // makes sure that name selection wont crash
+            pa_planets.push(new Planet(`Planet ${i+1}`, darkAgePoint)) // if it will, name them by index
+        } else {
+            pa_planets.push(new Planet(SelectPlanetName(), darkAgePoint)) // if it wont, select names from the list randomly
+        }
     }
 }
 //#endregion Main Game Logic
@@ -813,7 +829,7 @@ app.get("/gamestate", (request: any, response: any) => {
             gamestateOut += `],` // build orders close
 
             // TODO: propagation orders
-            
+
             gamestateOut += `"hasCombat": ${pa_planets[i].ta_timePeriods[j].b_hasCombat},`
             gamestateOut += `"propagationBlocked": ${pa_planets[i].ta_timePeriods[j].b_propagationBlocked},`
             gamestateOut += `"conquested": ${pa_planets[i].ta_timePeriods[j].b_conquested},`
