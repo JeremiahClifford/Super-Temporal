@@ -782,8 +782,38 @@ app.get("/gamestate", (request: any, response: any) => {
             gamestateOut += `],` // buildings close
 
             // TODO: armies
-            // TODO: build orders
+            
+            // Build orders
+            gamestateOut += `"build_orders": [` // build orders open
+
+            for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].boa_buildQueue.length; k++) {
+                gamestateOut += `{` // specific build order open
+
+                gamestateOut += `"type": ${pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor.name},`
+                
+                gamestateOut += `"target": {` // target open
+                if (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor === Building) { // if its a building
+                    gamestateOut += `"name": "${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Building).s_name}",`
+                    gamestateOut += `"type": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Building).bt_type.valueOf()}`
+                }
+                if (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor === Troop) { // if its a troop
+                    gamestateOut += `"rawLevel": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_rawLevel},`
+                    gamestateOut += `"level": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_level},`
+                    gamestateOut += `"modifier": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_modifier},`
+                    gamestateOut += `"health": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_health},`
+                    gamestateOut += `"id": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_id}`
+                }
+                gamestateOut += `},` // target close
+
+                gamestateOut += `"turns_remaining": ${pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].n_turnsRemaining}`
+
+                gamestateOut += `${k === pa_planets[i].ta_timePeriods[j].boa_buildQueue.length-1 ? "}" : "},"}` // specific build order close | if its the last one, leave out the trailing comma
+            }
+
+            gamestateOut += `],` // build orders close
+
             // TODO: propagation orders
+            
             gamestateOut += `"hasCombat": ${pa_planets[i].ta_timePeriods[j].b_hasCombat},`
             gamestateOut += `"propagationBlocked": ${pa_planets[i].ta_timePeriods[j].b_propagationBlocked},`
             gamestateOut += `"conquested": ${pa_planets[i].ta_timePeriods[j].b_conquested},`

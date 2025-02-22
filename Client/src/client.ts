@@ -1020,8 +1020,27 @@ const Initialize = (): void => {
                     }
 
                     // TODO: armies
-                    // TODO: build orders
+
+                    // Build orders
+                    let buildOrdersIn = timePeriodsIn[j].build_orders
+                    for (let k: number = 0; k < buildOrdersIn.length; k++) {
+                        let newTarget: Troop | Building = new Building(0) // create the object for the target of the build order
+                        // fill it in depending on the type
+                        if (buildOrdersIn[k].type === "Building") { // if its a building
+                            newTarget = new Building(buildOrdersIn[k].target.type, buildOrdersIn[k].target.name) // fill it in
+                        }
+                        if (buildOrdersIn[k].type === "Troop") { // if its a troop
+                            // fill it in
+                            newTarget = new Troop(buildOrdersIn[k].target.rawLevel, buildOrdersIn[k].target.modifier, buildOrdersIn[k].target.health)
+                            newTarget.n_level = buildOrdersIn[k].target.level
+                            newTarget.n_id = buildOrdersIn[k].target.id
+                        }
+                        let newBuildOrder: BuildOrder = new BuildOrder(newTarget, buildOrdersIn[k].turns_remaining) // create the build order and fill it in with the target object
+                        newTimePeriod.boa_buildQueue.push(newBuildOrder) // add the loaded build order to the list
+                    }
+
                     // TODO: propagation orders
+                    
                     newTimePeriod.b_hasCombat = timePeriodsIn[j].hasCombat
                     newTimePeriod.b_propagationBlocked = timePeriodsIn[j].propagationBlocked
                     newTimePeriod.b_conquested = timePeriodsIn[j].conquested
