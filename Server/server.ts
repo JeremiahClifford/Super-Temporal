@@ -725,7 +725,18 @@ app.get("/gamestate", (request: any, response: any) => {
         
         // Troops
         gamestateOut += `"troops": [` // troops open
-        // TODO: troop data
+        // Troop data
+        for (let j: number = 0; j < pa_players[i].a_troops.ta_troops.length; j++) { // loop through the troops in the army of the current player
+            gamestateOut += `{` // specific troop open
+
+            gamestateOut += `"rawLevel": ${pa_players[i].a_troops.ta_troops[j].n_rawLevel},`
+            gamestateOut += `"level": ${pa_players[i].a_troops.ta_troops[j].n_level},`
+            gamestateOut += `"modifier": ${pa_players[i].a_troops.ta_troops[j].n_modifier},`
+            gamestateOut += `"health": ${pa_players[i].a_troops.ta_troops[j].n_health},`
+            gamestateOut += `"id": ${pa_players[i].a_troops.ta_troops[j].n_id}`
+
+            gamestateOut += `${j === pa_players[i].a_troops.ta_troops.length-1 ? "}" : "},"}` // specific troop close | if its the last one, leave out the trailing comma
+        }
         gamestateOut += `],` // troops close
 
         gamestateOut += `"resources": ${pa_players[i].n_resources},`
@@ -756,7 +767,25 @@ app.get("/gamestate", (request: any, response: any) => {
         gamestateOut += `"time_periods": [` // time periods open
         for (let j: number = 0; j < pa_planets[i].ta_timePeriods.length; j++) { // loop through all time periods
             gamestateOut += `{` // specific time period open
-            // TODO: Fill in time periods data
+            
+            // Fill in time periods data
+            gamestateOut += `"ownerIndex": ${pa_planets[i].ta_timePeriods[j].n_ownerIndex},`
+            gamestateOut += `"rawLevel": ${pa_planets[i].ta_timePeriods[j].n_rawLevel},`
+            gamestateOut += `"level": ${pa_planets[i].ta_timePeriods[j].n_level},`
+            gamestateOut += `"rawModifierFactor": ${pa_planets[i].ta_timePeriods[j].n_rawModifierFactor},`
+            gamestateOut += `"powerModifier": ${pa_planets[i].ta_timePeriods[j].n_powerModifier},`
+            gamestateOut += `"resources": ${pa_planets[i].ta_timePeriods[j].n_resources},`
+            gamestateOut += `"resourceProduction": ${pa_planets[i].ta_timePeriods[j].n_rawLevel},`
+            gamestateOut += `"darkAgeValue": ${pa_planets[i].ta_timePeriods[j].n_darkAgeValue},`
+            // TODO: buildings
+            // TODO: armies
+            // TODO: build orders
+            // TODO: propagation orders
+            gamestateOut += `"hasCombat": ${pa_planets[i].ta_timePeriods[j].b_hasCombat},`
+            gamestateOut += `"propagationBlocked": ${pa_planets[i].ta_timePeriods[j].b_propagationBlocked},`
+            gamestateOut += `"conquested": ${pa_planets[i].ta_timePeriods[j].b_conquested},`
+            gamestateOut += `"scorchedEarth": ${pa_planets[i].ta_timePeriods[j].b_scorchedEarth}`
+
             gamestateOut += `${j === pa_planets[i].ta_timePeriods.length-1 ? "}" : "},"}` // specific time period close | if its the last one, leave out the trailing comma
         }
         gamestateOut += `]` // time periods close
@@ -772,7 +801,7 @@ app.get("/gamestate", (request: any, response: any) => {
     response.send(JSON.stringify(gamestateOut))
 })
 
-Initialize() // Initializes the game
+Initialize() // Initializes the game when the server starts up
 
 // opens the server on the specified port
 app.listen(settings.Server.Port, () => {

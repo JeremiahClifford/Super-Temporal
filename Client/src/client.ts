@@ -965,29 +965,63 @@ const Initialize = (): void => {
        .then((gamestateImport) => {
             console.log(gamestateImport) // TEMP: debug
             let gamestateJSON = JSON.parse(gamestateImport)
+
             // Load in players from the gamestate
-            let playersIn = gamestateJSON.players
+            let playersIn = gamestateJSON.players // get the list of players
             console.log(playersIn) // TEMP: debug
             for (let i: number = 0; i < gamestateJSON.numPlayers; i++) {
+                // create the player object and fill in its data
                 let newPlayer = new Player(i, playersIn[i].name)
                 newPlayer.n_resources = playersIn[i].resources
                 newPlayer.b_canMove = playersIn[i].canMove === 1 ? true : false
                 newPlayer.b_canTrade = playersIn[i].canTrade === 1 ? true : false
                 newPlayer.na_location[0] = playersIn[i].location[0]
                 newPlayer.na_location[1] = playersIn[i].location[1]
-                // TODO: set then parameters of the player from the ones loaded in
+                
+                // Import Troops
+                newPlayer.a_troops.ta_troops = [] // clear the default army
+                let troopsIn = playersIn[i].troops // get the list of troops from the current player
+                for (let j: number = 0; j < troopsIn.length; j++) { // loop through the troops
+                    // create the troop object and fill in its data
+                    let newTroop: Troop = new Troop(troopsIn[j].rawLevel, troopsIn[j].modifier, troopsIn[j].health)
+                    newTroop.n_level = troopsIn[j].level
+                    newTroop.n_id = troopsIn[j].id
+                    newPlayer.a_troops.ta_troops.push(newTroop) // push the troop to the army
+                }
                 pa_players.push(newPlayer) // add the loaded in player to the list
             }
+
             // Load in basic values from the gamestate
             currentTurnIndex = gamestateJSON.currentTurnIndex
             numPlanets = gamestateJSON.numPlanets
             numTimePeriods = gamestateJSON.numTimePeriods
+
             // Load in planets from the gamestate
-            let planetsIn = gamestateJSON.planets
+            let planetsIn = gamestateJSON.planets // get the list of planets
             console.log(planetsIn) // TEMP: debug
             for (let i: number = 0; i < numPlanets; i++) {
-                let newPlanet: Planet = new Planet(planetsIn[`${i}`].name, 0) // TEMP: dark age point not set across
-                // TODO: set the parameters of the time periods to the ones loaded in
+                // create the planet object and fill in its data
+                let newPlanet: Planet = new Planet(planetsIn[`${i}`].name, 0) // dark age point not sent here, send in each time period
+                
+                let timePeriodsIn = planetsIn[i].time_periods // get the list of time periods
+                for (let j: number = 0; j < numTimePeriods; j++) {
+                    // create the time period object and fill in its data
+                    let newTimePeriod: TimePeriod = new TimePeriod(timePeriodsIn[j].rawLevel, timePeriodsIn[j].rawModifierFactor, timePeriodsIn[j].darkAgeValue)
+                    newTimePeriod.n_ownerIndex = timePeriodsIn[j].ownerIndex
+                    newTimePeriod.n_level = timePeriodsIn[j].level
+                    newTimePeriod.n_powerModifier = timePeriodsIn[j].powerModifier
+                    newTimePeriod.n_resources = timePeriodsIn[j].resources
+                    newTimePeriod.n_resourceProduction  = timePeriodsIn[j].resourceProduction
+                    // TODO: buildings
+                    // TODO: armies
+                    // TODO: build orders
+                    // TODO: propagation orders
+                    newTimePeriod.b_hasCombat = timePeriodsIn[j].hasCombat
+                    newTimePeriod.b_propagationBlocked = timePeriodsIn[j].propagationBlocked
+                    newTimePeriod.b_conquested = timePeriodsIn[j].conquested
+                    newTimePeriod.b_scorchedEarth = timePeriodsIn[j].scorchedEarth
+                }
+
                 pa_planets.push(newPlanet) // add the loaded in planet to the list
             }
         })
@@ -997,8 +1031,6 @@ const Initialize = (): void => {
 Initialize() // Start the client
 
 // TODO:
-//  - Function to request the game state from the server
-//  - Initialize
-//  -- Request info from server and draw
+//  - Finish filling in gamestate
 //  - System to queue up orders and submit to server
 //#endregion Main Game Logic
