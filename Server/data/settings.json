@@ -3,8 +3,6 @@
         "Port": 4050
     },
     "Game": {
-        "shufflePlayers": false,
-
         "numPlanets": 5,
         "numTimePeriods": 10,
 

@@ -1060,7 +1060,30 @@ const Initialize = (): void => {
                         newTimePeriod.boa_buildQueue.push(newBuildOrder) // add the loaded build order to the list
                     }
 
-                    // TODO: propagation orders
+                    // Propagation orders
+                    let propagationOrdersIn = timePeriodsIn[j].propagation_orders
+                    for (let k: number = 0; k < buildOrdersIn.length; k++) {
+                        if (propagationOrdersIn[k].type === "ResourcePropagationOrder") {
+                            let newPropagationOrder: ResourcePropagationOrder = new ResourcePropagationOrder(propagationOrdersIn[k].adding === 1 ? true : false, propagationOrdersIn[k].amount) // create the order and fill it in
+                            newTimePeriod.pa_propagationOrders.push(newPropagationOrder) // add the loaded propagation order to the time period
+                        }
+                        if (propagationOrdersIn[k].type === "TroopPropagationOrder") {
+                            let newTarget: Troop = new Troop(propagationOrdersIn[k].target.rawLevel, propagationOrdersIn[k].target.modifier, propagationOrdersIn[k].target.health) // create the target troop
+                            // fill in the target troop data
+                            newTarget.n_level = propagationOrdersIn[k].target.level
+                            newTarget.n_id = propagationOrdersIn[k].target.id
+                            let newPropagationOrder: TroopPropagationOrder = new TroopPropagationOrder(propagationOrdersIn[k].adding === 1 ? true : false, newTarget) // create the order and fill it in
+                            newTimePeriod.pa_propagationOrders.push(newPropagationOrder) // add the loaded propagation order to the time period
+                        }
+                        if (propagationOrdersIn[k].type === "BuildingPropagationOrder") {
+                            let newTarget: Building = new Building(propagationOrdersIn[k].target.type, propagationOrdersIn[k].target.name) // create the target troop
+                            let newPropagationOrder: BuildingPropagationOrder = new BuildingPropagationOrder(propagationOrdersIn[k].adding === 1 ? true : false, newTarget) // create the order and fill it in
+                            newTimePeriod.pa_propagationOrders.push(newPropagationOrder) // add the loaded propagation order to the time period
+                        }
+                        if (propagationOrdersIn[k].type === "ConquestPropagationOrder") {
+                            // TODO:
+                        }
+                    }
                     
                     newTimePeriod.b_hasCombat = timePeriodsIn[j].hasCombat
                     newTimePeriod.b_propagationBlocked = timePeriodsIn[j].propagationBlocked

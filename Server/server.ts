@@ -856,7 +856,45 @@ app.get("/gamestate", (request: any, response: any) => {
 
             gamestateOut += `],` // build orders close
 
-            // TODO: propagation orders
+            // Propagation orders
+            gamestateOut += `"propagation_orders": [` // propagation orders open
+
+            for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].pa_propagationOrders.length; k++) {
+                gamestateOut += `{` // specific propagation order open
+
+                gamestateOut += `"type": "${pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].constructor.name}",`
+                gamestateOut += `"adding": ${pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].b_adding ? 1 : 0},`
+                
+                if (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].constructor === ResourcePropagationOrder) {
+                    gamestateOut += `"amount": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ResourcePropagationOrder).n_amount}`
+                }
+                if (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].constructor === TroopPropagationOrder) {
+                    gamestateOut += `"target": {` // target open
+
+                    gamestateOut += `"rawLevel": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as TroopPropagationOrder).t_target as Troop).n_rawLevel},`
+                    gamestateOut += `"level": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as TroopPropagationOrder).t_target as Troop).n_level},`
+                    gamestateOut += `"modifier": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as TroopPropagationOrder).t_target as Troop).n_modifier},`
+                    gamestateOut += `"health": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as TroopPropagationOrder).t_target as Troop).n_health},`
+                    gamestateOut += `"id": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as TroopPropagationOrder).t_target as Troop).n_id}`
+                    
+                    gamestateOut += `},` // target close
+                }
+                if (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].constructor === BuildingPropagationOrder) {
+                    gamestateOut += `"target": {` // target open
+                    
+                    gamestateOut += `"name": "${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as BuildingPropagationOrder).b_target as Building).s_name}",`
+                    gamestateOut += `"type": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as BuildingPropagationOrder).b_target as Building).bt_type.valueOf()}`
+                    
+                    gamestateOut += `},` // target close
+                }
+                if (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].constructor === ConquestPropagationOrder) {
+                    // TODO:
+                }
+
+                gamestateOut += `${k === pa_planets[i].ta_timePeriods[j].pa_propagationOrders.length-1 ? "}" : "},"}` // specific propagation order close | if its the last one, leave out the trailing comma
+            }
+
+            gamestateOut += `],` // propagation orders close
 
             gamestateOut += `"hasCombat": ${pa_planets[i].ta_timePeriods[j].b_hasCombat},`
             gamestateOut += `"propagationBlocked": ${pa_planets[i].ta_timePeriods[j].b_propagationBlocked},`
