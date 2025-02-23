@@ -802,7 +802,30 @@ app.get("/gamestate", (request: any, response: any) => {
             }
             gamestateOut += `],` // buildings close
 
-            // TODO: armies
+            // Armies
+            gamestateOut += `"armies": [` // armies open
+            for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].aa_armies.length; k++) {
+                gamestateOut += `{` // specific army open
+
+                gamestateOut += `"owner_index": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].n_ownerIndex},`
+                
+                gamestateOut += `"troops": [` // troops open
+                for (let m: number = 0; m < pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops.length; m++) {
+                    gamestateOut += `{` // specific troop open
+
+                    gamestateOut += `"rawLevel": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_rawLevel},`
+                    gamestateOut += `"level": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_level},`
+                    gamestateOut += `"modifier": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_modifier},`
+                    gamestateOut += `"health": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_health},`
+                    gamestateOut += `"id": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_id}`
+        
+                    gamestateOut += `${m === pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops.length-1 ? "}" : "},"}` // specific troop close | if its the last one, leave out the trailing comma
+                }
+                gamestateOut += `]` // troops close
+
+                gamestateOut += `${k === pa_planets[i].ta_timePeriods[j].aa_armies.length-1 ? "}" : "},"}` // specific army close | if its the last one, leave out the trailing comma
+            }
+            gamestateOut += `],` // armies close
             
             // Build orders
             gamestateOut += `"build_orders": [` // build orders open

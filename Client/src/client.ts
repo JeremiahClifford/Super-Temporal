@@ -348,7 +348,7 @@ class TimePeriod {
         this.n_resources = this.n_resourceProduction * 5 //TEMP: starts the time period with 5 turns worth of resources. not sure what I want this to be in the final version
         this.n_darkAgeValue = c_darkAgeValue
         this.ba_buildings = []
-        this.aa_armies = [new Army(-1, [new Troop(this.n_rawLevel, this.n_powerModifier * 1.25)])] //TEMP: not sure what troops time periods will start with if any
+        this.aa_armies = []
         this.boa_buildQueue = []
         this.pa_propagationOrders = []
         this.b_hasCombat = false
@@ -1025,7 +1025,22 @@ const Initialize = (): void => {
                         newTimePeriod.ba_buildings.push(newBuilding) // push the building to the time period
                     }
 
-                    // TODO: armies
+                    // Armies
+                    let armiesIn = timePeriodsIn[j].armies
+                    for (let k: number = 0; k < armiesIn.length; k++) {
+                        let newArmy: Army = new Army(armiesIn[k].owner_index, []) // create the new army and fill in the owner
+
+                        let troopsIn = armiesIn[k].troops
+                        for (let m: number = 0; m < troopsIn.length; m++) {
+                            // create the troop object and fill in its data
+                            let newTroop: Troop = new Troop(troopsIn[m].rawLevel, troopsIn[m].modifier, troopsIn[m].health)
+                            newTroop.n_level = troopsIn[m].level
+                            newTroop.n_id = troopsIn[m].id
+                            newArmy.ta_troops.push(newTroop) // push the troop to the army
+                        }
+
+                        newTimePeriod.aa_armies.push(newArmy) // add the army to the time period list
+                    }
 
                     // Build orders
                     let buildOrdersIn = timePeriodsIn[j].build_orders
