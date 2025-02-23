@@ -3,32 +3,31 @@
 //----------------------------------------------
 
 //#region Tunable Values
-// these will have to come in from the server but can be this for now
-let numPlanets: number = 5 //number of planets that the game should have
-let numTimePeriods: number = 10 //stores how many time periods each planet should have
+let numPlanets: number = 5 // number of planets that the game should have
+let numTimePeriods: number = 10 // stores how many time periods each planet should have
 
-let maxModifierFactor: number = 0.05 //how high should the variance between time periods be allowed to get
-let baseResourceProduction: number = 10 //base number of resource generation that each time period generates
-let resourceRateAdjuster: number = 10 //number that the inverted modifier is multiplied by to make the differences between the resource production of different time periods substantial
-let warehouseBonusPercent: number = 0.05 //percent added to one of increase of resources if time period has a warehouse
-let resourceGenPropagates: boolean = false //should resources added to a time period by normal resource gen propagate. Added because in testing, resource numbers got out of control
+let maxModifierFactor: number = 0.05 // how high should the variance between time periods be allowed to get
+let baseResourceProduction: number = 10 // base number of resource generation that each time period generates
+let resourceRateAdjuster: number = 10 // number that the inverted modifier is multiplied by to make the differences between the resource production of different time periods substantial
+let warehouseBonusPercent: number = 0.05 // percent added to one of increase of resources if time period has a warehouse
+let resourceGenPropagates: boolean = false // should resources added to a time period by normal resource gen propagate. Added because in testing, resource numbers got out of control
 
-let gameBackgroundColor: string = "#03053c" //background color of the whole game
-let boardBackgroundColor: string = "#e8e8e8" //color of the background of the various boards
-let boardOutlineColor: string = "#2c2c2c" //color of the outline of the various boards
+let gameBackgroundColor: string = "#03053c" // background color of the whole game
+let boardBackgroundColor: string = "#e8e8e8" // color of the background of the various boards
+let boardOutlineColor: string = "#2c2c2c" // color of the outline of the various boards
 
-let trainTroopCost: number = 50 //how many resources should it cost to train a troop
-let latenessFactor: number = 0.5 //by what factor should later time period resources be reduced
+let trainTroopCost: number = 50 // how many resources should it cost to train a troop
+let latenessFactor: number = 0.5 // by what factor should later time period resources be reduced
 
-let darkAges: boolean = false //should dark ages be in play and affect power values
+let darkAges: boolean = false // should dark ages be in play and affect power values
 
-let troopTrainBaseTime: number = 3 //how long it takes to train a troop by default
-let trainingCampDiscount: number = 1 //how many turns the training camp reduces troop training by
-let healthRecoveryPercent: number = 0.1 //how much health do troops recover per turn
-let fortressProtectionPercent: number = 0.8 //how much damage do troops take if they are in a fortress
+let troopTrainBaseTime: number = 3 // how long it takes to train a troop by default
+let trainingCampDiscount: number = 1 // how many turns the training camp reduces troop training by
+let healthRecoveryPercent: number = 0.1 // how much health do troops recover per turn
+let fortressProtectionPercent: number = 0.8 // how much damage do troops take if they are in a fortress
 
-let buildingCost: number = 500 //how much it costs to build a building
-let buildingTime: number = 5 //how many turns it takes to build a building
+let buildingCost: number = 500 // how much it costs to build a building
+let buildingTime: number = 5 // how many turns it takes to build a building
 //#endregion Tunable Values
 
 //----------------------------------------------
@@ -990,10 +989,17 @@ const Initialize = (): void => {
                 pa_players.push(newPlayer) // add the loaded in player to the list
             }
 
-            // Load in basic values from the gamestate
+            // Load in tunable values from the gamestate
             currentTurnIndex = gamestateJSON.currentTurnIndex
             numPlanets = gamestateJSON.numPlanets
             numTimePeriods = gamestateJSON.numTimePeriods
+            warehouseBonusPercent = gamestateJSON.warehouseBonusPercent
+            trainTroopCost = gamestateJSON.trainTroopCost
+            trainingCampDiscount = gamestateJSON.trainingCampDiscount
+            healthRecoveryPercent = gamestateJSON.healthRecoveryPercent
+            fortressProtectionPercent = gamestateJSON.fortressProtectionPercent
+            buildingCost = gamestateJSON.buildingCost
+            buildingTime = gamestateJSON.buildingTime
 
             // Load in planets from the gamestate
             let planetsIn = gamestateJSON.planets // get the list of planets

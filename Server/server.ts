@@ -8,27 +8,27 @@ let playerListJSON = require('./data/playerList.json') // list of players that w
 
 //#region Tunable Values
 // These all come in from the settings
-const numPlanets: number = settings.Game.numPlanets //number of planets that the game should have
-const numTimePeriods: number = settings.Game.numTimePeriods //stores how many time periods each planet should have
+const numPlanets: number = settings.Game.numPlanets // number of planets that the game should have
+const numTimePeriods: number = settings.Game.numTimePeriods // stores how many time periods each planet should have
 
-const maxModifierFactor: number = settings.Game.maxModifierFactor //how high should the variance between time periods be allowed to get
-const baseResourceProduction: number = settings.Game.baseResourceProduction //base number of resource generation that each time period generates
-const resourceRateAdjuster: number = settings.Game.resourceRateAdjuster //number that the inverted modifier is multiplied by to make the differences between the resource production of different time periods substantial
-const warehouseBonusPercent: number = settings.Game.warehouseBonusPercent //percent added to one of increase of resources if time period has a warehouse
-const resourceGenPropagates: boolean = settings.Game.resourceGenPropagates //should resources added to a time period by normal resource gen propagate. Added because in testing, resource numbers got out of control
+const maxModifierFactor: number = settings.Game.maxModifierFactor // how high should the variance between time periods be allowed to get
+const baseResourceProduction: number = settings.Game.baseResourceProduction // base number of resource generation that each time period generates
+const resourceRateAdjuster: number = settings.Game.resourceRateAdjuster // number that the inverted modifier is multiplied by to make the differences between the resource production of different time periods substantial
+const warehouseBonusPercent: number = settings.Game.warehouseBonusPercent // percent added to one of increase of resources if time period has a warehouse
+const resourceGenPropagates: boolean = settings.Game.resourceGenPropagates // should resources added to a time period by normal resource gen propagate. Added because in testing, resource numbers got out of control
 
-const trainTroopCost: number = settings.Game.trainTroopCost //how many resources should it cost to train a troop
-const latenessFactor: number = settings.Game.latenessFactor //by what factor should later time period resources be reduced
+const trainTroopCost: number = settings.Game.trainTroopCost // how many resources should it cost to train a troop
+const latenessFactor: number = settings.Game.latenessFactor // by what factor should later time period resources be reduced
 
-const darkAges: boolean = settings.Game.darkAges //should dark ages be in play and affect power values
+const darkAges: boolean = settings.Game.darkAges // should dark ages be in play and affect power values
 
-const troopTrainBaseTime: number = settings.Game.troopTrainBaseTime //how long it takes to train a troop by default
-const trainingCampDiscount: number = settings.Game.trainingCampDiscount //how many turns the training camp reduces troop training by
-const healthRecoveryPercent: number = settings.Game.healthRecoveryPercent //how much health do troops recover per turn
-const fortressProtectionPercent: number = settings.Game.fortressProtectionPercent //how much damage do troops take if they are in a fortress
+const troopTrainBaseTime: number = settings.Game.troopTrainBaseTime // how long it takes to train a troop by default
+const trainingCampDiscount: number = settings.Game.trainingCampDiscount // how many turns the training camp reduces troop training by
+const healthRecoveryPercent: number = settings.Game.healthRecoveryPercent // how much health do troops recover per turn
+const fortressProtectionPercent: number = settings.Game.fortressProtectionPercent // how much damage do troops take if they are in a fortress
 
-const buildingCost: number = settings.Game.buildingCost //how much it costs to build a building
-const buildingTime: number = settings.Game.buildingTime //how many turns it takes to build a building
+const buildingCost: number = settings.Game.buildingCost // how much it costs to build a building
+const buildingTime: number = settings.Game.buildingTime // how many turns it takes to build a building
 //#endregion Tunable Values
 
 //----------------------------------------------
@@ -756,13 +756,18 @@ app.get("/gamestate", (request: any, response: any) => {
     }
     gamestateOut +=  `],` // players close
     
-    // basic values
+    // tunable values
     gamestateOut += `"currentTurnIndex": ${currentTurnIndex},`
     gamestateOut += `"numPlanets": ${numPlanets},`
     gamestateOut += `"numTimePeriods": ${numTimePeriods},`
-    
-    // tunable values
-    // TODO:
+    gamestateOut += `"warehouseBonusPercent": ${warehouseBonusPercent},`
+    gamestateOut += `"trainTroopCost": ${trainTroopCost},`
+    gamestateOut += `"troopTrainBaseTime": ${troopTrainBaseTime},`
+    gamestateOut += `"trainingCampDiscount": ${trainingCampDiscount},`
+    gamestateOut += `"healthRecoveryPercent": ${healthRecoveryPercent},`
+    gamestateOut += `"fortressProtectionPercent": ${fortressProtectionPercent},`
+    gamestateOut += `"buildingCost": ${buildingCost},`
+    gamestateOut += `"buildingTime":  ${buildingTime},`
 
     // planets
     gamestateOut += `"planets": [` // planets open
