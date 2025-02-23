@@ -1081,7 +1081,34 @@ const Initialize = (): void => {
                             newTimePeriod.pa_propagationOrders.push(newPropagationOrder) // add the loaded propagation order to the time period
                         }
                         if (propagationOrdersIn[k].type === "ConquestPropagationOrder") {
-                            // TODO:
+                            // New Buildings
+                            let newBuildings: Building[] = []
+                            let newBuildingsIn = propagationOrdersIn[k].new_buildings
+                            for (let m: number = 0; m < newBuildingsIn.length; m++) {
+                                let newBuilding: Building = new Building(newBuildingsIn[m].type, newBuildingsIn[m].name) // create the new building and fill in its data
+                                newBuildings.push(newBuilding) // push the building to the building list
+                            }
+                            
+                            // New Armies
+                            let newArmies: Army[] = []
+                            let newArmiesIn = propagationOrdersIn[k].new_armies
+                            for (let m: number = 0; m < newArmiesIn.length; m++) {
+                                let newArmy: Army = new Army(armiesIn[m].owner_index, []) // create the new army and fill in the owner
+
+                                let troopsIn = newArmiesIn[m].troops
+                                for (let n: number = 0; n < troopsIn.length; n++) {
+                                    // create the troop object and fill in its data
+                                    let newTroop: Troop = new Troop(troopsIn[n].rawLevel, troopsIn[n].modifier, troopsIn[n].health)
+                                    newTroop.n_level = troopsIn[n].level
+                                    newTroop.n_id = troopsIn[n].id
+                                    newArmy.ta_troops.push(newTroop) // push the troop to the army
+                                }
+                            
+                                newArmies.push(newArmy) // add the army to the list of armies
+                            }
+
+                            let newPropagationOrder: ConquestPropagationOrder = new ConquestPropagationOrder(propagationOrdersIn[k].adding === 1 ? true : false, propagationOrdersIn[k].newOwnerIndex, propagationOrdersIn[k].newResources, newBuildings, newArmies) // create the order and fill it in
+                            newTimePeriod.pa_propagationOrders.push(newPropagationOrder) // add the loaded propagation order to the time period
                         }
                     }
                     

@@ -888,7 +888,44 @@ app.get("/gamestate", (request: any, response: any) => {
                     gamestateOut += `},` // target close
                 }
                 if (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].constructor === ConquestPropagationOrder) {
-                    // TODO:
+                    gamestateOut += `"newOwnerIndex": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).n_newOwnerIndex},`
+                    gamestateOut += `"newResources": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).n_newResources},`
+                    // New Armies
+                    gamestateOut += `"new_armies": [` // armies open
+                    for (let m: number = 0; m < (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies.length; m++) {
+                        gamestateOut += `{` // specific army open
+                    
+                        gamestateOut += `"owner_index": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[k].n_ownerIndex},`
+
+                        gamestateOut += `"troops": [` // troops open
+                        for (let n: number = 0; n < (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops.length; n++) {
+                            gamestateOut += `{` // specific troop open
+                        
+                            gamestateOut += `"rawLevel": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops[n].n_rawLevel},`
+                            gamestateOut += `"level": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops[n].n_level},`
+                            gamestateOut += `"modifier": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops[n].n_modifier},`
+                            gamestateOut += `"health": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops[n].n_health},`
+                            gamestateOut += `"id": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops[n].n_id}`
+                        
+                            gamestateOut += `${n === (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops.length-1 ? "}" : "},"}` // specific troop close | if its the last one, leave out the trailing comma
+                        }
+                        gamestateOut += `]` // troops close
+                    
+                        gamestateOut += `${k === (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies.length-1 ? "}" : "},"}` // specific army close | if its the last one, leave out the trailing comma
+                    }
+                    gamestateOut += `],` // armies close
+
+                    // New Buildings
+                    gamestateOut += `"new_buildings": [` // buildings open
+                    for (let m: number = 0; m < (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).ba_newBuildings.length; m++) {
+                        gamestateOut += `{` // specific building open
+                    
+                        gamestateOut += `"name": "${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).ba_newBuildings[m].s_name}",`
+                        gamestateOut += `"type": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).ba_newBuildings[m].bt_type.valueOf()}`
+                    
+                        gamestateOut += `${k === (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).ba_newBuildings.length-1 ? "}" : "},"}` // specific building close | if its the last one, leave out the trailing comma
+                    }
+                    gamestateOut += `]` // buildings close
                 }
 
                 gamestateOut += `${k === pa_planets[i].ta_timePeriods[j].pa_propagationOrders.length-1 ? "}" : "},"}` // specific propagation order close | if its the last one, leave out the trailing comma
@@ -910,8 +947,6 @@ app.get("/gamestate", (request: any, response: any) => {
     gamestateOut += `]` // planets close
 
     gamestateOut += `}` // file close
-
-    // TODO: fill in  the values of the gamestate
 
     response.send(JSON.stringify(gamestateOut))
 })
