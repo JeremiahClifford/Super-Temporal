@@ -676,7 +676,7 @@ const Initialize = (): void => {
 
     for (let i: number = 0; i < numPlanets; i++) { // creates the list of planets of the number specified in the tunable values
         let darkAgePoint: number = Math.floor((Math.random() * Math.floor(numTimePeriods / 3)) + Math.floor(numTimePeriods / 3))
-        if (numPlanets < settings.planet_names.length) { // makes sure that name selection wont crash
+        if (numPlanets > settings.planet_names.length) { // makes sure that name selection wont crash
             pa_planets.push(new Planet(`Planet ${i+1}`, darkAgePoint)) // if it will, name them by index
         } else {
             pa_planets.push(new Planet(SelectPlanetName(), darkAgePoint)) // if it wont, select names from the list randomly
