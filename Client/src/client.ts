@@ -1129,6 +1129,12 @@ const Initialize = (): void => {
 Initialize() // Start the client
 
 // TODO:
-//  - Finish filling in gamestate
+//  - Client login system to the client knows which player it is and lets them take their turn when it is their turn
 //  - System to queue up orders and submit to server
+//  -- Server side system receive orders and execute them
+//  -- Client side system to save the actions the player wants to take in what order and to submit them as a turn when pressing the button
+//  - Setup the buttons for the client
+//  -- Add a button to fetch the current gamestate
+//  -- Make the existing trade and move buttons work to add to the order system and show up in real time on the client
+//  -- Make the end turn button submit the turn
 //#endregion Main Game Logic
