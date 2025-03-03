@@ -951,6 +951,29 @@ app.get("/gamestate", (request: any, response: any) => {
     response.send(JSON.stringify(gamestateOut))
 })
 
+// submit function
+app.post("/submitturn", (request: any, response: any) => {
+    // ingests the data
+    const turnSubmitted = request.body
+
+    if (turnSubmitted.Details[0].CurrentTurnIndex === currentTurnIndex) { // check the player that is submitting the move. Details[0] is always the player index
+        for (let i: number = 1; i < turnSubmitted.Details.length; i++) { // loop through the actions. length will always be 1 to 3 depending on if the player does both possible actions on there turn or just one or none
+            // check if action is move or trade
+            if (turnSubmitted.Details[i].Type === "Move") { // if its a move
+                // TODO: execute the move
+            }
+            if (turnSubmitted.Details[i].Type === "Trade") { // if its a trade
+                // TODO: execute the trade
+            }
+        }
+        //sends a response to the client
+        response.json(JSON.stringify(`{"true"}`))
+    } else { // player index does not match
+        //sends a response to the client
+        response.json(JSON.stringify(`{"false"}`))
+    }
+})
+
 Initialize() // Initializes the game when the server starts up
 
 // opens the server on the specified port

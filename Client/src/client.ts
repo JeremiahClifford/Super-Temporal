@@ -602,6 +602,66 @@ const SwapTroop = (start: Army, startIndex: number, target: Army): void => { //m
     start.ta_troops =  start.ta_troops.filter((t) => t !== start.ta_troops[startIndex]) //removes the troop from where it started
     FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
 }
+
+const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
+    tradingWindow.style.display = "none" // hides the trade window
+
+    let playerArmyIndex: number = -1
+    for (let i: number = 0; i < tp.aa_armies.length; i++) { // finds if the player already has an army in this time period
+        if (tp.aa_armies[i].n_ownerIndex === p) {
+            playerArmyIndex = i
+        }
+    }
+    if (playerArmyIndex > -1) { // if they have an army here
+        // Fill in the turn actions json for the trade
+        // TODO: fill in the troop lists
+        turnActions += `,{
+            "Type": "Trade", 
+            "TargetTimePeriod": [${p_pIndex}, ${p_tIndex}], 
+            "ResourcesTaken": ${resourcesTaken},
+            "ResourcesGiven": ${resourcesGiven},
+            "TroopsTaken": [
+                ],
+            "TroopsGiven": [
+                ]
+            }`
+        // swaps all the things around
+        // gives the player the resources they take
+        pa_players[p].n_resources += resourcesTaken
+        if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ResourcePropagationOrder(false, resourcesTaken)) //add the propagation order to propagate the trade results in next time period
+        }
+        resourcesTaken = 0
+        // gives the time period the resources it has been given
+        tp.n_resources += resourcesGiven
+        if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ResourcePropagationOrder(true, resourcesGiven)) //add the propagation order to propagate the trade results in next time period
+        }
+        resourcesGiven = 0
+        // moves the taken troops to the player
+        troopsTaken.ta_troops.forEach((t) => {
+            pa_players[p].a_troops.ta_troops.push(t)
+            if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, t)) //add the propagation order to propagate the trade results in next time period
+            }
+        })
+        pa_players[p].a_troops.ta_troops = SortTroops(pa_players[p].a_troops.ta_troops)
+        troopsTaken.ta_troops = []
+        // moves the given troops to the time period
+        troopsGiven.ta_troops.forEach((t) => {
+            tp.aa_armies[playerArmyIndex].ta_troops.push(t)
+            if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, t)) //add the propagation order to propagate the trade results in next time period
+            }
+        })
+        tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
+        troopsGiven.ta_troops = []
+    } else { //if they don't have an army here
+        //This should never happen as an empty army is created when the trade window is filled in if none is found
+    }
+
+    DrawBoard()
+}
 //#endregion Trading
 
 //#region Building
@@ -681,50 +741,51 @@ const CloseBuildWindow = (): void => {
 let ip: string = `127.0.0.1` // TEMP: this will be filled in on the join screen when complete
 let port: string = `4050` // TEMP: this will be filled in on the join screen when complete
 
-let pa_players: Player[] = [] //stores the list of players in the game
+let pa_players: Player[] = [] // stores the list of players in the game
 
-let currentTurnIndex: number //stores which player is currently up
+let currentTurnIndex: number // stores which player is currently up
+let turnActions: string // holds the actions that the player is taking this turn to be submitted
 
-const pa_planets: Planet[] = [] //stores the list of the planets in play
+const pa_planets: Planet[] = [] // stores the list of the planets in play
 
-//holds onto the time period board display
+// holds onto the time period board display
 const timePeriodBoard: HTMLElement = document.getElementById('time-period-board') as HTMLElement
 
-//holds onto the display for the selected time period and its parts
-const selectedTimePeriodDisplay: HTMLElement = document.getElementById('selected-time-period-display') as HTMLElement //the whole display
-const planetLine: HTMLElement = document.getElementById('planet-line') as HTMLElement //planet title
-const ageLine: HTMLElement = document.getElementById('age-line') as HTMLElement //time period title
-const ownerLine: HTMLElement = document.getElementById('owner-line') as HTMLElement //owner title
-const powerLine: HTMLElement = document.getElementById('power-line') as HTMLElement //power level label
-const resourcesLine: HTMLElement = document.getElementById('resources-line') as HTMLElement //resources line
-const resourceProductionLine: HTMLElement = document.getElementById('resource-production-line') as HTMLElement //resource production line
-const buildingSection: HTMLElement = document.getElementById('building-section') as HTMLElement //building list section
-const buildingBox: HTMLElement = document.getElementById('building-list-box') as HTMLElement //box that holds list of buildings
-const troopSection: HTMLElement = document.getElementById('troop-section') as HTMLElement //troop list section
-const troopBox: HTMLElement = document.getElementById('troop-list-box') as HTMLElement //box that holds list of troops
-const presentPlayersBox: HTMLElement = document.getElementById('present-players-list-box') as HTMLElement //box that holds the list pf players in this time period
-const controlSection: HTMLElement = document.getElementById('time-period-control-section') as HTMLElement //section with the controls for the time period owner
-const buildBuildingsButton: HTMLButtonElement = document.getElementById('build-buildings-button') as HTMLButtonElement //button to open the building menu
-const trainTroopButton: HTMLButtonElement = document.getElementById('train-troop-button') as HTMLButtonElement //button to train a troop
-const scorchedEarthButton: HTMLButtonElement = document.getElementById('scorched-earth-button') as HTMLButtonElement //button for scorched earth
-const buildQueueSection: HTMLElement = document.getElementById('build-queue-section') as HTMLElement //section for the build queue
-const buildQueueBox: HTMLElement = document.getElementById('build-queue-list-box') as HTMLElement //list box of the build queue
+// holds onto the display for the selected time period and its parts
+const selectedTimePeriodDisplay: HTMLElement = document.getElementById('selected-time-period-display') as HTMLElement // the whole display
+const planetLine: HTMLElement = document.getElementById('planet-line') as HTMLElement // planet title
+const ageLine: HTMLElement = document.getElementById('age-line') as HTMLElement // time period title
+const ownerLine: HTMLElement = document.getElementById('owner-line') as HTMLElement // owner title
+const powerLine: HTMLElement = document.getElementById('power-line') as HTMLElement // power level label
+const resourcesLine: HTMLElement = document.getElementById('resources-line') as HTMLElement // resources line
+const resourceProductionLine: HTMLElement = document.getElementById('resource-production-line') as HTMLElement // resource production line
+const buildingSection: HTMLElement = document.getElementById('building-section') as HTMLElement // building list section
+const buildingBox: HTMLElement = document.getElementById('building-list-box') as HTMLElement // box that holds list of buildings
+const troopSection: HTMLElement = document.getElementById('troop-section') as HTMLElement // troop list section
+const troopBox: HTMLElement = document.getElementById('troop-list-box') as HTMLElement // box that holds list of troops
+const presentPlayersBox: HTMLElement = document.getElementById('present-players-list-box') as HTMLElement // box that holds the list pf players in this time period
+const controlSection: HTMLElement = document.getElementById('time-period-control-section') as HTMLElement // section with the controls for the time period owner
+const buildBuildingsButton: HTMLButtonElement = document.getElementById('build-buildings-button') as HTMLButtonElement // button to open the building menu
+const trainTroopButton: HTMLButtonElement = document.getElementById('train-troop-button') as HTMLButtonElement // button to train a troop
+const scorchedEarthButton: HTMLButtonElement = document.getElementById('scorched-earth-button') as HTMLButtonElement // button for scorched earth
+const buildQueueSection: HTMLElement = document.getElementById('build-queue-section') as HTMLElement // section for the build queue
+const buildQueueBox: HTMLElement = document.getElementById('build-queue-list-box') as HTMLElement // list box of the build queue
 
-const playerListDisplay: HTMLElement = document.getElementById('player-list-display') as HTMLElement //the section which has the list of players
-const playerListBox: HTMLElement = document.getElementById('player-list-box') as HTMLElement//the scrolling box that will show the list of players
+const playerListDisplay: HTMLElement = document.getElementById('player-list-display') as HTMLElement // the section which has the list of players
+const playerListBox: HTMLElement = document.getElementById('player-list-box') as HTMLElement // the scrolling box that will show the list of players
 
-//holds onto the display for the player's info
-const currentPlayerInfoBox: HTMLElement = document.getElementById('player-info') as HTMLElement //the box that has the player's info
-const locationSpot: HTMLElement = document.getElementById('location-spot') as HTMLElement //the line for the players location
-const resourceSpot: HTMLElement = document.getElementById('resource-spot') as HTMLElement //the line for the player's resources
-const troopListSpot: HTMLElement = document.getElementById('troop-list-spot') as HTMLElement //the scrolling box that shows what troops the player has
+// holds onto the display for the player's info
+const currentPlayerInfoBox: HTMLElement = document.getElementById('player-info') as HTMLElement // the box that has the player's info
+const locationSpot: HTMLElement = document.getElementById('location-spot') as HTMLElement // the line for the players location
+const resourceSpot: HTMLElement = document.getElementById('resource-spot') as HTMLElement // the line for the player's resources
+const troopListSpot: HTMLElement = document.getElementById('troop-list-spot') as HTMLElement // the scrolling box that shows what troops the player has
 
-//get the control buttons
-const travelButton: HTMLButtonElement = document.getElementById('travel-button') as HTMLButtonElement //travel button
-const tradeButton: HTMLButtonElement = document.getElementById('trade-button') as HTMLButtonElement //trade button
-const endTurnButton: HTMLButtonElement = document.getElementById('end-turn-button') as HTMLButtonElement //end turn button
+// get the control buttons
+const travelButton: HTMLButtonElement = document.getElementById('travel-button') as HTMLButtonElement // travel button
+const tradeButton: HTMLButtonElement = document.getElementById('trade-button') as HTMLButtonElement // trade button
+const endTurnButton: HTMLButtonElement = document.getElementById('end-turn-button') as HTMLButtonElement // end turn button
 
-//stores the coordinates of the selected time period
+// stores the coordinates of the selected time period
 let n_selectedPlanetIndex: number
 let n_selectedTimePeriodIndex: number
 
@@ -930,34 +991,69 @@ const DrawBoard = (): void => {
     //#endregion Current Player Info Board
 }
 
+const SubmitTurn = (): void => {
+    turnActions += `]}` // close the actions json file
+    
+    // sends the turn to the server
+    fetch(`http://${ip}:${port}/submitturn`, {
+        method: "POST",
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: turnActions
+    }).then((response) => response.json())
+    .then((responseFile) => console.log(responseFile.responseValue)) // TEMP: Debug the response of whether the turn went through or not
+    .then(() => Initialize()) // reinitialize the client
+    .catch(() => console.log("Server not responding"))
+}
+
 const Initialize = (): void => {
     n_selectedPlanetIndex = -1
     n_selectedTimePeriodIndex = -1
 
-    //initializes some style for the page
-    document.body.style.backgroundColor = gameBackgroundColor //sets the background of the site to the gameBackgroundColor
-    timePeriodBoard.style.backgroundColor = boardBackgroundColor
-    selectedTimePeriodDisplay.style.backgroundColor = boardBackgroundColor //sets the display background color to the same color as the canvas
-    playerListDisplay.style.backgroundColor = boardBackgroundColor //sets the background color of the player list board to the board background color
-    currentPlayerInfoBox.style.backgroundColor = boardBackgroundColor //sets the background color of the player info box to the board background color
+    turnActions = `{"Details": [{"CurrentTurnIndex": ${currentTurnIndex}}`
 
-    tradingWindow.style.backgroundColor = boardBackgroundColor //set the background color of the trading window
-    buildingWindow.style.backgroundColor = boardBackgroundColor //sets the background color of the building window
-    //sets up the central position of the trading window
+    // initializes some style for the page
+    document.body.style.backgroundColor = gameBackgroundColor // sets the background of the site to the gameBackgroundColor
+    timePeriodBoard.style.backgroundColor = boardBackgroundColor
+    selectedTimePeriodDisplay.style.backgroundColor = boardBackgroundColor // sets the display background color to the same color as the canvas
+    playerListDisplay.style.backgroundColor = boardBackgroundColor // sets the background color of the player list board to the board background color
+    currentPlayerInfoBox.style.backgroundColor = boardBackgroundColor // sets the background color of the player info box to the board background color
+
+    tradingWindow.style.backgroundColor = boardBackgroundColor // set the background color of the trading window
+    buildingWindow.style.backgroundColor = boardBackgroundColor // sets the background color of the building window
+    // sets up the central position of the trading window
     tradingWindow.style.position = 'fixed'
     tradingWindow.style.left = '5%'
     tradingWindow.style.top = '100px'
-    tradingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
-    //sets up the central position of the building window
+    tradingWindow.style.display = 'none' // hides the trading window as it is not in use when the game start
+    // sets up the central position of the building window
     buildingWindow.style.position = 'fixed'
     buildingWindow.style.left = '25%'
     buildingWindow.style.top = '100px'
     buildingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
 
-    //makes buttons work
-    // TODO: make the buttons work
+    // makes buttons work
+    tradeSubmitButton.addEventListener("click", () => Trade(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex], n_selectedPlanetIndex, n_selectedTimePeriodIndex)) // makes the trade submit button work
+    tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) // makes  the cancel button work
+    travelButton.addEventListener("click", () => { // travel button functionality
+        if (pa_players[currentTurnIndex].b_canMove && n_selectedPlanetIndex > -1 && (n_selectedPlanetIndex !== pa_players[currentTurnIndex].na_location[0] || n_selectedTimePeriodIndex !== pa_players[currentTurnIndex].na_location[1])) { // makes sure the player can move this turn, has a time period selected, and are not already there
+            pa_players[currentTurnIndex].b_canMove = false // takes the player's move action on the client
+            pa_players[currentTurnIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] // moves the player on the client
+            turnActions += `,{"Type": "Move","NewLocation": [${n_selectedPlanetIndex}, ${n_selectedTimePeriodIndex}]}`// Add the move to the turn json
+            DrawBoard() // redraws the board
+        }
+    })
+    tradeButton.addEventListener("click", ()  => { // trade button functionality
+        if (pa_players[currentTurnIndex].b_canTrade && pa_players[currentTurnIndex].na_location[0] === n_selectedPlanetIndex && pa_players[currentTurnIndex].na_location[1] === n_selectedTimePeriodIndex) { // makes sure the player can trade this turn and is in the selected time period
+            pa_players[currentTurnIndex].b_canTrade = false // takes the player's trade action
+            FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) // starts the trade
+        }
+    })
+    endTurnButton.addEventListener("click", () => SubmitTurn()) //end turn button functionality, makes the end turn button run the AdvanceTurn() function
 
-    //fetches the gamestate from the server
+    // fetches the gamestate from the server
     fetch(`http://${ip}:${port}/gamestate`, {method: "GET"})
        .then(res => res.json())
        .then((gamestateImport) => {
@@ -1130,11 +1226,11 @@ Initialize() // Start the client
 
 // TODO:
 //  - Client login system to the client knows which player it is and lets them take their turn when it is their turn
-//  - System to queue up orders and submit to server
-//  -- Server side system receive orders and execute them
-//  -- Client side system to save the actions the player wants to take in what order and to submit them as a turn when pressing the button
-//  - Setup the buttons for the client
+//  - System to queue up orders and submit to server -/-
+//  -- Server side system receive orders and execute them -/-
+//  -- Client side system to save the actions the player wants to take in what order and to submit them as a turn when pressing the button -/-
+//  - Setup the buttons for the client -/-
 //  -- Add a button to fetch the current gamestate
-//  -- Make the existing trade and move buttons work to add to the order system and show up in real time on the client
-//  -- Make the end turn button submit the turn
+//  -- Make the existing trade and move buttons work to add to the order system and show up in real time on the client -/-
+//  -- Make the end turn button submit the turn ---
 //#endregion Main Game Logic
