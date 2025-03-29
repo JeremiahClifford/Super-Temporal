@@ -379,7 +379,6 @@ class TimePeriod {
                 this.boa_buildQueue.push(new BuildOrder(new Building(2), buildingTime))
                 break;
         }
-        // TODO: this stuff will have to be added the submit list so that this is included when the turn is submitted 
     }
 }
 
@@ -705,7 +704,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(0) //starts the building
                 trainingCampButton.remove() //removes the button
-                turnActions += `,{"Type": "Build","Type": "Training Camp"}`// Add the build to the turn json
+                turnActions += `,{"Type": "Build","Type": "0"}`// Add the build to the turn json
             }
         })
         buildingWindow.appendChild(trainingCampButton)
@@ -718,7 +717,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(1) //starts the building
                 warehouseButton.remove() //removes the button
-                turnActions += `,{"Type": "Build","Type": "Warehouse"}`// Add the build to the turn json
+                turnActions += `,{"Type": "Build","Type": "1"}`// Add the build to the turn json
             }
         })
         buildingWindow.appendChild(warehouseButton)
@@ -731,7 +730,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(2) //starts the building
                 fortressButton.remove() //removes the button
-                turnActions += `,{"Type": "Build","Type": "Fortress"}`// Add the build to the turn json
+                turnActions += `,{"Type": "Build","Type": "2"}`// Add the build to the turn json
             }
         })
         buildingWindow.appendChild(fortressButton)

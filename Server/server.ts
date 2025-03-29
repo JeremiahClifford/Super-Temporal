@@ -957,21 +957,24 @@ app.post("/submitturn", (request: any, response: any) => {
     const turnSubmitted = request.body
 
     console.log(turnSubmitted) // TEMP: log the submitted turn for testing
-    
+
     if (turnSubmitted.Details[0].CurrentTurnIndex === currentTurnIndex) { // check the player that is submitting the move. Details[0] is always the player index
         for (let i: number = 1; i < turnSubmitted.Details.length; i++) { // loop through the actions. length will always be 1 to 3 depending on if the player does both possible actions on there turn or just one or none
             // check if action is move or trade
             if (turnSubmitted.Details[i].Type === "Move") { // if its a move
-                // TODO: execute the move
+                pa_players[currentTurnIndex].b_canMove = false // takes the player's move action on the server
+                pa_players[currentTurnIndex].na_location = [turnSubmitted.Details[i].NewLocation[0], turnSubmitted.Details[i].NewLocation[0]] // moves the player on the server
             }
             if (turnSubmitted.Details[i].Type === "Trade") { // if its a trade
                 // TODO: execute the trade
             }
             if (turnSubmitted.Details[i].Type === "Build") { // if its a build
-                // TODO: execute the build
+                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost // takes the cost
+                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(turnSubmitted.Details[i].Type) //s tarts the building
             }
             if (turnSubmitted.Details[i].Type === "Train") { // if its a training
-                // TODO: execute the training
+                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartTroopTraining() // starts training a troop
+                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= trainTroopCost // charges the train troop cost
             }
         }
         //sends a response to the client
