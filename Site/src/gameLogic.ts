@@ -1007,10 +1007,16 @@ const FillInBuildWindow = (): void => {
     let hasWarehouse: boolean = false
     let hasFortress: boolean = false
 
-    pa_planets[pa_players[currentPlayerIndex].na_location[0]].ta_timePeriods[pa_players[currentPlayerIndex].na_location[1]].ba_buildings.forEach((b) => {
-        hasTrainingCamp = (b.bt_type === 0) ? true : false
-        hasWarehouse = (b.bt_type === 1) ? true : false
-        hasFortress = (b.bt_type === 2) ? true : false
+    pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].ba_buildings.forEach((b) => {
+        if ((b.bt_type === 0) ? true : false) { // if the time periods already has a training camp
+            hasTrainingCamp = true // set it to true
+        }
+        if ((b.bt_type === 1) ? true : false) { // if the time periods already has a warehouse
+            hasWarehouse = true // set it to true
+        }
+        if ((b.bt_type === 2) ? true : false) { // if the time periods already has a fortress
+            hasFortress = true // set it to true
+        }
     })
 
     if (!hasTrainingCamp) { //creates the Training Camp button if there is not already a training camp

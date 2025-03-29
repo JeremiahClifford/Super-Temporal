@@ -357,6 +357,16 @@ class TimePeriod {
         this.b_scorchedEarth = false
     }
 
+    StartTroopTraining = (): void  => {
+        this.ba_buildings.forEach((b) => { //check all buildings in this time period
+            if (b.bt_type === 0) { //if there is a training camp
+                this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier), troopTrainBaseTime - trainingCampDiscount)) //reduced training time
+                return //and exit function
+            }
+        })
+        this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier), troopTrainBaseTime)) //otherwise normal training time
+    }
+
     StartBuilding = (p_type: number): void => {
         switch (p_type) {
             case 0:
@@ -676,9 +686,15 @@ const FillInBuildWindow = (): void => {
     let hasFortress: boolean = false
 
     pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].ba_buildings.forEach((b) => {
-        hasTrainingCamp = (b.bt_type === 0) ? true : false
-        hasWarehouse = (b.bt_type === 1) ? true : false
-        hasFortress = (b.bt_type === 2) ? true : false
+        if ((b.bt_type === 0) ? true : false) { // if the time periods already has a training camp
+            hasTrainingCamp = true // set it to true
+        }
+        if ((b.bt_type === 1) ? true : false) { // if the time periods already has a warehouse
+            hasWarehouse = true // set it to true
+        }
+        if ((b.bt_type === 2) ? true : false) { // if the time periods already has a fortress
+            hasFortress = true // set it to true
+        }
     })
 
     if (!hasTrainingCamp) { //creates the Training Camp button if there is not already a training camp
@@ -689,6 +705,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(0) //starts the building
                 trainingCampButton.remove() //removes the button
+                turnActions += `,{"Type": "Build","Type": "Training Camp"}`// Add the build to the turn json
             }
         })
         buildingWindow.appendChild(trainingCampButton)
@@ -701,6 +718,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(1) //starts the building
                 warehouseButton.remove() //removes the button
+                turnActions += `,{"Type": "Build","Type": "Warehouse"}`// Add the build to the turn json
             }
         })
         buildingWindow.appendChild(warehouseButton)
@@ -713,6 +731,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(2) //starts the building
                 fortressButton.remove() //removes the button
+                turnActions += `,{"Type": "Build","Type": "Fortress"}`// Add the build to the turn json
             }
         })
         buildingWindow.appendChild(fortressButton)
@@ -1051,7 +1070,21 @@ const Initialize = (): void => {
             FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) // starts the trade
         }
     })
-    endTurnButton.addEventListener("click", () => SubmitTurn()) //end turn button functionality, makes the end turn button run the AdvanceTurn() function
+    trainTroopButton.innerHTML += ` - ${trainTroopCost}`
+    trainTroopButton.addEventListener("click", () => {
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources >= trainTroopCost) { // makes sure that the time period can afford to train the troop
+            pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].StartTroopTraining() // starts training a troop
+            pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources -= trainTroopCost // charges the train troop cost
+            turnActions += `,{"Type": "Train"}`// Add the training to the turn json
+            DrawBoard() // redraws the board
+        }
+    }) // makes the button to train troops work
+    buildBuildingsButton.addEventListener("click", () => FillInBuildWindow()) // makes the Build Buildings button work
+    scorchedEarthButton.addEventListener("click", () => {
+        pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth = !pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth // toggles the scorched earth of the selected time period
+        DrawBoard() // redraws the board
+    }) // makes the scorched earth button work
+    endTurnButton.addEventListener("click", () => SubmitTurn()) // end turn button functionality, makes the end turn button run the AdvanceTurn() function
 
     // fetches the gamestate from the server
     fetch(`http://${ip}:${port}/gamestate`, {method: "GET"})

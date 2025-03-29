@@ -956,6 +956,8 @@ app.post("/submitturn", (request: any, response: any) => {
     // ingests the data
     const turnSubmitted = request.body
 
+    console.log(turnSubmitted) // TEMP: log the submitted turn for testing
+    
     if (turnSubmitted.Details[0].CurrentTurnIndex === currentTurnIndex) { // check the player that is submitting the move. Details[0] is always the player index
         for (let i: number = 1; i < turnSubmitted.Details.length; i++) { // loop through the actions. length will always be 1 to 3 depending on if the player does both possible actions on there turn or just one or none
             // check if action is move or trade
@@ -964,6 +966,12 @@ app.post("/submitturn", (request: any, response: any) => {
             }
             if (turnSubmitted.Details[i].Type === "Trade") { // if its a trade
                 // TODO: execute the trade
+            }
+            if (turnSubmitted.Details[i].Type === "Build") { // if its a build
+                // TODO: execute the build
+            }
+            if (turnSubmitted.Details[i].Type === "Train") { // if its a training
+                // TODO: execute the training
             }
         }
         //sends a response to the client
