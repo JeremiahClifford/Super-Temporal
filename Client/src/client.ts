@@ -761,6 +761,8 @@ let port: string = `4050` // TEMP: this will be filled in on the join screen whe
 
 let pa_players: Player[] = [] // stores the list of players in the game
 
+let myIndex: number = -1 // stores which player the client is TEMP: set to none / spectator
+
 let currentTurnIndex: number // stores which player is currently up
 let turnActions: string // holds the actions that the player is taking this turn to be submitted
 
@@ -1257,12 +1259,13 @@ const Initialize = (): void => {
 Initialize() // Start the client
 
 // TODO:
-//  - Client login system to the client knows which player it is and lets them take their turn when it is their turn
+//  - Client login system to the client knows which player it is and lets them take their turn when it is their turn -/-
+//  -- Need to make it so the turn buttons don't show up if its not the player's turn
 //  - System to queue up orders and submit to server -/-
 //  -- Server side system receive orders and execute them -/-
-//  -- Client side system to save the actions the player wants to take in what order and to submit them as a turn when pressing the button -/-
+//  -- Client side system to save the actions the player wants to take in what order and to submit them as a turn when pressing the button ---
 //  - Setup the buttons for the client -/-
 //  -- Add a button to fetch the current gamestate
-//  -- Make the existing trade and move buttons work to add to the order system and show up in real time on the client -/-
+//  -- Make the existing trade and move buttons work to add to the order system and show up in real time on the client ---
 //  -- Make the end turn button submit the turn ---
 //#endregion Main Game Logic
