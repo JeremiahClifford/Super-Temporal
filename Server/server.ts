@@ -656,6 +656,14 @@ class Planet {
 //#endregion Classes
 
 //----------------------------------------------
+//-----------------Trading----------------------
+//----------------------------------------------
+
+const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Troop[], tGiven: Troop[]): void => {
+    // TODO:
+}
+
+//----------------------------------------------
 //-------------MAIN GAME LOGIC------------------
 //----------------------------------------------
 
@@ -671,8 +679,34 @@ let currentTurnIndex: number // stores which player is currently up
 
 const pa_planets: Planet[] = [] // stores the list of the planets in play
 
+const AdvanceTurn = (): void => { // ends the current turn and starts the next one
+
+    pa_players[currentTurnIndex].EndTurn() // removes any unused action from the player ending their turn
+
+    if (currentTurnIndex === (pa_players.length - 1)) { // advances the player whose turn it is by on, making sure to loop around once at the end
+        pa_players.forEach((p) => p.HealTroops()) // heals the troops on the ships of all players
+        let pIndex = 0;
+        pa_planets.forEach((p) => {
+            p.DoResourceGen(pIndex) // run resource gen for each planet
+            p.ProgressBuildQueues(pIndex) // runs the build queues for all the planets
+            p.DoCombat(pIndex) // runs combat for all the planets
+            p.DoIntegration() // runs integration for all the planets
+            p.DoRecovery() // runs recovery for all planets
+            p.DoPropagation(pIndex) // runs propagation for all planets
+            pIndex++ // increments the pIndex so the next planet has the correct index
+        })
+        currentTurnIndex = 0 // loops around at the end of a full turn cycle
+    } else {
+        currentTurnIndex++ // moves the turn to the next player
+    }
+
+    pa_players[currentTurnIndex].StartTurn() // sets the current player up so they have their actions
+}
+
 const Initialize = (): void => {
     currentTurnIndex = 0
+
+    pa_players[currentTurnIndex].StartTurn() // sets the current player up so they have their actions
 
     for (let i: number = 0; i < numPlanets; i++) { // creates the list of planets of the number specified in the tunable values
         let darkAgePoint: number = Math.floor((Math.random() * Math.floor(numTimePeriods / 3)) + Math.floor(numTimePeriods / 3))
@@ -966,11 +1000,31 @@ app.post("/submitturn", (request: any, response: any) => {
                 pa_players[currentTurnIndex].na_location = [turnSubmitted.Details[i].NewLocation[0], turnSubmitted.Details[i].NewLocation[0]] // moves the player on the server
             }
             if (turnSubmitted.Details[i].Type === "Trade") { // if its a trade
-                // TODO: execute the trade
+                // read in the list of troops taken
+                let troopsTaken: Troop[] = []
+                for (let j: number = 0; j < turnSubmitted.Details[i].TroopsTaken.length; j++) {
+                    let newTroop: Troop = new Troop(turnSubmitted.Details[i].TroopsTaken[j].raw_level, turnSubmitted.Details[i].TroopsTaken[j].modifier, turnSubmitted.Details[i].TroopsTaken[j].health) // create the troop using the read in details
+                    // fill in some extra details of the troop
+                    newTroop.n_level = turnSubmitted.Details[i].TroopsTaken[j].level
+                    newTroop.n_id = turnSubmitted.Details[i].TroopsTaken[j].id
+
+                    troopsTaken.push(newTroop) // add the new troop to the list
+                }
+                // read in the list of troops given
+                let troopsGiven: Troop[] = []
+                for (let j: number = 0; j < turnSubmitted.Details[i].TroopsGiven.length; j++) {
+                    let newTroop: Troop = new Troop(turnSubmitted.Details[i].TroopsTaken[j].raw_level, turnSubmitted.Details[i].TroopsTaken[j].modifier, turnSubmitted.Details[i].TroopsTaken[j].health) // create the troop using the read in details
+                    // fill in some extra details of the troop
+                    newTroop.n_level = turnSubmitted.Details[i].TroopsTaken[j].level
+                    newTroop.n_id = turnSubmitted.Details[i].TroopsTaken[j].id
+
+                    troopsGiven.push(newTroop) // add the new troop to the list
+                }
+                Trade(turnSubmitted.Details[i].TargetTimePeriod[0], turnSubmitted.Details[i].TargetTimePeriod[1], turnSubmitted.Details[i].ResourcesTaken, turnSubmitted.Details[i].ResourcesGiven, troopsTaken, troopsGiven) // execute the trade
             }
             if (turnSubmitted.Details[i].Type === "Build") { // if its a build
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost // takes the cost
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(turnSubmitted.Details[i].Type) //s tarts the building
+                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(turnSubmitted.Details[i].Type) // starts the building
             }
             if (turnSubmitted.Details[i].Type === "Train") { // if its a training
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartTroopTraining() // starts training a troop
