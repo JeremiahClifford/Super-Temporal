@@ -783,7 +783,7 @@ let myIndex: number = 0 // stores which player the client is TEMP: set to player
 let currentTurnIndex: number // stores which player is currently up
 let turnActions: string // holds the actions that the player is taking this turn to be submitted
 
-const pa_planets: Planet[] = [] // stores the list of the planets in play
+let pa_planets: Planet[] = [] // stores the list of the planets in play
 
 // holds onto the time period board display
 const timePeriodBoard: HTMLElement = document.getElementById('time-period-board') as HTMLElement
@@ -1244,6 +1244,9 @@ const Refresh = (): void => {
     n_selectedPlanetIndex = -1
     n_selectedTimePeriodIndex = -1
 
+    pa_players = [] // resets the list of players in the game
+    pa_planets = [] // resets the list of planets in the game
+
     turnActions = `{"Details": [{"CurrentTurnIndex": ${currentTurnIndex}}`
 
     tradingWindow.style.display = 'none' // hides the trading window as it is not in use when the game start
@@ -1255,6 +1258,9 @@ const Refresh = (): void => {
 const Initialize = (): void => {
     n_selectedPlanetIndex = -1
     n_selectedTimePeriodIndex = -1
+
+    pa_players = [] // resets the list of players in the game
+    pa_planets = [] // resets the list of planets in the game
 
     turnActions = `{"Details": [{"CurrentTurnIndex": ${currentTurnIndex}}`
 
