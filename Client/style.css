@@ -203,7 +203,7 @@ body {
 
 .control-button {
     aspect-ratio: 6/1;
-    height: 25%;
+    height: 20%;
     margin-top: auto;
     margin-bottom: auto;
 }
@@ -304,5 +304,58 @@ body {
     margin-left: auto;
     margin-right: auto;
     margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+#login-window {
+    border: 3px solid black;
+
+    display: none;
+    flex-flow: column nowrap;
+
+    margin-top: 10%;
+
+    width: 20%;
+    margin-left: auto;
+    margin-right: auto;
+
+    border-radius: 25px;
+}
+
+#login-window * {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#login-failed-message {
+    display: "none";
+
+    border: 0px;
+    border-radius: 10px;
+
+    margin-top: 5px;
+
+    padding: 0px;
+}
+
+#login-window h1 {
+    width: 30%;
+    margin-left: auto;
+    margin-right: auto;
+
+    margin-bottom: 0px;
+}
+
+#login-window h2 {
+    margin-bottom: 10px;
+}
+
+#login-window button {
+    width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+    
+    margin-top: 20px;
     margin-bottom: 10px;
 }

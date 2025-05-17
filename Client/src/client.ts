@@ -1061,13 +1061,16 @@ const SubmitTurn = (): void => {
     }).then((response) => response.json())
     .then((responseFile) => console.log(responseFile.responseValue)) // TEMP: Debug the response of whether the turn went through or not
     .then(() => Initialize()) // reinitialize the client
-    .catch(() => console.log("Server not responding"))
+    .catch(() => { // if the server does not respond
+        ShowLogin()
+        ShowLoginFailed("Server not responding")
+    })
 }
 
 const FetchState = ():void => {
     fetch(`http://${ip}:${port}/gamestate`, {method: "GET"})
-       .then(res => res.json())
-       .then((gamestateImport) => {
+    .then(res => res.json())
+    .then((gamestateImport) => {
             console.log(gamestateImport) // TEMP: debug
             let gamestateJSON = JSON.parse(gamestateImport)
 
@@ -1229,8 +1232,12 @@ const FetchState = ():void => {
 
                 pa_planets.push(newPlanet) // add the loaded in planet to the list
             }
-        })
-        .then(() => DrawBoard())
+    })
+    .then(() => DrawBoard())
+    .catch(() => { // if the server does not respond
+        ShowLogin()
+        ShowLoginFailed("Server not responding")
+    })
 }
 
 const Refresh = (): void => {
@@ -1307,9 +1314,108 @@ const Initialize = (): void => {
 
     FetchState() // fetches the gamestate from the server
 }
+//#endregion Main Game Logic
 
-Initialize() // Start the client
+//----------------------------------------------
+//---------------Login LOGIC--------------------
+//----------------------------------------------
+
+//#region Login
+const loginWindow: HTMLElement = document.getElementById('login-window') as HTMLElement
+const loginFailedMessage: HTMLElement = document.getElementById('login-failed-message') as HTMLElement
+const topLayer: HTMLElement = document.getElementById('top-layer') as HTMLMediaElement
+
+const ShowLogin = (): void => {
+    loginWindow.style.backgroundColor = boardBackgroundColor
+    loginWindow.style.outlineColor = boardOutlineColor
+    loginWindow.style.display = "flex"
+    topLayer.style.display = "none"
+    currentPlayerInfoBox.style.display = "none"
+
+    // initializes some style for the page
+    document.body.style.backgroundColor = gameBackgroundColor // sets the background of the site to the gameBackgroundColor
+    timePeriodBoard.style.backgroundColor = boardBackgroundColor
+    selectedTimePeriodDisplay.style.backgroundColor = boardBackgroundColor // sets the display background color to the same color as the canvas
+    playerListDisplay.style.backgroundColor = boardBackgroundColor // sets the background color of the player list board to the board background color
+    currentPlayerInfoBox.style.backgroundColor = boardBackgroundColor // sets the background color of the player info box to the board background color
+
+    // sets up the central position of the trading window
+    tradingWindow.style.position = 'fixed'
+    tradingWindow.style.left = '5%'
+    tradingWindow.style.top = '100px'
+    tradingWindow.style.display = 'none' // hides the trading window as it is not in use when the game start
+    // sets up the central position of the building window
+    buildingWindow.style.position = 'fixed'
+    buildingWindow.style.left = '25%'
+    buildingWindow.style.top = '100px'
+    buildingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
+}
+
+const AttemptLogin = (): void => {
+    // gets the inputted values
+    // ip
+    const ipInputField: HTMLInputElement = document.getElementById('ip-input') as HTMLInputElement
+    const ipInputted: string = ipInputField.value as string
+    // port
+    const portInputField: HTMLInputElement = document.getElementById('port-input') as HTMLInputElement
+    const portInputted: string = portInputField.value as string
+    // username
+    const usernameInputField: HTMLInputElement = document.getElementById('name-input') as HTMLInputElement
+    const usernameInputted: string = usernameInputField.value as string
+
+    fetch(`http://${ipInputted}:${portInputted}/login`, {
+        method: "POST",
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "Username": usernameInputted
+        })
+    })
+    .then((response) => response.json())
+    .then((responseFile) => myIndex = responseFile.index)
+    .then(() => {
+        if (myIndex !== -1) {
+            console.log(`Login Succeeded | Index: ${myIndex}`) // TEMP:
+
+            // set the saved ip and port to the inputted values
+            ip = ipInputted
+            port = portInputted
+
+            // close the login window and initialize the game
+            CloseLogin()
+            Initialize() // Start the client
+        } else {
+            console.log(`Login Failed`) // TEMP:
+            ShowLoginFailed("Username not found in registered players.")
+            return
+        }
+    })
+    .catch(() => {
+        console.log(`Login Failed`) // TEMP:
+        ShowLoginFailed("Server not responding")
+        return
+    })
+}
+
+const CloseLogin = (): void => {
+    loginWindow.style.display = "none"
+    topLayer.style.display = "flex"
+    currentPlayerInfoBox.style.display = "flex"
+}
+
+const ShowLoginFailed = (errorMessage: string): void => {
+    loginFailedMessage.style.display = "inline"
+    loginFailedMessage.style.border = "2px solid red"
+    loginFailedMessage.style.padding = "3px"
+    loginFailedMessage.innerHTML = errorMessage
+
+}
+//#endregion Login
+
+ShowLogin() // begin the login process to start the game
 
 // TODO:
-//  - Client login system to the client knows which player it is and lets them take their turn when it is their turn -/-
-//#endregion Main Game Logic
+//  - Fix turn submit bug
+//  -- Submitting turn causes server issue

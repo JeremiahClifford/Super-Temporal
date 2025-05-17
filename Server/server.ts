@@ -1,6 +1,7 @@
 // data from the json files
 let settings = require('./data/settings.json') // settings that the server are setup on
 let playerListJSON = require('./data/playerList.json') // list of players that will be in the game
+let responseFile = require('./data/responseFile.json')
 
 //----------------------------------------------
 //--------------Tunable Values------------------
@@ -786,6 +787,27 @@ app.use(function (request: any, response: any, next: any) {
 // default response
 app.get("/", (request: any, response: any) => {
     response.send("Server Page")
+})
+
+app.post("/login", (request: any, response: any) => {
+    const infoSubmitted = request.body
+
+    console.log(`Client attempting to connect : ${infoSubmitted.Username}`)
+    let clientConnected: boolean = false
+
+    responseFile.index = -1 // sets the response index to default -1 so the client can fail the login
+    for (let i: number = 0; i < playerListJSON.Players.length; i++) { // loop through usernames registered for this game
+        if (infoSubmitted.Username === playerListJSON.Players[i]) { // if the player trying to login matches a registered player
+            responseFile.index = i // set the response index to the player's index
+
+            clientConnected = true
+            console.log(`${playerListJSON.Players[i]} has connected`)
+        }
+    }
+    if (!clientConnected) {
+        console.log(`Client failed to connect`)
+    }
+    response.json(responseFile) // send the response to the client
 })
 
 app.get("/gamestate", (request: any, response: any) => {
