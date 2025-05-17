@@ -1312,5 +1312,4 @@ Initialize() // Start the client
 
 // TODO:
 //  - Client login system to the client knows which player it is and lets them take their turn when it is their turn -/-
-//  - Fill out the server side trade function
 //#endregion Main Game Logic

@@ -660,7 +660,48 @@ class Planet {
 //----------------------------------------------
 
 const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Troop[], tGiven: Troop[]): void => {
-    // TODO:
+    let playerArmyIndex: number = -1
+    for (let i: number = 0; i < pa_planets[p].ta_timePeriods[tp].aa_armies.length; i++) { // finds if the player already has an army in this time period
+        if (pa_planets[p].ta_timePeriods[tp].aa_armies[i].n_ownerIndex === currentTurnIndex) {
+            playerArmyIndex = i
+        }
+    }
+
+    if (playerArmyIndex > -1) { //if they have an army here
+        //swaps all the things around
+        //gives the player the resources they take
+        pa_players[currentTurnIndex].n_resources += rTaken
+        if (tp !== pa_planets[p].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+            pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new ResourcePropagationOrder(false, rTaken)) //add the propagation order to propagate the trade results in next time period
+        }
+        rTaken = 0
+        //gives the time period the resources it has been given
+        pa_planets[p].ta_timePeriods[tp].n_resources += rGiven
+        if (tp !== pa_planets[p].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+            pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new ResourcePropagationOrder(true, rGiven)) //add the propagation order to propagate the trade results in next time period
+        }
+        rGiven = 0
+        //moves the taken troops to the player
+        tTaken.forEach((t) => {
+            pa_players[currentTurnIndex].a_troops.ta_troops.push(t)
+            if (tp !== pa_planets[p].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+                pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, t)) //add the propagation order to propagate the trade results in next time period
+            }
+        })
+        pa_players[currentTurnIndex].a_troops.ta_troops = SortTroops(pa_players[currentTurnIndex].a_troops.ta_troops)
+        tTaken = []
+        //moves the given troops to the time period
+        tGiven.forEach((t) => {
+            pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops.push(t)
+            if (tp !== pa_planets[p].ta_timePeriods.length - 1) { //checks if this is not the last time periods
+                pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, t)) //add the propagation order to propagate the trade results in next time period
+            }
+        })
+        pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops = SortTroops(pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops)
+        tGiven = []
+    } else { //if they don't have an army here
+        //This should never happen as an empty army is created when the trade window is filled in if none is found
+    }
 }
 
 //----------------------------------------------
