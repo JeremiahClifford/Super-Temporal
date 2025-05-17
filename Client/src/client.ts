@@ -650,7 +650,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
             troopsGivenString += `${i === troopsGiven.ta_troops.length-1 ? "}" : "},"}` // specific troop close | if its the last one, leave out the trailing comma
         }
         
-        turnActions += `,{"Type": "Trade","TargetTimePeriod": [${p_pIndex}, ${p_tIndex}], "ResourcesTaken": ${resourcesTaken},"ResourcesGiven": ${resourcesGiven},"TroopsTaken": [${troopsTakenString}],"TroopsGiven": [${troopsGivenString}]}`
+        turnActions += `,{'Type': 'Trade','TargetTimePeriod': [${p_pIndex}, ${p_tIndex}], 'ResourcesTaken': ${resourcesTaken},'ResourcesGiven': ${resourcesGiven},'TroopsTaken': [${troopsTakenString}],'TroopsGiven': [${troopsGivenString}]}`
         // swaps all the things around
         // gives the player the resources they take
         pa_players[p].n_resources += resourcesTaken
@@ -721,7 +721,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(0) //starts the building
                 trainingCampButton.remove() //removes the button
-                turnActions += `,{"Type": "Build","Type": "0"}`// Add the build to the turn json
+                turnActions += `,{'Type': 'Build','Type': '0'}`// Add the build to the turn json
             }
         })
         buildingWindow.appendChild(trainingCampButton)
@@ -734,7 +734,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(1) //starts the building
                 warehouseButton.remove() //removes the button
-                turnActions += `,{"Type": "Build","Type": "1"}`// Add the build to the turn json
+                turnActions += `,{'Type': 'Build','Type': '1'}`// Add the build to the turn json
             }
         })
         buildingWindow.appendChild(warehouseButton)
@@ -747,7 +747,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(2) //starts the building
                 fortressButton.remove() //removes the button
-                turnActions += `,{"Type": "Build","Type": "2"}`// Add the build to the turn json
+                turnActions += `,{'Type': 'Build','Type': '2'}`// Add the build to the turn json
             }
         })
         buildingWindow.appendChild(fortressButton)
@@ -1049,6 +1049,9 @@ const DrawBoard = (): void => {
 
 const SubmitTurn = (): void => {
     turnActions += `]}` // close the actions json file
+
+    console.log(`Submitting Turn: `)
+    console.log(`${turnActions}`)
     
     // sends the turn to the server
     fetch(`http://${ip}:${port}/submitturn`, {
@@ -1057,10 +1060,10 @@ const SubmitTurn = (): void => {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         },
-        body: turnActions
+        body: JSON.stringify(turnActions)
     }).then((response) => response.json())
     .then((responseFile) => console.log(responseFile.responseValue)) // TEMP: Debug the response of whether the turn went through or not
-    .then(() => Initialize()) // reinitialize the client
+    .then(() => Refresh()) // refresh the client
     .catch(() => { // if the server does not respond
         ShowLogin()
         ShowLoginFailed("Server not responding")
@@ -1233,6 +1236,7 @@ const FetchState = ():void => {
                 pa_planets.push(newPlanet) // add the loaded in planet to the list
             }
     })
+    .then(() => turnActions = `{'Details': [{'CurrentTurnIndex': '${currentTurnIndex}'}`)
     .then(() => DrawBoard())
     .catch(() => { // if the server does not respond
         ShowLogin()
@@ -1247,8 +1251,6 @@ const Refresh = (): void => {
     pa_players = [] // resets the list of players in the game
     pa_planets = [] // resets the list of planets in the game
 
-    turnActions = `{"Details": [{"CurrentTurnIndex": ${currentTurnIndex}}`
-
     tradingWindow.style.display = 'none' // hides the trading window as it is not in use when the game start
     buildingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
 
@@ -1261,8 +1263,6 @@ const Initialize = (): void => {
 
     pa_players = [] // resets the list of players in the game
     pa_planets = [] // resets the list of planets in the game
-
-    turnActions = `{"Details": [{"CurrentTurnIndex": ${currentTurnIndex}}`
 
     // initializes some style for the page
     document.body.style.backgroundColor = gameBackgroundColor // sets the background of the site to the gameBackgroundColor
@@ -1292,7 +1292,7 @@ const Initialize = (): void => {
         if (pa_players[currentTurnIndex].b_canMove && n_selectedPlanetIndex > -1 && (n_selectedPlanetIndex !== pa_players[currentTurnIndex].na_location[0] || n_selectedTimePeriodIndex !== pa_players[currentTurnIndex].na_location[1])) { // makes sure the player can move this turn, has a time period selected, and are not already there
             pa_players[currentTurnIndex].b_canMove = false // takes the player's move action on the client
             pa_players[currentTurnIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] // moves the player on the client
-            turnActions += `,{"Type": "Move","NewLocation": [${n_selectedPlanetIndex}, ${n_selectedTimePeriodIndex}]}`// Add the move to the turn json
+            turnActions += `,{'Type': 'Move','NewLocation': [${n_selectedPlanetIndex}, ${n_selectedTimePeriodIndex}]}`// Add the move to the turn json
             DrawBoard() // redraws the board
         }
     })
@@ -1307,7 +1307,7 @@ const Initialize = (): void => {
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources >= trainTroopCost) { // makes sure that the time period can afford to train the troop
             pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].StartTroopTraining() // starts training a troop
             pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources -= trainTroopCost // charges the train troop cost
-            turnActions += `,{"Type": "Train"}`// Add the training to the turn json
+            turnActions += `,{'Type': 'Train'}`// Add the training to the turn json
             DrawBoard() // redraws the board
         }
     }) // makes the button to train troops work

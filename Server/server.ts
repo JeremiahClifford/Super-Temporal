@@ -1053,7 +1053,7 @@ app.post("/submitturn", (request: any, response: any) => {
     // ingests the data
     const turnSubmitted = request.body
 
-    console.log(turnSubmitted) // TEMP: log the submitted turn for testing
+    console.log(`Turn Submitted: ${turnSubmitted}`) // TEMP: log the submitted turn for testing
 
     if (turnSubmitted.Details[0].CurrentTurnIndex === currentTurnIndex) { // check the player that is submitting the move. Details[0] is always the player index
         for (let i: number = 1; i < turnSubmitted.Details.length; i++) { // loop through the actions. length will always be 1 to 3 depending on if the player does both possible actions on there turn or just one or none
@@ -1094,12 +1094,12 @@ app.post("/submitturn", (request: any, response: any) => {
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= trainTroopCost // charges the train troop cost
             }
         }
-        //sends a response to the client
-        response.json(JSON.stringify(`{"true"}`))
+        
+        responseFile.responseValue = true
     } else { // player index does not match
-        //sends a response to the client
-        response.json(JSON.stringify(`{"false"}`))
+        responseFile.responseValue = false
     }
+    response.json(responseFile) // sends the response to the client
 })
 
 Initialize() // Initializes the game when the server starts up
