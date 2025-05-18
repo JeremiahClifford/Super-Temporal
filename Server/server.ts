@@ -660,6 +660,7 @@ class Planet {
 //-----------------Trading----------------------
 //----------------------------------------------
 
+//#region Trading
 const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Troop[], tGiven: Troop[]): void => {
     let playerArmyIndex: number = -1
     for (let i: number = 0; i < pa_planets[p].ta_timePeriods[tp].aa_armies.length; i++) { // finds if the player already has an army in this time period
@@ -704,6 +705,7 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
         //This should never happen as an empty army is created when the trade window is filled in if none is found
     }
 }
+//#endregion Trading
 
 //----------------------------------------------
 //-------------MAIN GAME LOGIC------------------
@@ -1087,7 +1089,7 @@ app.post("/submitturn", (request: any, response: any) => {
             }
             if (turnSubmitted.Details[i].Type === "Build") { // if its a build
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost // takes the cost
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(turnSubmitted.Details[i].Type) // starts the building
+                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(turnSubmitted.Details[i].BuildingType) // starts the building
             }
             if (turnSubmitted.Details[i].Type === "Train") { // if its a training
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartTroopTraining() // starts training a troop
