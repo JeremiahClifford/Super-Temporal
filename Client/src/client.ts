@@ -635,7 +635,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
         let troopsTakenString: string = ``
         for (let i: number = 0; i < troopsTaken.ta_troops.length; i++) {
             turnActions.Details[turnActions.Details.length-1].TroopsTaken.push({
-                "raw_level": troopsTaken.ta_troops[i].n_rawLevel,
+                "rawLevel": troopsTaken.ta_troops[i].n_rawLevel,
                 "level": troopsTaken.ta_troops[i].n_level,
                 "modifier": troopsTaken.ta_troops[i].n_modifier,
                 "health": troopsTaken.ta_troops[i].n_health,
@@ -646,7 +646,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
         let troopsGivenString: string = ``
         for (let i: number = 0; i < troopsGiven.ta_troops.length; i++) {
             turnActions.Details[turnActions.Details.length-1].TroopsGiven.push({
-                "raw_level": troopsGiven.ta_troops[i].n_rawLevel,
+                "rawLevel": troopsGiven.ta_troops[i].n_rawLevel,
                 "level": troopsGiven.ta_troops[i].n_level,
                 "modifier": troopsGiven.ta_troops[i].n_modifier,
                 "health": troopsGiven.ta_troops[i].n_health,
@@ -1250,7 +1250,7 @@ const FetchState = ():void => {
             }
     })
     .then(() => turnActions.Details.push({
-        "currentTurnIndex": currentTurnIndex
+        "CurrentTurnIndex": currentTurnIndex
     }))
     .then(() => DrawBoard())
     .catch(() => { // if the server does not respond
