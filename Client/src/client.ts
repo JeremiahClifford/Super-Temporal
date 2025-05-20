@@ -795,7 +795,7 @@ let currentTurnIndex: number // stores which player is currently up
 let turnActions: {"Details": any} = {
     "Details": [
     ]
-}// holds the actions that the player is taking this turn to be submitted
+} // holds the actions that the player is taking this turn to be submitted
 
 let pa_planets: Planet[] = [] // stores the list of the planets in play
 
@@ -1186,7 +1186,7 @@ const FetchState = ():void => {
                         newTimePeriod.boa_buildQueue.push(newBuildOrder) // add the loaded build order to the list
                     }
 
-                    // Propagation orders
+                    // Propagation orders // TODO: maybe can be removed
                     let propagationOrdersIn = timePeriodsIn[j].propagation_orders
                     for (let k: number = 0; k < buildOrdersIn.length; k++) {
                         if (propagationOrdersIn[k].type === "ResourcePropagationOrder") {
@@ -1249,11 +1249,19 @@ const FetchState = ():void => {
                 pa_planets.push(newPlanet) // add the loaded in planet to the list
             }
     })
-    .then(() => turnActions.Details.push({
-        "CurrentTurnIndex": currentTurnIndex
-    }))
+    .then(() => {
+        // resets the turn actions object
+        turnActions = {
+            "Details": [
+            ]
+        }
+        turnActions.Details.push({
+            "CurrentTurnIndex": currentTurnIndex
+        })
+    })
     .then(() => DrawBoard())
-    .catch(() => { // if the server does not respond
+    .catch((e) => { // if the server does not respond
+        console.log(e)
         ShowLogin()
         ShowLoginFailed("Server not responding")
     })
@@ -1444,4 +1452,4 @@ ShowLogin() // begin the login process to start the game
 
 // TODO:
 //  - Fix turn submit bug
-//  -- Submitting turn causes server issue
+//  -- Submitting turn causes server issue when training troops

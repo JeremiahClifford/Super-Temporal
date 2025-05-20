@@ -524,7 +524,7 @@ class TimePeriod {
             }
             this.b_hasCombat = true
             CleanArmies() //removes empty armies
-            if (this.aa_armies.length === 1 && this.aa_armies[this.aa_armies.length -1].n_ownerIndex != this.n_ownerIndex) { //if only one army remains, that player's army conquers the time period
+            if (this.aa_armies.length === 1 && this.aa_armies[this.aa_armies.length - 1].n_ownerIndex !== this.n_ownerIndex) { //if only one army remains, that player's army conquers the time period
                 this.n_ownerIndex = this.aa_armies[0].n_ownerIndex //sets the new owner
                 if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
                     pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders = [] //clears the propagation orders of the next time period as the conquest makes them redundant
@@ -677,7 +677,7 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
     }
     if (playerArmyIndex === -1) { //if player does not have an  army in this time period creates one to use. if not used, it will be cleaned next time the game draws
         playerArmyIndex = pa_planets[p].ta_timePeriods[tp].aa_armies.length
-        pa_planets[p].ta_timePeriods[tp].aa_armies.push(new Army(playerArmyIndex, []))
+        pa_planets[p].ta_timePeriods[tp].aa_armies.push(new Army(currentTurnIndex, []))
     }
 
     if (playerArmyIndex > -1) { //if they have an army here
@@ -974,6 +974,7 @@ app.get("/gamestate", (request: any, response: any) => {
 
             gamestateOut += `],` // build orders close
 
+            /* // TEMP: Probably can be removed
             // Propagation orders
             gamestateOut += `"propagation_orders": [` // propagation orders open
 
@@ -1050,6 +1051,7 @@ app.get("/gamestate", (request: any, response: any) => {
             }
 
             gamestateOut += `],` // propagation orders close
+            */ // TEMP:
 
             gamestateOut += `"hasCombat": ${pa_planets[i].ta_timePeriods[j].b_hasCombat},`
             gamestateOut += `"propagationBlocked": ${pa_planets[i].ta_timePeriods[j].b_propagationBlocked},`
