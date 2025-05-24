@@ -156,14 +156,14 @@ class Player {
         this.b_canMove = true
         this.b_canTrade = true
 
-        console.log(`Turn Started`) //TEMP:
+        console.log(`Turn Started`) //LOG:
     }
 
     EndTurn = (): void => {
         this.b_canMove = false
         this.b_canTrade = false
 
-        console.log(`Turn Ended`) //TEMP:
+        console.log(`Turn Ended`) //LOG:
     }
 }
 
@@ -224,7 +224,6 @@ class Army { // a group of fighting units as well a number to store which player
 
     DoIntegration = (currentTimePeriodLevel: number): void => { //goes through troop and runs integration
         this.ta_troops.forEach((t) => {
-            //console.log(t.ToString()) //TEMP:
             t.ProgressIntegration(currentTimePeriodLevel)
         })
     }
@@ -382,7 +381,6 @@ class TimePeriod {
 
     constructor (c_level: number, c_modifierFactor: number, c_darkAgeValue: number) {
         this.n_ownerIndex = -1 //sets the owner to the natives
-        //this.n_ownerIndex = Math.floor((Math.random() * (pa_players.length + 1)) - 1) //TEMP: gives the time period a random owner
         this.n_rawLevel = c_level
         this.n_level = Math.pow(2, this.n_rawLevel)
         this.n_rawModifierFactor = c_modifierFactor
@@ -390,8 +388,8 @@ class TimePeriod {
         if (darkAges) {
             this.n_powerModifier *= Math.abs(c_darkAgeValue) / 2
         }
-        if (this.n_powerModifier < 1) { //truncates the troop power modifier to 2 decimals if less than zero or whole number if more than zero to keep things tidy
-            this.n_powerModifier = Math.round(this.n_powerModifier * 100) *0.01
+        if (this.n_powerModifier < 1) { //truncates the troop power modifier to 2 decimals if less than one or whole number if more than zero to keep things tidy
+            this.n_powerModifier = Math.round(this.n_powerModifier * 100) * 0.01
         } else {
             this.n_powerModifier = Math.round(this.n_powerModifier)
         }
@@ -399,7 +397,7 @@ class TimePeriod {
         if (darkAges) {
             this.n_resourceProduction *= Math.abs(c_darkAgeValue) / 2
         }
-        this.n_resourceProduction = Math.round(this.n_resourceProduction * 100) *0.01 //truncates the resource modifier to 2 decimals
+        this.n_resourceProduction = Math.round(this.n_resourceProduction * 100) * 0.01 //truncates the resource modifier to 2 decimals
         this.n_resources = this.n_resourceProduction * 5 //TEMP: starts the time period with 5 turns worth of resources. not sure what I want this to be in the final version
         this.n_darkAgeValue = c_darkAgeValue
         this.ba_buildings = []
@@ -438,17 +436,7 @@ class TimePeriod {
     }
 
     StartBuilding = (p_type: number): void => {
-        switch (p_type) {
-            case 0:
-                this.boa_buildQueue.push(new BuildOrder(new Building(0), buildingTime))
-                break;
-            case 1:
-                this.boa_buildQueue.push(new BuildOrder(new Building(1), buildingTime))
-                break;
-            case 2:
-                this.boa_buildQueue.push(new BuildOrder(new Building(2), buildingTime))
-                break;
-        }
+        this.boa_buildQueue.push(new BuildOrder(new Building(p_type), buildingTime))
     }
 
     ProgressBuildQueue = (p_pIndex: number, p_tIndex: number): void => {
@@ -647,7 +635,6 @@ class Planet {
     }
     
     DoIntegration = (): void => { //goes through every time period and runs integration
-        //console.log(`Integrating ${this.s_name}`) //TEMP:
         this.ta_timePeriods.forEach((tp) => (tp as TimePeriod).DoIntegration())
     }
 
@@ -684,16 +671,16 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
         //swaps all the things around
         //gives the player the resources they take
         pa_players[currentTurnIndex].n_resources += rTaken
+        pa_planets[p].ta_timePeriods[tp].n_resources -= rTaken
         if (tp !== pa_planets[p].ta_timePeriods.length - 1) { //checks if this is not the last time periods
             pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new ResourcePropagationOrder(false, rTaken)) //add the propagation order to propagate the trade results in next time period
         }
-        rTaken = 0
         //gives the time period the resources it has been given
         pa_planets[p].ta_timePeriods[tp].n_resources += rGiven
+        pa_players[currentTurnIndex].n_resources -= rGiven
         if (tp !== pa_planets[p].ta_timePeriods.length - 1) { //checks if this is not the last time periods
             pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new ResourcePropagationOrder(true, rGiven)) //add the propagation order to propagate the trade results in next time period
         }
-        rGiven = 0
         //moves the taken troops to the player
         tTaken.forEach((t) => {
             pa_players[currentTurnIndex].a_troops.ta_troops.push(t)
@@ -702,7 +689,6 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
             }
         })
         pa_players[currentTurnIndex].a_troops.ta_troops = SortTroops(pa_players[currentTurnIndex].a_troops.ta_troops)
-        tTaken = []
         //moves the given troops to the time period
         tGiven.forEach((t) => {
             pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops.push(t)
@@ -716,9 +702,8 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
             }
         })
         pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops = SortTroops(pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops)
-        tGiven = []
 
-        console.log(`Trade Made`) // TEMP:
+        console.log(`Trade Made`) // LOG:
     } else { //if they don't have an army here
         //This should never happen as an empty army is created when the trade window is filled in if none is found
     }
@@ -746,7 +731,7 @@ const AdvanceTurn = (): void => { // ends the current turn and starts the next o
     pa_players[currentTurnIndex].EndTurn() // removes any unused action from the player ending their turn
 
     if (currentTurnIndex === (pa_players.length - 1)) { // advances the player whose turn it is by on, making sure to loop around once at the end
-        console.log(`Performing end of turn cycle calculations`) // TEMP:
+        console.log(`Performing end of turn cycle calculations`) // LOG:
         pa_players.forEach((p) => p.HealTroops()) // heals the troops on the ships of all players
         let pIndex = 0;
         pa_planets.forEach((p) => {
@@ -905,7 +890,7 @@ app.get("/gamestate", (request: any, response: any) => {
             gamestateOut += `"rawModifierFactor": ${pa_planets[i].ta_timePeriods[j].n_rawModifierFactor},`
             gamestateOut += `"powerModifier": ${pa_planets[i].ta_timePeriods[j].n_powerModifier},`
             gamestateOut += `"resources": ${pa_planets[i].ta_timePeriods[j].n_resources},`
-            gamestateOut += `"resourceProduction": ${pa_planets[i].ta_timePeriods[j].n_rawLevel},`
+            gamestateOut += `"resourceProduction": ${pa_planets[i].ta_timePeriods[j].n_resourceProduction},`
             gamestateOut += `"darkAgeValue": ${pa_planets[i].ta_timePeriods[j].n_darkAgeValue},`
             
             // Buildings
@@ -951,7 +936,7 @@ app.get("/gamestate", (request: any, response: any) => {
             for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].boa_buildQueue.length; k++) {
                 gamestateOut += `{` // specific build order open
 
-                gamestateOut += `"type": ${pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor.name},`
+                gamestateOut += `"type": "${pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor.name}",`
                 
                 gamestateOut += `"target": {` // target open
                 if (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor === Building) { // if its a building
@@ -965,7 +950,7 @@ app.get("/gamestate", (request: any, response: any) => {
                     gamestateOut += `"health": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_health},`
                     gamestateOut += `"id": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_id}`
                 }
-                gamestateOut += `}` // target close
+                gamestateOut += `},` // target close
 
                 gamestateOut += `"turns_remaining": ${pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].n_turnsRemaining}`
 
@@ -973,85 +958,6 @@ app.get("/gamestate", (request: any, response: any) => {
             }
 
             gamestateOut += `],` // build orders close
-
-            /* // TEMP: Probably can be removed
-            // Propagation orders
-            gamestateOut += `"propagation_orders": [` // propagation orders open
-
-            for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].pa_propagationOrders.length; k++) {
-                gamestateOut += `{` // specific propagation order open
-
-                gamestateOut += `"type": "${pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].constructor.name}",`
-                gamestateOut += `"adding": ${pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].b_adding ? 1 : 0},`
-                
-                if (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].constructor === ResourcePropagationOrder) {
-                    gamestateOut += `"amount": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ResourcePropagationOrder).n_amount}`
-                }
-                if (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].constructor === TroopPropagationOrder) {
-                    gamestateOut += `"target": {` // target open
-
-                    gamestateOut += `"rawLevel": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as TroopPropagationOrder).t_target as Troop).n_rawLevel},`
-                    gamestateOut += `"level": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as TroopPropagationOrder).t_target as Troop).n_level},`
-                    gamestateOut += `"modifier": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as TroopPropagationOrder).t_target as Troop).n_modifier},`
-                    gamestateOut += `"health": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as TroopPropagationOrder).t_target as Troop).n_health},`
-                    gamestateOut += `"id": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as TroopPropagationOrder).t_target as Troop).n_id}`
-                    
-                    gamestateOut += `}` // target close
-                }
-                if (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].constructor === BuildingPropagationOrder) {
-                    gamestateOut += `"target": {` // target open
-                    
-                    gamestateOut += `"name": "${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as BuildingPropagationOrder).b_target as Building).s_name}",`
-                    gamestateOut += `"type": ${((pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as BuildingPropagationOrder).b_target as Building).bt_type.valueOf()}`
-                    
-                    gamestateOut += `}` // target close
-                }
-                if (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k].constructor === ConquestPropagationOrder) {
-                    gamestateOut += `"newOwnerIndex": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).n_newOwnerIndex},`
-                    gamestateOut += `"newResources": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).n_newResources},`
-                    // New Armies
-                    gamestateOut += `"new_armies": [` // armies open
-                    for (let m: number = 0; m < (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies.length; m++) {
-                        gamestateOut += `{` // specific army open
-                    
-                        gamestateOut += `"owner_index": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[k].n_ownerIndex},`
-
-                        gamestateOut += `"troops": [` // troops open
-                        for (let n: number = 0; n < (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops.length; n++) {
-                            gamestateOut += `{` // specific troop open
-                        
-                            gamestateOut += `"rawLevel": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops[n].n_rawLevel},`
-                            gamestateOut += `"level": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops[n].n_level},`
-                            gamestateOut += `"modifier": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops[n].n_modifier},`
-                            gamestateOut += `"health": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops[n].n_health},`
-                            gamestateOut += `"id": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops[n].n_id}`
-                        
-                            gamestateOut += `${n === (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies[m].ta_troops.length-1 ? "}" : "},"}` // specific troop close | if its the last one, leave out the trailing comma
-                        }
-                        gamestateOut += `]` // troops close
-                    
-                        gamestateOut += `${k === (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).aa_newArmies.length-1 ? "}" : "},"}` // specific army close | if its the last one, leave out the trailing comma
-                    }
-                    gamestateOut += `],` // armies close
-
-                    // New Buildings
-                    gamestateOut += `"new_buildings": [` // buildings open
-                    for (let m: number = 0; m < (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).ba_newBuildings.length; m++) {
-                        gamestateOut += `{` // specific building open
-                    
-                        gamestateOut += `"name": "${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).ba_newBuildings[m].s_name}",`
-                        gamestateOut += `"type": ${(pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).ba_newBuildings[m].bt_type.valueOf()}`
-                    
-                        gamestateOut += `${k === (pa_planets[i].ta_timePeriods[j].pa_propagationOrders[k] as ConquestPropagationOrder).ba_newBuildings.length-1 ? "}" : "},"}` // specific building close | if its the last one, leave out the trailing comma
-                    }
-                    gamestateOut += `]` // buildings close
-                }
-
-                gamestateOut += `${k === pa_planets[i].ta_timePeriods[j].pa_propagationOrders.length-1 ? "}" : "},"}` // specific propagation order close | if its the last one, leave out the trailing comma
-            }
-
-            gamestateOut += `],` // propagation orders close
-            */ // TEMP:
 
             gamestateOut += `"hasCombat": ${pa_planets[i].ta_timePeriods[j].b_hasCombat},`
             gamestateOut += `"propagationBlocked": ${pa_planets[i].ta_timePeriods[j].b_propagationBlocked},`
@@ -1084,7 +990,7 @@ app.post("/submitturn", (request: any, response: any) => {
             if (turnSubmitted.Details[i].Type === "Move") { // if its a move
                 pa_players[currentTurnIndex].b_canMove = false // takes the player's move action on the server
                 pa_players[currentTurnIndex].na_location = [turnSubmitted.Details[i].NewLocation[0], turnSubmitted.Details[i].NewLocation[1]] // moves the player on the server
-                console.log(`Player Moved`) // TEMP:
+                console.log(`Player Moved`) // LOG:
             }
             if (turnSubmitted.Details[i].Type === "Trade") { // if its a trade
                 // read in the list of troops taken
@@ -1107,8 +1013,11 @@ app.post("/submitturn", (request: any, response: any) => {
 
                     troopsGiven.push(newTroop) // add the new troop to the list
                 }
-                console.log(`Troops Taken: ${JSON.stringify(troopsTaken)}`) // TEMP:
-                console.log(`Troops Given: ${JSON.stringify(troopsGiven)}`) // TEMP:
+                console.log(`Trading`) // LOG:
+                console.log(`  Troops Taken: ${JSON.stringify(troopsTaken)}`) // LOG:
+                console.log(`  Troops Given: ${JSON.stringify(troopsGiven)}`) // LOG:
+                console.log(`  Resources Taken: ${JSON.stringify(turnSubmitted.Details[i].ResourcesTaken)}`) // LOG:
+                console.log(`  Resources Given: ${JSON.stringify(turnSubmitted.Details[i].ResourcesGiven)}`) // LOG:
                 Trade(turnSubmitted.Details[i].TargetTimePeriod[0], turnSubmitted.Details[i].TargetTimePeriod[1], turnSubmitted.Details[i].ResourcesTaken, turnSubmitted.Details[i].ResourcesGiven, troopsTaken, troopsGiven) // execute the trade
             }
             if (turnSubmitted.Details[i].Type === "Build") { // if its a build
@@ -1120,7 +1029,7 @@ app.post("/submitturn", (request: any, response: any) => {
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= trainTroopCost // charges the train troop cost
             }
         }
-        console.log(`Turn Completed`) // TEMP:
+        console.log(`Turn Completed`) // LOG:
         
         AdvanceTurn() // end the player's turn and move to the next player
 
@@ -1128,10 +1037,12 @@ app.post("/submitturn", (request: any, response: any) => {
     } else { // player index does not match
         responseFile.responseValue = false
     }
-    console.log(`Sending Response: ${JSON.stringify(responseFile)}`) // TEMP:
+    console.log(`Sending Response: ${JSON.stringify(responseFile)}`) // LOG:
     response.json(responseFile) // sends the response to the client
-    console.log(`Response Sent`) //TEMP:
+    console.log(`Response Sent`) //LOG:
 })
+
+//#endregion Main Server Logic
 
 Initialize() // Initializes the game when the server starts up
 
@@ -1139,4 +1050,3 @@ Initialize() // Initializes the game when the server starts up
 app.listen(settings.Server.Port, () => {
     console.log(`Listen on the port ${settings.Server.Port}`)
 })
-//#endregion Main Server Logic

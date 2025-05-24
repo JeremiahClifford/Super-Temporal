@@ -136,7 +136,7 @@ class Player {
 
     constructor (c_index: number, c_name: string) {
         this.s_name = c_name
-        this.a_troops = new Army(c_index, [new Troop(1, 0), new Troop(1, 0)]) //TEMP: not sure what troops players will start with if any
+        this.a_troops = new Army(c_index, [])
         this.n_resources = 0
         this.na_location = [-1, -1]
 
@@ -327,7 +327,6 @@ class TimePeriod {
 
     constructor (c_level: number, c_modifierFactor: number, c_darkAgeValue: number) {
         this.n_ownerIndex = -1 //sets the owner to the natives
-        //this.n_ownerIndex = Math.floor((Math.random() * (pa_players.length + 1)) - 1) //TEMP: gives the time period a random owner
         this.n_rawLevel = c_level
         this.n_level = Math.pow(2, this.n_rawLevel)
         this.n_rawModifierFactor = c_modifierFactor
@@ -784,12 +783,12 @@ const CloseBuildWindow = (): void => {
 //----------------------------------------------
 
 //#region Main Game Logic
-let ip: string = `127.0.0.1` // TEMP: this will be filled in on the join screen when complete
-let port: string = `4050` // TEMP: this will be filled in on the join screen when complete
+let ip: string = `127.0.0.1`
+let port: string = `4050`
 
 let pa_players: Player[] = [] // stores the list of players in the game
 
-let myIndex: number = 0 // stores which player the client is TEMP: set to player 1
+let myIndex: number = 0 // stores which player the client is
 
 let currentTurnIndex: number // stores which player is currently up
 let turnActions: {"Details": any} = {
@@ -1062,7 +1061,7 @@ const DrawBoard = (): void => {
 }
 
 const SubmitTurn = (): void => {
-    console.log(`Submitting Turn: `) // TEMP:
+    console.log(`Submitting Turn: `) // LOG:
     console.log(`${turnActions}`)
     console.log(`${JSON.stringify(turnActions)}`)
     
@@ -1075,7 +1074,7 @@ const SubmitTurn = (): void => {
         },
         body: JSON.stringify(turnActions)
     }).then((response) => response.json())
-    .then((responseFile) => console.log(responseFile.responseValue)) // TEMP: Debug the response of whether the turn went through or not
+    .then((responseFile) => console.log(responseFile.responseValue)) // LOG: Debug the response of whether the turn went through or not
     .then(() => Refresh()) // refresh the client
     .catch(() => { // if the server does not respond
         ShowLogin()
@@ -1087,12 +1086,12 @@ const FetchState = ():void => {
     fetch(`http://${ip}:${port}/gamestate`, {method: "GET"})
     .then(res => res.json())
     .then((gamestateImport) => {
-            console.log(gamestateImport) // TEMP: debug
+            console.log(gamestateImport) // LOG: debug
             let gamestateJSON = JSON.parse(gamestateImport)
 
             // Load in players from the gamestate
             let playersIn = gamestateJSON.players // get the list of players
-            console.log(playersIn) // TEMP: debug
+            console.log(playersIn) // LOG: debug
             for (let i: number = 0; i < gamestateJSON.numPlayers; i++) {
                 // create the player object and fill in its data
                 let newPlayer = new Player(i, playersIn[i].name)
@@ -1129,7 +1128,7 @@ const FetchState = ():void => {
 
             // Load in planets from the gamestate
             let planetsIn = gamestateJSON.planets // get the list of planets
-            console.log(planetsIn) // TEMP: debug
+            console.log(planetsIn) // LOG: debug
             for (let i: number = 0; i < numPlanets; i++) {
                 // create the planet object and fill in its data
                 let newPlanet: Planet = new Planet(planetsIn[`${i}`].name, 0) // dark age point not sent here, send in each time period
@@ -1186,58 +1185,6 @@ const FetchState = ():void => {
                         newTimePeriod.boa_buildQueue.push(newBuildOrder) // add the loaded build order to the list
                     }
 
-                    // Propagation orders // TODO: maybe can be removed
-                    let propagationOrdersIn = timePeriodsIn[j].propagation_orders
-                    for (let k: number = 0; k < buildOrdersIn.length; k++) {
-                        if (propagationOrdersIn[k].type === "ResourcePropagationOrder") {
-                            let newPropagationOrder: ResourcePropagationOrder = new ResourcePropagationOrder(propagationOrdersIn[k].adding === 1 ? true : false, propagationOrdersIn[k].amount) // create the order and fill it in
-                            newTimePeriod.pa_propagationOrders.push(newPropagationOrder) // add the loaded propagation order to the time period
-                        }
-                        if (propagationOrdersIn[k].type === "TroopPropagationOrder") {
-                            let newTarget: Troop = new Troop(propagationOrdersIn[k].target.rawLevel, propagationOrdersIn[k].target.modifier, propagationOrdersIn[k].target.health) // create the target troop
-                            // fill in the target troop data
-                            newTarget.n_level = propagationOrdersIn[k].target.level
-                            newTarget.n_id = propagationOrdersIn[k].target.id
-                            let newPropagationOrder: TroopPropagationOrder = new TroopPropagationOrder(propagationOrdersIn[k].adding === 1 ? true : false, newTarget) // create the order and fill it in
-                            newTimePeriod.pa_propagationOrders.push(newPropagationOrder) // add the loaded propagation order to the time period
-                        }
-                        if (propagationOrdersIn[k].type === "BuildingPropagationOrder") {
-                            let newTarget: Building = new Building(propagationOrdersIn[k].target.type, propagationOrdersIn[k].target.name) // create the target troop
-                            let newPropagationOrder: BuildingPropagationOrder = new BuildingPropagationOrder(propagationOrdersIn[k].adding === 1 ? true : false, newTarget) // create the order and fill it in
-                            newTimePeriod.pa_propagationOrders.push(newPropagationOrder) // add the loaded propagation order to the time period
-                        }
-                        if (propagationOrdersIn[k].type === "ConquestPropagationOrder") {
-                            // New Buildings
-                            let newBuildings: Building[] = []
-                            let newBuildingsIn = propagationOrdersIn[k].new_buildings
-                            for (let m: number = 0; m < newBuildingsIn.length; m++) {
-                                let newBuilding: Building = new Building(newBuildingsIn[m].type, newBuildingsIn[m].name) // create the new building and fill in its data
-                                newBuildings.push(newBuilding) // push the building to the building list
-                            }
-                            
-                            // New Armies
-                            let newArmies: Army[] = []
-                            let newArmiesIn = propagationOrdersIn[k].new_armies
-                            for (let m: number = 0; m < newArmiesIn.length; m++) {
-                                let newArmy: Army = new Army(armiesIn[m].owner_index, []) // create the new army and fill in the owner
-
-                                let troopsIn = newArmiesIn[m].troops
-                                for (let n: number = 0; n < troopsIn.length; n++) {
-                                    // create the troop object and fill in its data
-                                    let newTroop: Troop = new Troop(troopsIn[n].rawLevel, troopsIn[n].modifier, troopsIn[n].health)
-                                    newTroop.n_level = troopsIn[n].level
-                                    newTroop.n_id = troopsIn[n].id
-                                    newArmy.ta_troops.push(newTroop) // push the troop to the army
-                                }
-                            
-                                newArmies.push(newArmy) // add the army to the list of armies
-                            }
-
-                            let newPropagationOrder: ConquestPropagationOrder = new ConquestPropagationOrder(propagationOrdersIn[k].adding === 1 ? true : false, propagationOrdersIn[k].newOwnerIndex, propagationOrdersIn[k].newResources, newBuildings, newArmies) // create the order and fill it in
-                            newTimePeriod.pa_propagationOrders.push(newPropagationOrder) // add the loaded propagation order to the time period
-                        }
-                    }
-                    
                     newTimePeriod.b_hasCombat = timePeriodsIn[j].hasCombat
                     newTimePeriod.b_propagationBlocked = timePeriodsIn[j].propagationBlocked
                     newTimePeriod.b_conquested = timePeriodsIn[j].conquested
@@ -1268,9 +1215,6 @@ const FetchState = ():void => {
 }
 
 const Refresh = (): void => {
-    n_selectedPlanetIndex = -1
-    n_selectedTimePeriodIndex = -1
-
     pa_players = [] // resets the list of players in the game
     pa_planets = [] // resets the list of planets in the game
 
@@ -1411,7 +1355,7 @@ const AttemptLogin = (): void => {
     .then((responseFile) => myIndex = responseFile.index)
     .then(() => {
         if (myIndex !== -1) {
-            console.log(`Login Succeeded | Index: ${myIndex}`) // TEMP:
+            console.log(`Login Succeeded | Index: ${myIndex}`) // LOG:
 
             // set the saved ip and port to the inputted values
             ip = ipInputted
@@ -1421,13 +1365,11 @@ const AttemptLogin = (): void => {
             CloseLogin()
             Initialize() // Start the client
         } else {
-            console.log(`Login Failed`) // TEMP:
             ShowLoginFailed("Username not found in registered players.")
             return
         }
     })
     .catch(() => {
-        console.log(`Login Failed`) // TEMP:
         ShowLoginFailed("Server not responding")
         return
     })
@@ -1449,7 +1391,3 @@ const ShowLoginFailed = (errorMessage: string): void => {
 //#endregion Login
 
 ShowLogin() // begin the login process to start the game
-
-// TODO:
-//  - Fix turn submit bug
-//  -- Submitting turn causes server issue when training troops
