@@ -100,11 +100,11 @@ body {
 
     display: flex;
     flex-flow: column nowrap;
-}
 
-.object-section h3 {
-    margin-top: 0px;
-    margin-bottom: 5px;
+    h3 {
+        margin-top: 0px;
+        margin-bottom: 5px;
+    }
 }
 
 #time-period-control-section {
@@ -120,15 +120,15 @@ body {
 #time-period-control-list-box {
     display: flex;
     flex-flow: column nowrap;
-}
 
-#time-period-control-list-box button {
-    width: 70%;
-    aspect-ratio: 6/1;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: auto;
-    margin-bottom: auto;
+    button {
+        width: 70%;
+        aspect-ratio: 6/1;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: auto;
+        margin-bottom: auto;
+    }
 }
 
 #player-list-display {
@@ -137,11 +137,11 @@ body {
 
     display: flex;
     flex-flow: column nowrap;
-}
 
-#player-list-display h1 {
-    margin-left: 2.5%;
-    margin-bottom: 5px;
+    h1 {
+        margin-left: 2.5%;
+        margin-bottom: 5px;
+    }
 }
 
 #player-list-box {
@@ -161,10 +161,10 @@ body {
 
     margin-top: 5px;
     margin-bottom: 5px;
-}
 
-.player-card * {
-    margin: 5px;
+    * {
+        margin: 5px;
+    }
 }
 
 #player-info {
@@ -259,11 +259,11 @@ body {
 .resource-trade-card {
     display: flex;
     flex-flow: row wrap;
-}
 
-.resource-trade-card h4 {
-    margin-top: 3px;
-    margin-bottom: 3px;
+    h4 {
+        margin-top: 3px;
+        margin-bottom: 3px;
+    }
 }
 
 #trading-window-buttons {
@@ -273,14 +273,14 @@ body {
 
     display: flex;
     flex-flow: row wrap;
-}
 
-#trading-window-buttons button {
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
+    button {
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
 
-    margin-bottom: 10px;
+        margin-bottom: 10px;
+    }
 }
 
 #building-window {
@@ -296,19 +296,19 @@ body {
     margin-right: auto;
 
     margin-top: 20px;
-}
 
-#building-window button {
-    width: 50%;
-    aspect-ratio: 6/1;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    button {
+        width: 50%;
+        aspect-ratio: 6/1;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
 }
 
 #login-window {
-    border: 3px solid black;
+    border: 4px solid black;
 
     display: none;
     flex-flow: column nowrap;
@@ -319,13 +319,76 @@ body {
     margin-left: auto;
     margin-right: auto;
 
-    border-radius: 25px;
-}
+    min-width: 300px;
 
-#login-window * {
-    width: 90%;
-    margin-left: auto;
-    margin-right: auto;
+    border-radius: 25px;
+
+    * {
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    h1 {
+        width: 30%;
+        margin-left: auto;
+        margin-right: auto;
+
+        margin-bottom: 0px;
+    }
+
+    .input-line {
+        display: flex;
+        flex-flow: row wrap;
+
+        margin-top: 5px;
+
+        h2 {
+            margin-bottom: 10px;
+
+            width: 35%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        input {
+            border: 2px solid black;
+            border-radius: 15px;
+
+            padding-left: 10px;
+            padding-right: 10px;
+
+            width: 55%;
+            margin-left: auto;
+            margin-right: auto;
+
+            height: 50%;
+            max-height: 20px;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+    }
+
+    button {
+        background-color: white;
+        
+        width: 60%;
+        margin-left: auto;
+        margin-right: auto;
+        
+        aspect-ratio: 7 / 1;
+
+        margin-top: 10px;
+        margin-bottom: 10px;
+
+        border: 2px solid black;
+        border-radius: 25px;
+
+        h3 {
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+    }
 }
 
 #login-failed-message {
@@ -337,25 +400,4 @@ body {
     margin-top: 5px;
 
     padding: 0px;
-}
-
-#login-window h1 {
-    width: 30%;
-    margin-left: auto;
-    margin-right: auto;
-
-    margin-bottom: 0px;
-}
-
-#login-window h2 {
-    margin-bottom: 10px;
-}
-
-#login-window button {
-    width: 60%;
-    margin-left: auto;
-    margin-right: auto;
-    
-    margin-top: 20px;
-    margin-bottom: 10px;
 }
