@@ -1379,6 +1379,12 @@ const CloseLogin = (): void => {
     loginWindow.style.display = "none"
     topLayer.style.display = "flex"
     currentPlayerInfoBox.style.display = "flex"
+
+    setInterval(() => { // once the player successfully logs in, set a automatic refresh interval
+        if (currentTurnIndex !== myIndex) { // if it its not the player's turn
+            Refresh() // refresh every so often to see if it is
+        }
+    }, 5000) // interval of 5000 milliseconds (5 seconds)
 }
 
 const ShowLoginFailed = (errorMessage: string): void => {
