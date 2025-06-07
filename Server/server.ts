@@ -140,7 +140,7 @@ class Player {
 
     constructor (c_index: number, c_name: string) {
         this.s_name = c_name
-        this.a_troops = new Army(c_index, [new Troop(1, 0), new Troop(1, 0)]) // TEMP: not sure what troops players will start with if any
+        this.a_troops = new Army(c_index, [new Troop(1, 0.5), new Troop(1, 0.5)]) // TEMP: not sure what troops players will start with if any
         this.n_resources = 0
         this.na_location = [-1, -1]
 

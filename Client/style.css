@@ -3,6 +3,9 @@ body {
     flex-flow: column nowrap;
 
     height: 100vh;
+
+    background: #060869;
+    background: linear-gradient(0deg,rgba(6, 8, 105, 1) 0%, rgba(3, 5, 60, 1) 35%, rgba(0, 0, 0, 1) 100%);
 }
 
 #top-layer {
@@ -24,6 +27,9 @@ body {
     width: 30%;
     margin-left: auto;
     margin-right: auto;
+
+    border: 4px solid black;
+    border-radius: 20px;
 }
 
 #time-period-board {
@@ -31,7 +37,20 @@ body {
     flex-flow: row nowrap;
 
     width: 35%;
+    min-width: 500px;
     margin-left: 0px;
+
+    padding: 2px;
+
+    border-radius: 10px;
+}
+
+#selected-time-period-display {
+    min-width: 400px;
+}
+
+#player-list-display {
+    min-width: 200px;
 }
 
 .time-period-board-column {
@@ -67,10 +86,16 @@ body {
     width: 100%;
 }
 
-.time-period-space, .planet-header, #top-space {
+.time-period-space, .time-period-number, .planet-header, #top-space {
     margin: 1px;
     padding: 2px;
     border: 3px solid black;
+
+    border-radius: 5px;
+}
+
+.time-period-space:hover {
+    background-color: rgba(87, 216, 246, 0.57);
 }
 
 #selected-time-period-display {
@@ -78,6 +103,10 @@ body {
 
     display: flex;
     flex-flow: column nowrap;
+}
+
+#selected-time-period-display-scrolling {
+    border-radius: 20px;
 }
 
 #planet-line, #age-line, #owner-line, #power-line, #resources-line, #resource-production-line {
@@ -101,6 +130,8 @@ body {
     display: flex;
     flex-flow: column nowrap;
 
+    border-radius: 20px;
+
     h3 {
         margin-top: 0px;
         margin-bottom: 5px;
@@ -115,6 +146,8 @@ body {
     width: 95%;
     margin-left: auto;
     margin-right: auto;
+
+    border-radius: 10px;
 }
 
 #time-period-control-list-box {
@@ -150,6 +183,8 @@ body {
     margin-right: auto;
 
     height: 700px;
+
+    border-radius: 20px;
 }
 
 .player-card {
@@ -162,8 +197,21 @@ body {
     margin-top: 5px;
     margin-bottom: 5px;
 
+    border-radius: 20px;
+
     * {
         margin: 5px;
+    }
+
+    .player-list-troop-list-spot {
+        border-radius: 15px;
+        padding: 1px;
+        padding-left: 5px;
+
+        * {
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
     }
 }
 
@@ -206,11 +254,24 @@ body {
     height: 20%;
     margin-top: auto;
     margin-bottom: auto;
+
+    border: 2px solid black;
+    border-radius: 10px;
+}
+
+.control-button:hover {
+    background-color: rgba(87, 216, 246, 0.57);
 }
 
 #middle-section {
     display: flex;
     flex-flow: column nowrap;
+}
+
+#troop-list-spot {
+    padding: 1px;
+    padding-left: 5px;
+    border-radius: 10px;
 }
 
 .player-info-text-item {

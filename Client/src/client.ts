@@ -855,7 +855,6 @@ const DrawBoard = (): void => {
     ageNumbers.appendChild(topSpace) // adds the top space
     for (let i: number = 0; i < numTimePeriods; i++) { // creates each number in turn
         let ageNumber: HTMLElement = document.createElement('div')
-        ageNumber.classList.add('time-period-space')
         ageNumber.classList.add('time-period-number')
         ageNumber.style.height = `${95 / numTimePeriods}%`
         ageNumber.innerHTML = `<p>${i+1}</p>`
@@ -1009,7 +1008,7 @@ const DrawBoard = (): void => {
             playerHTML += `<h4>Location: ${pa_planets[p.na_location[0]].s_name} Age ${p.na_location[1] + 1}</h4>`
         }
         playerHTML += `<h3>Resources: ${p.n_resources}</h3>` // adds the player's resources
-        playerHTML += `<div style="height:60px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" class="player-list-troop-list-spot">` //starts the player's troop list
+        playerHTML += `<div style="height:70px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" class="player-list-troop-list-spot">` //starts the player's troop list
         playerHTML += TroopsString(p.a_troops, false) // adds their list of troops
         playerHTML += `</div>` // closes the trop list div
         playerHTML += `</div>` // closes the div
@@ -1311,7 +1310,6 @@ const ShowLogin = (): void => {
     currentPlayerInfoBox.style.display = "none"
 
     // initializes some style for the page
-    document.body.style.backgroundColor = gameBackgroundColor // sets the background of the site to the gameBackgroundColor
     timePeriodBoard.style.backgroundColor = boardBackgroundColor
     selectedTimePeriodDisplay.style.backgroundColor = boardBackgroundColor // sets the display background color to the same color as the canvas
     playerListDisplay.style.backgroundColor = boardBackgroundColor // sets the background color of the player list board to the board background color
