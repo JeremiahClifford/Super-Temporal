@@ -873,23 +873,23 @@ const DrawBoard = (): void => {
         planetHeader.className = 'planet-header'
         planetHeader.id = `${pa_planets[i].s_name}-header`
         planetHeader.innerHTML = `<p>${pa_planets[i].s_name}</p>`
-        planetColumn.appendChild(planetHeader) //adds the name to the top
+        planetColumn.appendChild(planetHeader) // adds the name to the top
         planetColumn.style.width = `${95 / numPlanets}%`
 
-        for (let j: number = 0; j < numTimePeriods; j++) { //adds all the planets
+        for (let j: number = 0; j < numTimePeriods; j++) { // adds all the planets
             // creates the box for the time period
             let timePeriodBox: HTMLElement = document.createElement('div')
             timePeriodBox.classList.add("time-period-space")
             timePeriodBox.classList.add("time-period-box")
             timePeriodBox.id = `age-${j+1}-box`
             timePeriodBox.style.height = `${95 / numTimePeriods}%`
-            timePeriodBox.addEventListener('click', () => { //adds the event to each time period box to select it
+            timePeriodBox.addEventListener('click', () => { // adds the event to each time period box to select it
                 if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) {
                     n_selectedPlanetIndex = -1
                     n_selectedTimePeriodIndex = -1
                     timePeriodBox.style.borderColor = `black`
                     controlSection.style.display = `none`
-                } else { //deselects the box if it was already selected
+                } else { // deselects the box if it was already selected
                     n_selectedPlanetIndex = i
                     n_selectedTimePeriodIndex = j
                     timePeriodBox.style.borderColor = `red`
@@ -897,6 +897,9 @@ const DrawBoard = (): void => {
                 DrawBoard()
             })
 
+            if (pa_planets[i].ta_timePeriods[j].b_propagationBlocked && j !== 0) { // checks if the time period is propagation blocked
+                timePeriodBox.style.borderTop = `dashed` // if it is, make the top of the border dashed                
+            }
             if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) { // check if this one is selected
                 timePeriodBox.style.borderColor = `red` // if so: set the border to red
             }
@@ -907,6 +910,9 @@ const DrawBoard = (): void => {
             } else { // if time period is controlled by natives
                 timePeriodBox.innerHTML = `<p>Uncolonized</p>` // TEMP: fill in "Uncolonized"
                 // TODO: put uncolonized icon
+            }
+            if (pa_planets[i].ta_timePeriods[j].b_hasCombat) {
+                timePeriodBox.innerHTML += `<br><p>War</P>`
             }
 
             planetColumn.appendChild(timePeriodBox) //adds the box to the column
