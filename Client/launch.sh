@@ -1,0 +1,2 @@
+tsc
+firefox index.html
