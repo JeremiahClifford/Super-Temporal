@@ -91,7 +91,7 @@ Order of a turn:
    and / or resources once per turn in any order but only once each. ---
 2. Player troops heal ---
 3. Resource Generation for each time zone ---
-4. Troop training and building building for each time zone -/-
+4. Troop training and building building for each time zone ---
 5. Combat for each time zone that has combat -/-
    5a. Buildings destroyed if applicable
    5b. Troops killed ---
@@ -100,3 +100,18 @@ Order of a turn:
 
 Win Condition:
 -Control every time period on the map
+
+Playtest 1:
+Players:
+-Me
+-Dan
+
+Notes:
+-Dan would like to be able to train troops in time periods where he is not present [Dan]
+-Any player can see time period control buttons for time periods owned by the player whose turn it is [Me]
+-Build menu had doubled buttons [Dan]
+-Feels slow, should be, but maybe too slow [Me]
+--Multiple trades per turn ?? [Me]
+-Several Time Periods showed "War" when no combat was there [Me]
+--Might be if there are no armies there it sees != 1 and so it counts as combat [Me]
+-Board gets a bit wonky [Me]
