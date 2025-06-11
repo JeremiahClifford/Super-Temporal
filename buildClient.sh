@@ -1,0 +1,1 @@
+zip Client.zip ./Client/dist/* ./Client/images/* ./Client/index.html ./Client/style.css
