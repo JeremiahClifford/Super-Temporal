@@ -16,7 +16,7 @@ let gameBackgroundColor: string = "#03053c" // background color of the whole gam
 let boardBackgroundColor: string = "#e8e8e8" // color of the background of the various boards
 let boardOutlineColor: string = "#2c2c2c" // color of the outline of the various boards
 
-let trainTroopCost: number = 50 // how many resources should it cost to train a troop
+let trainTroopCost: number = 0 // how many resources should it cost to train a troop
 let latenessFactor: number = 0.5 // by what factor should later time period resources be reduced
 
 let darkAges: boolean = false // should dark ages be in play and affect power values
@@ -714,9 +714,11 @@ const FillInBuildWindow = (): void => {
         }
     })
 
+    buildingWindow.innerHTML = `` // resets the build window buttons so they don't double up
+
     if (!hasTrainingCamp) { //creates the Training Camp button if there is not already a training camp
         let trainingCampButton: HTMLButtonElement = document.createElement('button')
-        trainingCampButton.innerHTML = `Training Camp - ${buildingCost}`
+        trainingCampButton.innerHTML = `Training Camp - [${buildingCost}]`
         trainingCampButton.addEventListener("click", () => {
             if (pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
@@ -724,7 +726,9 @@ const FillInBuildWindow = (): void => {
                 trainingCampButton.remove() //removes the button
                 turnActions.Details.push({
                     "Type": "Build",
-                    "BuildingType": "0"
+                    "BuildingType": "0",
+                    "Planet": n_selectedPlanetIndex,
+                    "TimePeriod": n_selectedTimePeriodIndex
                 }) // Add the build to the turn json
             }
         })
@@ -732,7 +736,7 @@ const FillInBuildWindow = (): void => {
     }
     if (!hasWarehouse) { //creates the Warehouse button if there is not already a warehouse
         let warehouseButton: HTMLButtonElement = document.createElement('button')
-        warehouseButton.innerHTML = `Warehouse - ${buildingCost}`
+        warehouseButton.innerHTML = `Warehouse - [${buildingCost}]`
         warehouseButton.addEventListener("click", () => {
             if (pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
@@ -740,7 +744,9 @@ const FillInBuildWindow = (): void => {
                 warehouseButton.remove() //removes the button
                 turnActions.Details.push({
                     "Type": "Build",
-                    "BuildingType": "1"
+                    "BuildingType": "1",
+                    "Planet": n_selectedPlanetIndex,
+                    "TimePeriod": n_selectedTimePeriodIndex
                 }) // Add the build to the turn json
             }
         })
@@ -748,7 +754,7 @@ const FillInBuildWindow = (): void => {
     }
     if (!hasFortress) { //creates the Fortress button if there is not already a fortress
         let fortressButton: HTMLButtonElement = document.createElement('button')
-        fortressButton.innerHTML = `Fortress - ${buildingCost}`
+        fortressButton.innerHTML = `Fortress - [${buildingCost}]`
         fortressButton.addEventListener("click", () => {
             if (pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
                 pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
@@ -756,7 +762,9 @@ const FillInBuildWindow = (): void => {
                 fortressButton.remove() //removes the button
                 turnActions.Details.push({
                     "Type": "Build",
-                    "BuildingType": "2"
+                    "BuildingType": "2",
+                    "Planet": n_selectedPlanetIndex,
+                    "TimePeriod": n_selectedTimePeriodIndex
                 }) // Add the build to the turn json
             }
         })
@@ -961,9 +969,9 @@ const DrawBoard = (): void => {
         } else {
             presentPlayersBox.innerHTML = `None`
         }
-        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === currentTurnIndex 
-            && pa_players[currentTurnIndex].na_location[0] === n_selectedPlanetIndex
-            && pa_players[currentTurnIndex].na_location[1] === n_selectedTimePeriodIndex) { // hides the controls if the player does not own the time period or is not there
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === myIndex 
+            && currentTurnIndex === myIndex) { // hides the controls if the player does not own the time period or it is not their turn
+            trainTroopButton.innerHTML = `Train Troop - [${trainTroopCost}]`
             controlSection.style.display = `block`
         } else {
             controlSection.style.display = `none`
@@ -1283,7 +1291,9 @@ const Initialize = (): void => {
             pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].StartTroopTraining() // starts training a troop
             pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources -= trainTroopCost // charges the train troop cost
             turnActions.Details.push({
-                    "Type": "Train"
+                    "Type": "Train",
+                    "Planet": n_selectedPlanetIndex,
+                    "TimePeriod": n_selectedTimePeriodIndex
                 })// Add the training to the turn json
             DrawBoard() // redraws the board
         }

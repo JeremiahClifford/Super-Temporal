@@ -156,11 +156,18 @@ body {
 
     button {
         width: 70%;
-        aspect-ratio: 6/1;
+        aspect-ratio: 10/1;
         margin-left: auto;
         margin-right: auto;
         margin-top: auto;
         margin-bottom: auto;
+
+        border: 2px solid rgb(107, 107, 107);
+        border-radius: 10px;
+    }
+
+    button:hover {
+        background-color: rgba(87, 216, 246, 0.57);
     }
 }
 
@@ -281,6 +288,7 @@ body {
 
 #trading-window {
     border: 3px solid black;
+    border-radius: 20px;
 
     display: flex;
     flex-flow: column nowrap;
@@ -290,6 +298,23 @@ body {
     margin-right: auto;
 
     margin-top: 20px;
+
+    input {
+        margin-left: 10px;
+        width: 15%;
+
+        border: 1px solid rgb(107, 107, 107);
+        border-radius: 5px;
+    }
+
+    button {
+        border: 2px solid black;
+        border-radius: 10px;
+    }
+
+    button:hover {
+        background-color: rgba(87, 216, 246, 0.57);
+    }
 }
 
 #trade-window-title {
@@ -346,6 +371,7 @@ body {
 
 #building-window {
     border: 3px solid black;
+    border-radius: 20px;
 
     background-color: white;
 
@@ -365,6 +391,13 @@ body {
         margin-right: auto;
         margin-top: 10px;
         margin-bottom: 10px;
+
+        border: 2px solid rgb(107, 107, 107);
+        border-radius: 15px;
+    }
+
+    button:hover {
+        background-color: rgba(87, 216, 246, 0.57);
     }
 }
 

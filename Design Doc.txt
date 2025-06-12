@@ -101,21 +101,38 @@ Order of a turn:
 Win Condition:
 -Control every time period on the map
 
+=====================================================================================
+
 Playtest 1:
 Players:
 -Me
 -Dan
 
 Notes:
--Dan would like to be able to train troops in time periods where he is not present [Dan]
--Any player can see time period control buttons for time periods owned by the player whose turn it is [Me]
--Build menu had doubled buttons [Dan]
+-Dan would like to be able to train troops in time periods where he is not present [Dan] ---
+-Any player can see time period control buttons for time periods owned by the player whose turn it is [Me] ---
+-Build menu had doubled buttons [Dan] ---
 -Feels slow, should be, but maybe too slow [Me]
 --Multiple trades per turn ?? [Me]
--Several Time Periods showed "War" when no combat was there [Me]
---Might be if there are no armies there it sees != 1 and so it counts as combat [Me]
+-Several Time Periods showed "War" when no combat was there [Me] ---
+--Might be if there are no armies there it sees != 1 and so it counts as combat [Me] ---
 -Board gets a bit wonky [Me]
 
 Post-game Notes:
--Trade Menu, Build Menu, and Time Period Control Button styling should match the rest of the game [Me]
--Train troop button label should be dynamic and match the specific cost from the settings. [Me]
+-Trade Menu, Build Menu, and Time Period Control Button styling should match the rest of the game [Me] ---
+
+=====================================================================================
+
+Playtest 2:
+Changes:
+-Can train troops and build on your time periods even if you are not present
+--Also fixed bug where players can see controls they shouldn't be able to
+-Build menu buttons shouldn't double up anymore
+-Time periods shouldn't display war when no war anymore
+-Train Troop button displays correct cost
+-Trade Menu, Build Menu, and control buttons styling match rest of UI better
+
+Players:
+-Me
+
+Notes:

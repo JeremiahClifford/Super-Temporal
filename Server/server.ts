@@ -514,13 +514,14 @@ class TimePeriod {
             }
             this.b_hasCombat = true
             CleanArmies() // removes empty armies
-            if (this.aa_armies.length === 1 && this.aa_armies[this.aa_armies.length - 1].n_ownerIndex !== this.n_ownerIndex) { // if only one army remains, that player's army conquers the time period
+            if (this.aa_armies.length <= 1 && this.aa_armies[this.aa_armies.length - 1].n_ownerIndex !== this.n_ownerIndex) { // if only one army remains, that player's army conquers the time period
                 this.n_ownerIndex = this.aa_armies[0].n_ownerIndex // sets the new owner
                 if (p_tIndex !== numTimePeriods - 1) { // makes sure that this time period is not the last in the list
                     pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders = [] // clears the propagation orders of the next time period as the conquest makes them redundant
                     this.b_conquested = true
                 }
                 this.b_propagationBlocked = true // conquest creates a propagation block
+                this.b_hasCombat = false // sets combat back to false if the combat is fully resolved
             }
         }
     }
@@ -1026,12 +1027,12 @@ app.post("/submitturn", (request: any, response: any) => {
                 Trade(turnSubmitted.Details[i].TargetTimePeriod[0], turnSubmitted.Details[i].TargetTimePeriod[1], turnSubmitted.Details[i].ResourcesTaken, turnSubmitted.Details[i].ResourcesGiven, troopsTaken, troopsGiven) // execute the trade
             }
             if (turnSubmitted.Details[i].Type === "Build") { // if its a build
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost // takes the cost
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(turnSubmitted.Details[i].BuildingType) // starts the building
+                pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].n_resources -= buildingCost // takes the cost
+                pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].StartBuilding(turnSubmitted.Details[i].BuildingType) // starts the building
             }
             if (turnSubmitted.Details[i].Type === "Train") { // if its a training
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartTroopTraining() // starts training a troop
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= trainTroopCost // charges the train troop cost
+                pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].StartTroopTraining() // starts training a troop
+                pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].n_resources -= trainTroopCost // charges the train troop cost
             }
         }
         console.log(`Turn Completed`) // LOG:
