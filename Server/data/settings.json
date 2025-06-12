@@ -12,7 +12,7 @@
         "warehouseBonusPercent": 0.05,
         "resourceGenPropagates": false,
 
-        "trainTroopCost": 10,
+        "trainTroopCost": 50,
         "latenessFactor": 0.5,
 
         "darkAges": false,

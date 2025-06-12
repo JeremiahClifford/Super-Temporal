@@ -115,3 +115,7 @@ Notes:
 -Several Time Periods showed "War" when no combat was there [Me]
 --Might be if there are no armies there it sees != 1 and so it counts as combat [Me]
 -Board gets a bit wonky [Me]
+
+Post-game Notes:
+-Trade Menu, Build Menu, and Time Period Control Button styling should match the rest of the game [Me]
+-Train troop button label should be dynamic and match the specific cost from the settings. [Me]
