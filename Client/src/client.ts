@@ -806,6 +806,7 @@ let turnActions: {"Details": any} = {
 
 let pa_planets: Planet[] = [] // stores the list of the planets in play
 
+//#region HTML Elements
 // holds onto the time period board display
 const timePeriodBoard: HTMLElement = document.getElementById('time-period-board') as HTMLElement
 
@@ -843,6 +844,7 @@ const refreshButton: HTMLButtonElement = document.getElementById('refresh-button
 const travelButton: HTMLButtonElement = document.getElementById('travel-button') as HTMLButtonElement // travel button
 const tradeButton: HTMLButtonElement = document.getElementById('trade-button') as HTMLButtonElement // trade button
 const endTurnButton: HTMLButtonElement = document.getElementById('end-turn-button') as HTMLButtonElement // end turn button
+//#endregion HTML Elements
 
 // stores the coordinates of the selected time period
 let n_selectedPlanetIndex: number
