@@ -28,6 +28,23 @@ let fortressProtectionPercent: number = 0.8 // how much damage do troops take if
 
 let buildingCost: number = 500 // how much it costs to build a building
 let buildingTime: number = 5 // how many turns it takes to build a building
+
+const playerColors: string[] = [ // colors to represent the players [14]
+    " #92ff80 ",
+    " #80e0ff ",
+    " #cfff80 ",
+    " #ff7d7d ",
+    " #80ffa7 ",
+    " #f480ff ",
+    " #9780ff ",
+    " #ffa380 ",
+    " #80c1ff ",
+    " #c280ff ",
+    " #ffd680 ",
+    " #808dff ",
+    " #ffbf80 ",
+    " #80ffd0 "
+]
 //#endregion Tunable Values
 
 //----------------------------------------------
@@ -893,13 +910,16 @@ const DrawBoard = (): void => {
             timePeriodBox.classList.add("time-period-box")
             timePeriodBox.id = `age-${j+1}-box`
             timePeriodBox.style.height = `${95 / numTimePeriods}%`
+            if (pa_planets[i].ta_timePeriods[j].n_ownerIndex < playerColors.length && pa_planets[i].ta_timePeriods[j].n_ownerIndex >= 0) { // makes sure there is a color for this number player
+                timePeriodBox.style.backgroundColor = playerColors[pa_planets[i].ta_timePeriods[j].n_ownerIndex]
+            }
             timePeriodBox.addEventListener('click', () => { // adds the event to each time period box to select it
-                if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) {
+                if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) { // deselects the box if it was already selected
                     n_selectedPlanetIndex = -1
                     n_selectedTimePeriodIndex = -1
                     timePeriodBox.style.borderColor = `black`
                     controlSection.style.display = `none`
-                } else { // deselects the box if it was already selected
+                } else {
                     n_selectedPlanetIndex = i
                     n_selectedTimePeriodIndex = j
                     timePeriodBox.style.borderColor = `red`
@@ -1012,7 +1032,7 @@ const DrawBoard = (): void => {
     playerListBox.innerHTML = ``
     pa_players.forEach((p) => {
         // creates the string
-        let playerHTML: string = `<div class="player-card">`
+        let playerHTML: string = `<div class="player-card" id="${p.s_name}-card">`
         if (p === pa_players[currentTurnIndex]) { // if p is the player whose turn it is
             playerHTML += `<h3>--[${p.s_name}]--</h3>` // adds the player's name in bold
         } else {
@@ -1024,11 +1044,16 @@ const DrawBoard = (): void => {
             playerHTML += `<h4>Location: ${pa_planets[p.na_location[0]].s_name} Age ${p.na_location[1] + 1}</h4>`
         }
         playerHTML += `<h3>Resources: ${p.n_resources}</h3>` // adds the player's resources
-        playerHTML += `<div style="height:70px;border:3px solid #ccc;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" class="player-list-troop-list-spot">` //starts the player's troop list
+        playerHTML += `<div style="height:70px;border:3px solid #ccc;background-color: #FFF;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" class="player-list-troop-list-spot">` //starts the player's troop list
         playerHTML += TroopsString(p.a_troops, false) // adds their list of troops
-        playerHTML += `</div>` // closes the trop list div
+        playerHTML += `</div>` // closes the troop list div
         playerHTML += `</div>` // closes the div
         playerListBox.innerHTML += playerHTML // adds the generated player card to the list
+        
+        let specificPlayerCard: HTMLElement = document.getElementById(`${p.s_name}-card`) as HTMLElement
+        if (p.a_troops.n_ownerIndex < playerColors.length && p.a_troops.n_ownerIndex >= 0) { // makes sure there is a color for this number player
+            specificPlayerCard.style.backgroundColor = playerColors[p.a_troops.n_ownerIndex]
+        }
     })
     //#endregion Players Board
 

@@ -99,7 +99,7 @@ body {
 }
 
 .time-period-space:hover {
-    background-color: rgba(87, 216, 246, 0.57);
+    border: 3px solid rgba(235, 136, 55, 0.993);
 }
 
 #selected-time-period-display {
