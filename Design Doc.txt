@@ -131,8 +131,27 @@ Changes:
 -Time periods shouldn't display war when no war anymore
 -Train Troop button displays correct cost
 -Trade Menu, Build Menu, and control buttons styling match rest of UI better
+-Players are now assigned a color and all of their stuff appears in that color
 
 Players:
 -Me
 
 Notes:
+-Dan followed ben into a time period and their troops killed each other. Leaving Dan with no troops and no time periods. [Me]
+--The Propagation brought his troops forward restart the fight each time. This saved Dan allowing him to retreat and fight elsewhere.
+-Ben could not trade after moving one turn [Ben]
+-Dan appeared twice in the present players on a time period [Ben - Me]
+-Game crashed when Ben tried to submit turn [Ben  - Me]
+-- Performing end of turn cycle calculations
+   TypeError: Cannot read properties of undefined (reading 'n_ownerIndex')
+    at TimePeriod.DoCombat (/home/jeremiah/Documents/Git-Repos/Super-Temporal/Server/server.ts:517:89)
+    at /home/jeremiah/Documents/Git-Repos/Super-Temporal/Server/server.ts:635:48
+    at Array.forEach (<anonymous>)
+    at Planet.DoCombat (/home/jeremiah/Documents/Git-Repos/Super-Temporal/Server/server.ts:635:29)
+    at /home/jeremiah/Documents/Git-Repos/Super-Temporal/Server/server.ts:746:15
+    at Array.forEach (<anonymous>)
+    at AdvanceTurn (/home/jeremiah/Documents/Git-Repos/Super-Temporal/Server/server.ts:743:20)
+    at /home/jeremiah/Documents/Git-Repos/Super-Temporal/Server/server.ts:1040:9
+    at Layer.handle [as handle_request] (/home/jeremiah/Documents/Git-Repos/Super-Temporal/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/jeremiah/Documents/Git-Repos/Super-Temporal/node_modules/express/lib/router/route.js:149:13)
+--Mirabai Owned the leftmost planet and here conquest propagation happened every time but then it failed so it happened on the second planet which is where Ben and Dan were fighting. Something they did in their fight caused a crash.
