@@ -6,6 +6,8 @@ body {
 
     background: #060869;
     background: linear-gradient(0deg,rgba(6, 8, 105, 1) 0%, rgba(3, 5, 60, 1) 35%, rgba(0, 0, 0, 1) 100%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 #top-layer {
@@ -61,6 +63,8 @@ body {
 #age-numbers {
     width: 5%;
     margin-right: 12px;
+
+    font-size: 2vh;
 }
 
 #top-space, .planet-header {
@@ -175,6 +179,8 @@ body {
     width: 25%;
     margin-right: 0px;
 
+    min-width: 250px;
+
     display: flex;
     flex-flow: column nowrap;
 
@@ -226,6 +232,7 @@ body {
     width: 90%;
     margin-left: auto;
     margin-right: auto;
+    min-width: 700px;
 
     margin-top: 20px;
 
@@ -236,6 +243,7 @@ body {
     flex-flow: row wrap;
 
     height: 20%;
+    min-height: 150px;
 }
 
 .player-info-item {
