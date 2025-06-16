@@ -514,7 +514,7 @@ class TimePeriod {
             }
             this.b_hasCombat = true
             CleanArmies() // removes empty armies
-            if (this.aa_armies.length <= 1 && this.aa_armies[this.aa_armies.length - 1].n_ownerIndex !== this.n_ownerIndex) { // if only one army remains, that player's army conquers the time period
+            if (this.aa_armies.length === 1 && this.aa_armies[this.aa_armies.length - 1].n_ownerIndex !== this.n_ownerIndex) { // if only one army remains, that player's army conquers the time period
                 this.n_ownerIndex = this.aa_armies[0].n_ownerIndex // sets the new owner
                 if (p_tIndex !== numTimePeriods - 1) { // makes sure that this time period is not the last in the list
                     pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders = [] // clears the propagation orders of the next time period as the conquest makes them redundant
@@ -522,6 +522,9 @@ class TimePeriod {
                 }
                 this.b_propagationBlocked = true // conquest creates a propagation block
                 this.b_hasCombat = false // sets combat back to false if the combat is fully resolved
+            }
+            if (this.aa_armies.length === 0) { // if there are no armies
+                this.b_hasCombat = false // remove the combat flag
             }
         }
     }
@@ -537,7 +540,8 @@ class TimePeriod {
     }
 
     DoPropagation = (p_pIndex: number, p_tIndex: number): void => {
-        if (!this.b_hasCombat) { // only does propagation if there is no combat
+        // TEMP: Testing | if (!this.b_hasCombat) { // only does propagation if there is no combat
+        if (!pa_planets[p_pIndex].ta_timePeriods[p_tIndex - 1].b_hasCombat) { // only does propagation if the previous time period does not have combat
             this.pa_propagationOrders.forEach((po) => {
                 if (po.constructor === ResourcePropagationOrder) { // handles resource propagation orders
                     if (po.b_adding && !pa_planets[p_pIndex].ta_timePeriods[p_tIndex].b_scorchedEarth) { // if the order is to add and the previous time period is not scorched earth
@@ -555,6 +559,9 @@ class TimePeriod {
                 }
                 if (po.constructor === TroopPropagationOrder && !this.b_propagationBlocked) { // handles troop propagation orders if this time period is not propagation blocked
                     if (po.b_adding) { // if the troop is being added
+                        if (this.aa_armies.length === 0) { // if there is no army to put the troops in
+                            this.aa_armies.push(new Army(this.n_ownerIndex, [])) // add an army to put the troop in
+                        }
                         this.aa_armies[0].ta_troops.push((po.t_target as Troop)) // adds the troop
                         this.aa_armies[0].ta_troops[this.aa_armies[0].ta_troops.length - 1].ProgressIntegration(this.n_rawLevel) // increases the level of the troop before the propagation order is passed on but after it has been added so that when it is processed in the next time period it is already the proper level
                         this.aa_armies[0].ta_troops = SortTroops(this.aa_armies[0].ta_troops) // sorts the army with the new troop
@@ -644,7 +651,7 @@ class Planet {
     }
 
     DoPropagation = (p_pIndex: number): void => {
-        for (let i: number = this.ta_timePeriods.length - 1; i >= 0; i--) { //does propagation for all time periods in reverse order
+        for (let i: number = this.ta_timePeriods.length - 1; i > 0; i--) { //does propagation for all time periods in reverse order
             this.ta_timePeriods[i].DoPropagation(p_pIndex, i)
         }
     }

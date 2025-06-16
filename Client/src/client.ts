@@ -941,7 +941,7 @@ const DrawBoard = (): void => {
                 timePeriodBox.innerHTML = `<p>Uncolonized</p>` // TEMP: fill in "Uncolonized"
                 // TODO: put uncolonized icon
             }
-            if (pa_planets[i].ta_timePeriods[j].b_hasCombat) {
+            if (pa_planets[i].ta_timePeriods[j].aa_armies.length > 1) {
                 timePeriodBox.innerHTML += `<br><p>War</P>`
             }
 

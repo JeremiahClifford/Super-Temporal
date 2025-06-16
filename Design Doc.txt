@@ -135,13 +135,17 @@ Changes:
 
 Players:
 -Me
+-Mirabai
+-Dan
+-Ben
 
 Notes:
 -Dan followed ben into a time period and their troops killed each other. Leaving Dan with no troops and no time periods. [Me]
 --The Propagation brought his troops forward restart the fight each time. This saved Dan allowing him to retreat and fight elsewhere.
--Ben could not trade after moving one turn [Ben]
+--Balancing issue, no changes now
 -Dan appeared twice in the present players on a time period [Ben - Me]
--Game crashed when Ben tried to submit turn [Ben  - Me]
+--Can't replicate and shouldn't happen, may be related to the same bug that caused the crash. will have to watch
+-Game crashed when Ben tried to submit turn [Ben  - Me] ---
 -- Performing end of turn cycle calculations
    TypeError: Cannot read properties of undefined (reading 'n_ownerIndex')
     at TimePeriod.DoCombat (/home/jeremiah/Documents/Git-Repos/Super-Temporal/Server/server.ts:517:89)
@@ -154,4 +158,24 @@ Notes:
     at /home/jeremiah/Documents/Git-Repos/Super-Temporal/Server/server.ts:1040:9
     at Layer.handle [as handle_request] (/home/jeremiah/Documents/Git-Repos/Super-Temporal/node_modules/express/lib/router/layer.js:95:5)
     at next (/home/jeremiah/Documents/Git-Repos/Super-Temporal/node_modules/express/lib/router/route.js:149:13)
---Mirabai Owned the leftmost planet and here conquest propagation happened every time but then it failed so it happened on the second planet which is where Ben and Dan were fighting. Something they did in their fight caused a crash.
+--Mirabai Owned the leftmost planet and here conquest propagation happened every time but then it failed so it happened on the second planet which is where Ben and Dan were fighting. Something they did in their fight caused a crash. ---
+
+=====================================================================================
+
+Playtest 3:
+
+Changes:
+-Fixed the issue causing the crash that ended the last test.
+-Changed the way propagation worked so now changes ill propagate into time period with active war but not out of time periods with war.
+-Changes to the way the UI determines to add the war tag so it is more consistent.
+
+Things to watch:
+-Dan followed ben into a time period and their troops killed each other. Leaving Dan with no troops and no time periods. [Me]
+--The Propagation brought his troops forward restart the fight each time. This saved Dan allowing him to retreat and fight elsewhere.
+--Balancing of early game fights and the potential to lose right away
+-Players appearing twice in the present players box of a selected time period.
+
+Players:
+-Me
+
+Notes:
