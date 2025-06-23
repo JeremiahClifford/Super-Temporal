@@ -174,6 +174,7 @@ Things to watch:
 --The Propagation brought his troops forward restart the fight each time. This saved Dan allowing him to retreat and fight elsewhere.
 --Balancing of early game fights and the potential to lose right away
 -Players appearing twice in the present players box of a selected time period.
+-Does the game feel too slow
 
 Players:
 -Me

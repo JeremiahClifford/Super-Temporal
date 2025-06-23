@@ -15,6 +15,7 @@ let resourceGenPropagates: boolean = false // should resources added to a time p
 let gameBackgroundColor: string = "#03053c" // background color of the whole game
 let boardBackgroundColor: string = "#e8e8e8" // color of the background of the various boards
 let boardOutlineColor: string = "#2c2c2c" // color of the outline of the various boards
+let buttonBackgroundColor: string = "rgba(87, 216, 246, 0.57)" // background color of selected or hovered buttons
 
 let trainTroopCost: number = 0 // how many resources should it cost to train a troop
 let latenessFactor: number = 0.5 // by what factor should later time period resources be reduced
@@ -90,12 +91,12 @@ const TroopsString = (a: Army, useName: boolean): string => { //gives a string r
     let output: string = ``
     if (useName) { //if this use case requires the name of the owner to distinguish, add the name of the owner. only really used on the selected time period display as multiple armies owned by multiple players can appear there
         if (a.n_ownerIndex === -1) {
-            output = `Natives:<br>` //adds the header to the output showing how many total troops the army has and the owner
+            output = `Natives ` //adds the header to the output showing how many total troops the army has and the owner
         } else {
-            output = `${pa_players[a.n_ownerIndex].s_name}:<br>` //adds the header to the output showing how many total troops the army has and the owner
+            output = `${pa_players[a.n_ownerIndex].s_name} ` //adds the header to the output showing how many total troops the army has and the owner
         }
     }
-    output += `${a.ta_troops.length} Troop(s):<br>` //adds th e number of troops
+    output += `[${a.ta_troops.length} Troop(s)]:<br>` //adds th e number of troops
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
         output += `${troopTypes[i].n_count}x Level: ${troopTypes[i].n_level} Health: ${troopTypes[i].n_health}<br>` //adds a line of their info to the output string
     }
@@ -839,6 +840,7 @@ const buildingSection: HTMLElement = document.getElementById('building-section')
 const buildingBox: HTMLElement = document.getElementById('building-list-box') as HTMLElement // box that holds list of buildings
 const troopSection: HTMLElement = document.getElementById('troop-section') as HTMLElement // troop list section
 const troopBox: HTMLElement = document.getElementById('troop-list-box') as HTMLElement // box that holds list of troops
+const presentPlayersSection: HTMLElement = document.getElementById('present-players-section') as HTMLElement // present players list section
 const presentPlayersBox: HTMLElement = document.getElementById('present-players-list-box') as HTMLElement // box that holds the list pf players in this time period
 const controlSection: HTMLElement = document.getElementById('time-period-control-section') as HTMLElement // section with the controls for the time period owner
 const buildBuildingsButton: HTMLButtonElement = document.getElementById('build-buildings-button') as HTMLButtonElement // button to open the building menu
@@ -846,6 +848,14 @@ const trainTroopButton: HTMLButtonElement = document.getElementById('train-troop
 const scorchedEarthButton: HTMLButtonElement = document.getElementById('scorched-earth-button') as HTMLButtonElement // button for scorched earth
 const buildQueueSection: HTMLElement = document.getElementById('build-queue-section') as HTMLElement // section for the build queue
 const buildQueueBox: HTMLElement = document.getElementById('build-queue-list-box') as HTMLElement // list box of the build queue
+
+// buttons to select which list you see on the selected time period display
+const objectSectionSelectorSection: HTMLElement = document.getElementById('object-section-selector-section') as HTMLElement
+const buildingsSectionSelectorButton: HTMLElement = document.getElementById('buildings-section-selector-button') as HTMLElement
+const troopsSectionSelectorButton: HTMLElement = document.getElementById('troops-section-selector-button') as HTMLElement
+const queueSectionSelectorButton: HTMLElement = document.getElementById('queue-section-selector-button') as HTMLElement
+const playersSectionSelectorButton: HTMLElement = document.getElementById('players-section-selector-button') as HTMLElement
+const controlsSectionSelectorButton: HTMLElement = document.getElementById('controls-section-selector-button') as HTMLElement
 
 const playerListDisplay: HTMLElement = document.getElementById('player-list-display') as HTMLElement // the section which has the list of players
 const playerListBox: HTMLElement = document.getElementById('player-list-box') as HTMLElement // the scrolling box that will show the list of players
@@ -919,10 +929,39 @@ const DrawBoard = (): void => {
                     n_selectedTimePeriodIndex = -1
                     timePeriodBox.style.borderColor = `black`
                     controlSection.style.display = `none`
+
+                    objectSectionSelectorSection.style.display = `none`
+                    controlsSectionSelectorButton.style.display = `none`
+                    objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "25%")
+                    buildingSection.style.display = `none`
+                    troopSection.style.display = `none`
+                    buildQueueSection.style.display = `none`
+                    presentPlayersSection.style.display = `none`
+                    controlSection.style.display = `none`
                 } else {
                     n_selectedPlanetIndex = i
                     n_selectedTimePeriodIndex = j
                     timePeriodBox.style.borderColor = `red`
+
+                    objectSectionSelectorSection.style.display = `flex`
+                    buildingSection.style.display = `none`
+                    troopSection.style.display = `block`
+                    buildQueueSection.style.display = `none`
+                    presentPlayersSection.style.display = `none`
+                    controlSection.style.display = `none`
+                    buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+                    troopsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+                    queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+                    playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+                    controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+                    if (pa_planets[i].ta_timePeriods[j].n_ownerIndex !== myIndex) {
+                        controlsSectionSelectorButton.style.display = `none`
+                        objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "25%")
+                    } else {
+                        controlsSectionSelectorButton.style.display = `inline`
+                        objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "20%")
+                    }
+
                 }
                 DrawBoard()
             })
@@ -958,13 +997,14 @@ const DrawBoard = (): void => {
         ageLine.innerHTML = `Age ${n_selectedTimePeriodIndex + 1}` // writes which time period is selected
         // writes the relevant info from the time period
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === -1) { //checks if the time period is owner by a player
-            ownerLine.innerHTML = `Owner: ${pa_planets[n_selectedPlanetIndex].s_name} natives` //if not: writes that it is owned by people from that planet
+            ownerLine.innerHTML = `Owner: ${pa_planets[n_selectedPlanetIndex].s_name} Natives` //if not: writes that it is owned by people from that planet
         } else {
             ownerLine.innerHTML = `Owner: ${pa_players[pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex].s_name}` //if so: writes the owner of the time period
         }
         powerLine.innerHTML = `Power Level: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_level + pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_powerModifier}` //writes the power level of the time period to the label
         resourcesLine.innerHTML = `Resources: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources}` //writes the number of resources in the time period
         resourceProductionLine.innerHTML = `Resource Production Rate: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resourceProduction}` //writes the resource production rate to the label
+                
         buildingBox.innerHTML = `` // resets the text in the building box
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ba_buildings.length > 0) { //checks if there are any buildings in the time period
             pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ba_buildings.forEach((b) => buildingBox.innerHTML += `${b.s_name}<br>`) //if so: loops through them all and writes them to the box
@@ -994,9 +1034,11 @@ const DrawBoard = (): void => {
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === myIndex 
             && currentTurnIndex === myIndex) { // hides the controls if the player does not own the time period or it is not their turn
             trainTroopButton.innerHTML = `Train Troop - [${trainTroopCost}]`
-            controlSection.style.display = `block`
+            controlsSectionSelectorButton.style.display = `block`
+            objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "20%")
         } else {
-            controlSection.style.display = `none`
+            controlsSectionSelectorButton.style.display = `none`
+            objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "25%")
         }
         scorchedEarthButton.innerHTML = `Scorched Earth: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth ? "True" : "False"}`
         buildQueueBox.innerHTML = `` // resets the build queue box
@@ -1011,8 +1053,7 @@ const DrawBoard = (): void => {
             })
         } else {
             buildQueueBox.innerHTML = `None`
-        }
-        
+        }        
     }  else {
         // resets the display values when deselecting
         planetLine.innerHTML = `No Planet Selected` // resets the time period age
@@ -1043,7 +1084,7 @@ const DrawBoard = (): void => {
         } else { // if they do
             playerHTML += `<h4>Location: ${pa_planets[p.na_location[0]].s_name} Age ${p.na_location[1] + 1}</h4>`
         }
-        playerHTML += `<h3>Resources: ${p.n_resources}</h3>` // adds the player's resources
+        playerHTML += `<h4>Resources: ${p.n_resources}</h4>` // adds the player's resources
         playerHTML += `<div style="height:70px;border:3px solid #ccc;background-color: #FFF;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" class="player-list-troop-list-spot">` //starts the player's troop list
         playerHTML += TroopsString(p.a_troops, false) // adds their list of troops
         playerHTML += `</div>` // closes the troop list div
@@ -1053,6 +1094,9 @@ const DrawBoard = (): void => {
         let specificPlayerCard: HTMLElement = document.getElementById(`${p.s_name}-card`) as HTMLElement
         if (p.a_troops.n_ownerIndex < playerColors.length && p.a_troops.n_ownerIndex >= 0) { // makes sure there is a color for this number player
             specificPlayerCard.style.backgroundColor = playerColors[p.a_troops.n_ownerIndex]
+        }
+        if (p === pa_players[currentTurnIndex]) { // if this player is the player whose turn it is
+            specificPlayerCard.style.borderColor = "red" // make the border of their box red
         }
     })
     //#endregion Players Board
@@ -1291,7 +1335,82 @@ const Initialize = (): void => {
     buildingWindow.style.top = '100px'
     buildingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
 
-    // makes buttons work
+    // hide the various list sections so they can be selected
+    objectSectionSelectorSection.style.display = `none`
+    buildingSection.style.display = `none`
+    troopSection.style.display = `none`
+    buildQueueSection.style.display = `none`
+    presentPlayersSection.style.display = `none`
+    controlSection.style.display = `none`
+
+    // makes selected time period buttons work
+    buildingsSectionSelectorButton.addEventListener("click", () => {
+        buildingsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+
+        buildingSection.style.display = `block`
+        troopSection.style.display = `none`
+        buildQueueSection.style.display = `none`
+        presentPlayersSection.style.display = `none`
+        controlSection.style.display = `none`
+    })
+    troopsSectionSelectorButton.addEventListener("click", () => {
+        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+
+        buildingSection.style.display = `none`
+        troopSection.style.display = `block`
+        buildQueueSection.style.display = `none`
+        presentPlayersSection.style.display = `none`
+        controlSection.style.display = `none`
+    })
+    queueSectionSelectorButton.addEventListener("click", () => {
+        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+
+        buildingSection.style.display = `none`
+        troopSection.style.display = `none`
+        buildQueueSection.style.display = `block`
+        presentPlayersSection.style.display = `none`
+        controlSection.style.display = `none`
+    })
+    playersSectionSelectorButton.addEventListener("click", () => {
+        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        
+        buildingSection.style.display = `none`
+        troopSection.style.display = `none`
+        buildQueueSection.style.display = `none`
+        presentPlayersSection.style.display = `block`
+        controlSection.style.display = `none`
+    })
+    controlsSectionSelectorButton.addEventListener("click", () => {
+        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        
+        buildingSection.style.display = `none`
+        troopSection.style.display = `none`
+        buildQueueSection.style.display = `none`
+        presentPlayersSection.style.display = `none`
+        controlSection.style.display = `block`
+    })
+
+    // makes player control buttons work
     refreshButton.addEventListener("click", () => Refresh()) // refresh button functionality
     tradeSubmitButton.addEventListener("click", () => Trade(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex], n_selectedPlanetIndex, n_selectedTimePeriodIndex)) // makes the trade submit button work
     tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) // makes  the cancel button work
