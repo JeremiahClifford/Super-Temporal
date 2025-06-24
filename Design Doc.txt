@@ -168,6 +168,7 @@ Changes:
 -Fixed the issue causing the crash that ended the last test.
 -Changed the way propagation worked so now changes ill propagate into time period with active war but not out of time periods with war.
 -Changes to the way the UI determines to add the war tag so it is more consistent.
+-Added tabs to the selected time period display
 
 Things to watch:
 -Dan followed ben into a time period and their troops killed each other. Leaving Dan with no troops and no time periods. [Me]
@@ -175,6 +176,7 @@ Things to watch:
 --Balancing of early game fights and the potential to lose right away
 -Players appearing twice in the present players box of a selected time period.
 -Does the game feel too slow
+-Do the tabs in the selected time period display feel better or clunky
 
 Players:
 -Me
