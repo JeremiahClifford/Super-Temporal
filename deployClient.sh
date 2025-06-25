@@ -1,4 +1,4 @@
-sudo systemctl start nginx
+sudo systemctl stop nginx
 cd Client
 tsc
 cd ..
