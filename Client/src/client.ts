@@ -15,7 +15,7 @@ let resourceGenPropagates: boolean = false // should resources added to a time p
 let gameBackgroundColor: string = "#03053c" // background color of the whole game
 let boardBackgroundColor: string = "#e8e8e8" // color of the background of the various boards
 let boardOutlineColor: string = "#2c2c2c" // color of the outline of the various boards
-let buttonBackgroundColor: string = "rgba(87, 216, 246, 0.57)" // background color of selected or hovered buttons
+let buttonBackgroundColor: string = "rgba(200, 200, 200, 0.7)" // background color of selected or hovered buttons
 
 let trainTroopCost: number = 0 // how many resources should it cost to train a troop
 let latenessFactor: number = 0.5 // by what factor should later time period resources be reduced
@@ -1350,19 +1350,19 @@ const Initialize = (): void => {
     objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "25%")
 
     // reset the button colors
-    buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-    troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-    queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-    playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-    controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+    buildingsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+    troopsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+    queueSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+    playersSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+    controlsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
 
     // makes selected time period buttons work
     buildingsSectionSelectorButton.addEventListener("click", () => {
-        buildingsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
-        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
         
         emptySection.style.display = `none`
         buildingSection.style.display = `block`
@@ -1372,11 +1372,11 @@ const Initialize = (): void => {
         controlSection.style.display = `none`
     })
     troopsSectionSelectorButton.addEventListener("click", () => {
-        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        troopsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
-        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        buildingsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
         
         emptySection.style.display = `none`
         buildingSection.style.display = `none`
@@ -1386,11 +1386,11 @@ const Initialize = (): void => {
         controlSection.style.display = `none`
     })
     queueSectionSelectorButton.addEventListener("click", () => {
-        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        queueSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
-        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        buildingsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
         
         emptySection.style.display = `none`
         buildingSection.style.display = `none`
@@ -1400,11 +1400,11 @@ const Initialize = (): void => {
         controlSection.style.display = `none`
     })
     playersSectionSelectorButton.addEventListener("click", () => {
-        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        playersSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
-        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        buildingsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
         
         emptySection.style.display = `none`
         buildingSection.style.display = `none`
@@ -1414,11 +1414,11 @@ const Initialize = (): void => {
         controlSection.style.display = `none`
     })
     controlsSectionSelectorButton.addEventListener("click", () => {
-        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-        controlsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        buildingsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
         
         emptySection.style.display = `none`
         buildingSection.style.display = `none`
