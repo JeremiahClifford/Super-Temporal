@@ -10,3 +10,4 @@ sudo unzip "super-temporal.zip"
 sudo rm "super-temporal.zip"
 sudo mv ./Client ./super-temporal
 sudo systemctl start nginx
+sudo systemctl status nginx
