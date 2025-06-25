@@ -1,3 +1,5 @@
+import { json } from "stream/consumers"
+
 // data from the json files
 let settings = require('./data/settings.json') // settings that the server are setup on
 let playerListJSON = require('./data/playerList.json') // list of players that will be in the game
@@ -816,7 +818,7 @@ app.post("/login", (request: any, response: any) => {
 
     responseFile.index = -1 // sets the response index to default -1 so the client can fail the login
     for (let i: number = 0; i < playerListJSON.Players.length; i++) { // loop through usernames registered for this game
-        if (infoSubmitted.Username === playerListJSON.Players[i]) { // if the player trying to login matches a registered player
+        if (JSON.stringify(infoSubmitted.Username).toLowerCase() === JSON.stringify(playerListJSON.Players[i]).toLowerCase()) { // if the player trying to login matches a registered player
             responseFile.index = i // set the response index to the player's index
 
             clientConnected = true

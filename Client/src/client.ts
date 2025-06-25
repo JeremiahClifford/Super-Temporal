@@ -446,7 +446,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
     if (t.n_ownerIndex === p) {
         timePeriodPresent.innerHTML = `
             <div class="resource-trade-card">
-                <h4>Resources: ${t.n_resources}</h4>
+                <h4>Resources: ${(Math.round(t.n_resources * 100)) / 100}</h4>
                 <input type="number" class="resource-select-input" id="time-period-present-resource-select-input">
                 <button class="resource-select-button" id="time-period-present-resource-select-button" onclick="SwapResources(false, true)">Select</button>
             <div>
@@ -478,7 +478,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
     if (t.n_ownerIndex === p) {
         timePeriodForTrade.innerHTML = `
             <div class="resource-trade-card">
-                <h4>Resources: ${resourcesTaken}</h4>
+                <h4>Resources: ${(Math.round(resourcesTaken * 100)) / 100}</h4>
                 <input type="number" class="resource-select-input" id="time-period-for-trade-resource-select-input">
                 <button class="resource-select-button" id="time-period-for-trade-resource-select-button" onclick="SwapResources(false, false)">Select</button>
             <div>
@@ -500,7 +500,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
     if (t.n_ownerIndex === p) {
         playerPresent.innerHTML = `
             <div class="resource-trade-card">
-                <h4>Resources: ${pa_players[p].n_resources}</h4>
+                <h4>Resources: ${(Math.round(pa_players[p].n_resources * 100)) / 100}</h4>
                 <input type="number" class="resource-select-input" id="player-present-resource-select-input">
                 <button class="resource-select-button" id="player-present-resource-select-button" onclick="SwapResources(true, true)">Select</button>
             <div>
@@ -520,7 +520,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
     if (t.n_ownerIndex === p) {
         playerForTrade.innerHTML = `
             <div class="resource-trade-card">
-                <h4>Resources: ${resourcesGiven}</h4>
+                <h4>Resources: ${(Math.round(resourcesGiven * 100)) / 100}</h4>
                 <input type="number" class="resource-select-input" id="player-for-trade-resource-select-input">
                 <button class="resource-select-button" id="player-for-trade-resource-select-button" onclick="SwapResources(true, false)">Select</button>
             <div>
@@ -929,44 +929,29 @@ const DrawBoard = (): void => {
                     n_selectedPlanetIndex = -1
                     n_selectedTimePeriodIndex = -1
                     timePeriodBox.style.borderColor = `black`
-                    controlSection.style.display = `none`
 
-                    //objectSectionSelectorSection.style.display = `none`
-                    emptySection.style.display = `block`
-                    controlsSectionSelectorButton.style.display = `none`
-                    objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "25%")
-                    buildingSection.style.display = `none`
-                    troopSection.style.display = `none`
-                    buildQueueSection.style.display = `none`
-                    presentPlayersSection.style.display = `none`
-                    controlSection.style.display = `none`
+                    if (window.getComputedStyle(controlSection).display === 'block') {
+                        controlSection.style.display = `none`
+                        emptySection.style.display = `block`
+                        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
 
-                    // reset the button colors
-                    buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-                    troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-                    queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-                    playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-                    controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+                        controlsSectionSelectorButton.style.display = `none`
+                        objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "25%")
+                    }
                 } else {
                     n_selectedPlanetIndex = i
                     n_selectedTimePeriodIndex = j
                     timePeriodBox.style.borderColor = `red`
 
-                    //objectSectionSelectorSection.style.display = `flex`
-                    emptySection.style.display = `block`
-                    buildingSection.style.display = `none`
-                    troopSection.style.display = `none`
-                    buildQueueSection.style.display = `none`
-                    presentPlayersSection.style.display = `none`
-                    controlSection.style.display = `none`
-                    buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-                    troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-                    queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-                    playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-                    controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
                     if (pa_planets[i].ta_timePeriods[j].n_ownerIndex !== myIndex) {
                         controlsSectionSelectorButton.style.display = `none`
                         objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "25%")
+
+                        if (window.getComputedStyle(controlSection).display === 'block') {
+                            controlSection.style.display = `none`
+                            emptySection.style.display = `block`
+                            controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+                        }
                     } else {
                         controlsSectionSelectorButton.style.display = `inline`
                         objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "20%")
@@ -1053,14 +1038,22 @@ const DrawBoard = (): void => {
         scorchedEarthButton.innerHTML = `Scorched Earth: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth ? "True" : "False"}`
         buildQueueBox.innerHTML = `` // resets the build queue box
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue.length > 0) {
-            let i: number = 1
-            pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue.forEach((bo) => {
-                if (bo.tb_target.constructor === Troop) { //if next up is a troop
-                    buildQueueBox.innerHTML += `${i++}> Troop: ${bo.tb_target.ToString()} Turns Remaining: ${bo.n_turnsRemaining}<br>`
+            pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue
+            
+            buildQueueBox.innerHTML += `In Progress:<br>`
+            if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue[0].tb_target.constructor === Troop) { // if next up is a troop
+                buildQueueBox.innerHTML += `Troop: ${(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue[0].tb_target as Troop).ToString()} Turns Remaining: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue[0].n_turnsRemaining}<br>`
+            } else { // if next up is a building
+                buildQueueBox.innerHTML += `Building: ${(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue[0].tb_target as Building).s_name} Turns Remaining: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue[0].n_turnsRemaining}<br>`
+            }
+            buildQueueBox.innerHTML += `Queue:<br>`
+            for (let i: number = 1; i < pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue.length; i++) {
+                if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue[i].tb_target.constructor === Troop) { // if next up is a troop
+                    buildQueueBox.innerHTML += `${i}> Troop: ${(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue[i].tb_target as Troop).ToString()} Turns Remaining: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue[i].n_turnsRemaining}<br>`
                 } else { // if next up is a building
-                    buildQueueBox.innerHTML += `${i++}> Building: ${(bo.tb_target as Building).s_name} Turns Remaining: ${bo.n_turnsRemaining}<br>`
+                    buildQueueBox.innerHTML += `${i}> Building: ${(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue[i].tb_target as Building).s_name} Turns Remaining: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].boa_buildQueue[i].n_turnsRemaining}<br>`
                 }
-            })
+            }
         } else {
             buildQueueBox.innerHTML = `None`
         }        
@@ -1365,84 +1358,74 @@ const Initialize = (): void => {
 
     // makes selected time period buttons work
     buildingsSectionSelectorButton.addEventListener("click", () => {
-        if (n_selectedPlanetIndex !== -1) { // buttons should only work when a time period is selected
-            buildingsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
-            troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            
-            emptySection.style.display = `none`
-            buildingSection.style.display = `block`
-            troopSection.style.display = `none`
-            buildQueueSection.style.display = `none`
-            presentPlayersSection.style.display = `none`
-            controlSection.style.display = `none`
-        }
+        buildingsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        
+        emptySection.style.display = `none`
+        buildingSection.style.display = `block`
+        troopSection.style.display = `none`
+        buildQueueSection.style.display = `none`
+        presentPlayersSection.style.display = `none`
+        controlSection.style.display = `none`
     })
     troopsSectionSelectorButton.addEventListener("click", () => {
-        if (n_selectedPlanetIndex !== -1) { // buttons should only work when a time period is selected
-            buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            troopsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
-            queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            
-            emptySection.style.display = `none`
-            buildingSection.style.display = `none`
-            troopSection.style.display = `block`
-            buildQueueSection.style.display = `none`
-            presentPlayersSection.style.display = `none`
-            controlSection.style.display = `none`
-        }
+        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        
+        emptySection.style.display = `none`
+        buildingSection.style.display = `none`
+        troopSection.style.display = `block`
+        buildQueueSection.style.display = `none`
+        presentPlayersSection.style.display = `none`
+        controlSection.style.display = `none`
     })
     queueSectionSelectorButton.addEventListener("click", () => {
-        if (n_selectedPlanetIndex !== -1) { // buttons should only work when a time period is selected
-            buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            queueSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
-            playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            
-            emptySection.style.display = `none`
-            buildingSection.style.display = `none`
-            troopSection.style.display = `none`
-            buildQueueSection.style.display = `block`
-            presentPlayersSection.style.display = `none`
-            controlSection.style.display = `none`
-        }
+        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        
+        emptySection.style.display = `none`
+        buildingSection.style.display = `none`
+        troopSection.style.display = `none`
+        buildQueueSection.style.display = `block`
+        presentPlayersSection.style.display = `none`
+        controlSection.style.display = `none`
     })
     playersSectionSelectorButton.addEventListener("click", () => {
-        if (n_selectedPlanetIndex !== -1) { // buttons should only work when a time period is selected
-            buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            playersSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
-            controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            
-            emptySection.style.display = `none`
-            buildingSection.style.display = `none`
-            troopSection.style.display = `none`
-            buildQueueSection.style.display = `none`
-            presentPlayersSection.style.display = `block`
-            controlSection.style.display = `none`
-        }
+        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        
+        emptySection.style.display = `none`
+        buildingSection.style.display = `none`
+        troopSection.style.display = `none`
+        buildQueueSection.style.display = `none`
+        presentPlayersSection.style.display = `block`
+        controlSection.style.display = `none`
     })
     controlsSectionSelectorButton.addEventListener("click", () => {
-        if (n_selectedPlanetIndex !== -1) { // buttons should only work when a time period is selected
-            buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-            controlsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
-            
-            emptySection.style.display = `none`
-            buildingSection.style.display = `none`
-            troopSection.style.display = `none`
-            buildQueueSection.style.display = `none`
-            presentPlayersSection.style.display = `none`
-            controlSection.style.display = `block`
-        }
+        buildingsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        troopsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        queueSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        playersSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+        controlsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
+        
+        emptySection.style.display = `none`
+        buildingSection.style.display = `none`
+        troopSection.style.display = `none`
+        buildQueueSection.style.display = `none`
+        presentPlayersSection.style.display = `none`
+        controlSection.style.display = `block`
     })
 
     // makes player control buttons work
@@ -1592,3 +1575,14 @@ const ShowLoginFailed = (errorMessage: string): void => {
 //#endregion Login
 
 ShowLogin() // begin the login process to start the game
+
+// TODO:
+// -Change it so trade button is greyed out when you are not selecting the province where you are
+//  which means you can't trade
+
+// Future changes to test:
+// -Travel and trade twice per turn
+// -Everyone should be able to submit their turn at the same time and turns are only resolved when
+// everyone has submitted and all the results are shown to all players at the same time
+// -Revisit how combat is resolved, may not be working as intended
+// --A high level troop took what seemed like way too much damage from a very low level troop

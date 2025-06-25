@@ -151,7 +151,7 @@ body {
     }
 
     button:hover {
-        background-color: rgba(87, 216, 246, 0.57);
+        border-color: rgba(235, 136, 55, 0.993);
     }
 }
 

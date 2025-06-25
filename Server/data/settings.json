@@ -6,22 +6,22 @@
         "numPlanets": 5,
         "numTimePeriods": 10,
 
+        "darkAges": false,
+
         "maxModifierFactor": 0.05,
         "baseResourceProduction": 10,
         "resourceRateAdjuster": 10,
         "warehouseBonusPercent": 0.05,
         "resourceGenPropagates": false,
 
-        "trainTroopCost": 50,
         "latenessFactor": 0.5,
-
-        "darkAges": false,
-
+        
+        "trainTroopCost": 50,
         "troopTrainBaseTime": 2,
         "trainingCampDiscount": 1,
         "healthRecoveryPercent": 0.2,
+        
         "fortressProtectionPercent": 0.8,
-
         "buildingCost": 500,
         "buildingTime": 4
     },
