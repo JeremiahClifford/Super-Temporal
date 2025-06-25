@@ -180,5 +180,38 @@ Things to watch:
 
 Players:
 -Me
+-Ben
+-Dan
 
 Notes:
+-Initial reactions to new tab system good [All]
+--Tab should stay open when selecting a new time period [Dan]
+-Because you have a whole turn before conquests propagate, you can take your troops out before and
+ they wont propagate which leaves all of your time periods vulnerable
+-Troops and buildings should be 1 faster, that got reverted at some point [Me] ---
+--As did troop healing percent back to 0.1 from what should be 0.2 [Me] ---
+-Still feels kinda slow: 2 of each action could be interesting [Me+Dan]
+-Unclear that you can't trade in a time period you are not in [Dan]
+--Maybe the trade button should only appear if you can trade in the selected time period [Me]
+-Build queue functionality unclear [Ben]
+--Should be clearer which build will be progressing [Me]
+-Build queue stays when time period is conquered [Me]
+-Turns should be hidden until everyone has submitted and you see the result so a later player can't
+ react to the actions of an earlier player. [Ben]
+-Trade screen values can still have too many decimal places [Me]
+-Dan briefly saw player cards duped in the players list box [Dan]
+
+=======================================================================================
+
+Playtest 4:
+
+Changes:
+-Trainings troops now 2 instead of 3. Building buildings now 4 instead of 5 turns. Troops now heal 0.2 instead of 0.1.
+
+Things to Watch:
+
+Players:
+-Me
+
+Notes:
+-

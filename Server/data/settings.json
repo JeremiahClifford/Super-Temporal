@@ -17,13 +17,13 @@
 
         "darkAges": false,
 
-        "troopTrainBaseTime": 3,
+        "troopTrainBaseTime": 2,
         "trainingCampDiscount": 1,
-        "healthRecoveryPercent": 0.1,
+        "healthRecoveryPercent": 0.2,
         "fortressProtectionPercent": 0.8,
 
         "buildingCost": 500,
-        "buildingTime": 5
+        "buildingTime": 4
     },
     "planet_names": [
         "Planet A",
