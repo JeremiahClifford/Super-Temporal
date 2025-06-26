@@ -149,8 +149,8 @@ class Player {
     n_resources: number
     na_location: number[]
 
-    b_canMove: boolean
-    b_canTrade: boolean
+    n_remainingMoves: number
+    n_remainingTrades: number
 
     constructor (c_index: number, c_name: string) {
         this.s_name = c_name
@@ -158,8 +158,8 @@ class Player {
         this.n_resources = 0
         this.na_location = [-1, -1]
 
-        this.b_canMove = false
-        this.b_canTrade = false
+        this.n_remainingMoves = 0
+        this.n_remainingTrades = 0
     }
 }
 
@@ -540,7 +540,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
 
 const CloseTradeWindow = (p: number, tp: TimePeriod): void => { //cancels a trade in progress and hides the window
     tradingWindow.style.display = "none" //hides the trade window
-    pa_players[p].b_canTrade = true //gives the player their trade action back
+    pa_players[p].n_remainingTrades += 1 //gives the player their trade action back
     //moves all of the selected things back where they came from
     //returns the player's resources
     pa_players[p].n_resources += resourcesGiven
@@ -1127,20 +1127,22 @@ const DrawBoard = (): void => {
             troopListSpot.innerHTML = `None`// if not: writes none
         }
         refreshButton.style.display = `inline` // sets the refresh button to always be available
-        if (!pa_players[myIndex].b_canMove || currentTurnIndex !== myIndex) { // hides the travel button if the player does not have their travel action or if the player is not the player whose turn it is
+        if (!(pa_players[myIndex].n_remainingMoves > 0) || currentTurnIndex !== myIndex) { // hides the travel button if the player does not have their travel action or if the player is not the player whose turn it is
             travelButton.style.display = `none`
         } else {
             travelButton.style.display = `inline`
+            travelButton.innerHTML = `Travel - [${pa_players[myIndex].n_remainingMoves}]`
             if ((pa_players[currentTurnIndex].na_location[0] !== n_selectedPlanetIndex || pa_players[currentTurnIndex].na_location[1] !== n_selectedTimePeriodIndex) && n_selectedPlanetIndex !== -1) {
                 travelButton.style.backgroundColor = "white"
             } else {
                 travelButton.style.backgroundColor = buttonBackgroundColor
             }
         }
-        if (!pa_players[myIndex].b_canTrade || currentTurnIndex !== myIndex) { // hides the trade button if the player does not have their trade action or if the player is not the player whose turn it is
+        if (!(pa_players[myIndex].n_remainingTrades > 0) || currentTurnIndex !== myIndex) { // hides the trade button if the player does not have their trade action or if the player is not the player whose turn it is
             tradeButton.style.display = `none`
         } else {
             tradeButton.style.display = `inline`
+            tradeButton.innerHTML = `Trade - [${pa_players[myIndex].n_remainingTrades}]`
             if (pa_players[currentTurnIndex].na_location[0] === n_selectedPlanetIndex && pa_players[currentTurnIndex].na_location[1] === n_selectedTimePeriodIndex && n_selectedPlanetIndex !== -1) {
                 tradeButton.style.backgroundColor = "white"
             } else {
@@ -1192,10 +1194,10 @@ const FetchState = ():void => {
                 // create the player object and fill in its data
                 let newPlayer = new Player(i, playersIn[i].name)
                 newPlayer.n_resources = playersIn[i].resources
-                newPlayer.b_canMove = playersIn[i].canMove === "1" ? true : false
-                newPlayer.b_canTrade = playersIn[i].canTrade === "1" ? true : false
                 newPlayer.na_location[0] = playersIn[i].location[0]
                 newPlayer.na_location[1] = playersIn[i].location[1]
+                newPlayer.n_remainingMoves = playersIn[i].remainingMoves
+                newPlayer.n_remainingTrades = playersIn[i].remainingTrades
                 
                 // Import Troops
                 newPlayer.a_troops.ta_troops = [] // clear the default army
@@ -1442,8 +1444,8 @@ const Initialize = (): void => {
     tradeSubmitButton.addEventListener("click", () => Trade(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex], n_selectedPlanetIndex, n_selectedTimePeriodIndex)) // makes the trade submit button work
     tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) // makes  the cancel button work
     travelButton.addEventListener("click", () => { // travel button functionality
-        if (pa_players[currentTurnIndex].b_canMove && n_selectedPlanetIndex > -1 && (n_selectedPlanetIndex !== pa_players[currentTurnIndex].na_location[0] || n_selectedTimePeriodIndex !== pa_players[currentTurnIndex].na_location[1])) { // makes sure the player can move this turn, has a time period selected, and are not already there
-            pa_players[currentTurnIndex].b_canMove = false // takes the player's move action on the client
+        if (pa_players[currentTurnIndex].n_remainingMoves > 0 && n_selectedPlanetIndex > -1 && (n_selectedPlanetIndex !== pa_players[currentTurnIndex].na_location[0] || n_selectedTimePeriodIndex !== pa_players[currentTurnIndex].na_location[1])) { // makes sure the player can move this turn, has a time period selected, and are not already there
+            pa_players[currentTurnIndex].n_remainingMoves -= 1 // takes one of the player's moves
             pa_players[currentTurnIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] // moves the player on the client
             turnActions.Details.push({
                 "Type": "Move",
@@ -1453,8 +1455,8 @@ const Initialize = (): void => {
         }
     })
     tradeButton.addEventListener("click", ()  => { // trade button functionality
-        if (pa_players[currentTurnIndex].b_canTrade && pa_players[currentTurnIndex].na_location[0] === n_selectedPlanetIndex && pa_players[currentTurnIndex].na_location[1] === n_selectedTimePeriodIndex && n_selectedPlanetIndex !== -1) { // makes sure the player can trade this turn and is in the selected time period
-            pa_players[currentTurnIndex].b_canTrade = false // takes the player's trade action
+        if (pa_players[currentTurnIndex].n_remainingTrades > 0 && pa_players[currentTurnIndex].na_location[0] === n_selectedPlanetIndex && pa_players[currentTurnIndex].na_location[1] === n_selectedTimePeriodIndex && n_selectedPlanetIndex !== -1) { // makes sure the player can trade this turn and is in the selected time period
+            pa_players[currentTurnIndex].n_remainingTrades -= 1 // takes one of the player's trades
             FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) // starts the trade
         }
     })
@@ -1588,7 +1590,6 @@ ShowLogin() // begin the login process to start the game
 // TODO:
 //
 // Future changes to test:
-// -Travel and trade twice per turn
 // -Everyone should be able to submit their turn at the same time and turns are only resolved when
 // everyone has submitted and all the results are shown to all players at the same time
 // -Revisit how combat is resolved, may not be working as intended

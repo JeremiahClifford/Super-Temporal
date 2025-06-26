@@ -6,6 +6,9 @@
         "numPlanets": 5,
         "numTimePeriods": 10,
 
+        "numMoves": 2,
+        "numTrades": 2,
+
         "darkAges": false,
 
         "maxModifierFactor": 0.05,

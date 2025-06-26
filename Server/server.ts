@@ -14,22 +14,25 @@ let responseFile = require('./data/responseFile.json')
 const numPlanets: number = settings.Game.numPlanets // number of planets that the game should have
 const numTimePeriods: number = settings.Game.numTimePeriods // stores how many time periods each planet should have
 
+const numMoves: number = settings.Game.numMoves // how many times a player can move on their turn
+const numTrades: number = settings.Game.numTrades // how many times a player can trade on their turn
+
+const darkAges: boolean = settings.Game.darkAges // should dark ages be in play and affect power values
+
 const maxModifierFactor: number = settings.Game.maxModifierFactor // how high should the variance between time periods be allowed to get
 const baseResourceProduction: number = settings.Game.baseResourceProduction // base number of resource generation that each time period generates
 const resourceRateAdjuster: number = settings.Game.resourceRateAdjuster // number that the inverted modifier is multiplied by to make the differences between the resource production of different time periods substantial
 const warehouseBonusPercent: number = settings.Game.warehouseBonusPercent // percent added to one of increase of resources if time period has a warehouse
 const resourceGenPropagates: boolean = settings.Game.resourceGenPropagates // should resources added to a time period by normal resource gen propagate. Added because in testing, resource numbers got out of control
 
-const trainTroopCost: number = settings.Game.trainTroopCost // how many resources should it cost to train a troop
 const latenessFactor: number = settings.Game.latenessFactor // by what factor should later time period resources be reduced
 
-const darkAges: boolean = settings.Game.darkAges // should dark ages be in play and affect power values
-
+const trainTroopCost: number = settings.Game.trainTroopCost // how many resources should it cost to train a troop
 const troopTrainBaseTime: number = settings.Game.troopTrainBaseTime // how long it takes to train a troop by default
 const trainingCampDiscount: number = settings.Game.trainingCampDiscount // how many turns the training camp reduces troop training by
 const healthRecoveryPercent: number = settings.Game.healthRecoveryPercent // how much health do troops recover per turn
-const fortressProtectionPercent: number = settings.Game.fortressProtectionPercent // how much damage do troops take if they are in a fortress
 
+const fortressProtectionPercent: number = settings.Game.fortressProtectionPercent // how much damage do troops take if they are in a fortress
 const buildingCost: number = settings.Game.buildingCost // how much it costs to build a building
 const buildingTime: number = settings.Game.buildingTime // how many turns it takes to build a building
 //#endregion Tunable Values
@@ -137,8 +140,8 @@ class Player {
     n_resources: number
     na_location: number[]
 
-    b_canMove: boolean
-    b_canTrade: boolean
+    n_remainingMoves: number
+    n_remainingTrades: number
 
     constructor (c_index: number, c_name: string) {
         this.s_name = c_name
@@ -146,8 +149,8 @@ class Player {
         this.n_resources = 0
         this.na_location = [-1, -1]
 
-        this.b_canMove = false
-        this.b_canTrade = false
+        this.n_remainingMoves = 0
+        this.n_remainingTrades = 0
     }
 
     HealTroops = (): void => {
@@ -155,15 +158,15 @@ class Player {
     }
 
     StartTurn = (): void => {
-        this.b_canMove = true
-        this.b_canTrade = true
+        this.n_remainingMoves = numMoves
+        this.n_remainingTrades = numTrades
 
         console.log(`Turn Started`) //LOG:
     }
 
     EndTurn = (): void => {
-        this.b_canMove = false
-        this.b_canTrade = false
+        this.n_remainingMoves = 0
+        this.n_remainingTrades = 0
 
         console.log(`Turn Ended`) //LOG:
     }
@@ -862,8 +865,8 @@ app.get("/gamestate", (request: any, response: any) => {
         gamestateOut += `],` // troops close
 
         gamestateOut += `"resources": ${pa_players[i].n_resources},`
-        gamestateOut += `"canMove": "${pa_players[i].b_canMove ? 1 : 0}",`
-        gamestateOut += `"canTrade": "${pa_players[i].b_canTrade ? 1 : 0}",`
+        gamestateOut += `"remainingMoves": "${pa_players[i].n_remainingMoves}",`
+        gamestateOut += `"remainingTrades": "${pa_players[i].n_remainingTrades}",`
 
         gamestateOut += `"location": [` // location open
         gamestateOut += `${pa_players[i].na_location[0]},`
@@ -1003,11 +1006,12 @@ app.post("/submitturn", (request: any, response: any) => {
         for (let i: number = 1; i < turnSubmitted.Details.length; i++) { // loop through the actions. length will always be 1 to 3 depending on if the player does both possible actions on there turn or just one or none
             // check if action is move or trade
             if (turnSubmitted.Details[i].Type === "Move") { // if its a move
-                pa_players[currentTurnIndex].b_canMove = false // takes the player's move action on the server
+                pa_players[currentTurnIndex].n_remainingMoves -= 1 // takes one of the player's move actions on the server
                 pa_players[currentTurnIndex].na_location = [turnSubmitted.Details[i].NewLocation[0], turnSubmitted.Details[i].NewLocation[1]] // moves the player on the server
                 console.log(`Player Moved`) // LOG:
             }
             if (turnSubmitted.Details[i].Type === "Trade") { // if its a trade
+                pa_players[currentTurnIndex].n_remainingTrades -= 1 // takes one of the player's trade actions
                 // read in the list of troops taken
                 let troopsTaken: Troop[] = []
                 for (let j: number = 0; j < turnSubmitted.Details[i].TroopsTaken.length; j++) {
