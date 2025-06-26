@@ -208,6 +208,9 @@ Playtest 4:
 
 Changes:
 -You can now login without matching case
+-All players can now make their turn at the same time and submit whenever and all turns will be
+ calculated at the same time at the end so later players don't get the advantage of seeing what
+ earlier players did and earlier players don't get the advantage of getting places first
 -Selected Tab in Selected Time period Info will stay open when selecting different time periods but
  reset when deselecting or if you have controls selected and select a time period you don't control 
 -Control buttons now change color to more clearly display whether or not you can use them based on

@@ -152,6 +152,8 @@ class Player {
     n_remainingMoves: number
     n_remainingTrades: number
 
+    b_hasSubmitted: boolean
+
     constructor (c_index: number, c_name: string) {
         this.s_name = c_name
         this.a_troops = new Army(c_index, [])
@@ -160,6 +162,8 @@ class Player {
 
         this.n_remainingMoves = 0
         this.n_remainingTrades = 0
+
+        this.b_hasSubmitted = false
     }
 }
 
@@ -569,27 +573,27 @@ const CloseTradeWindow = (p: number, tp: TimePeriod): void => { //cancels a trad
     DrawBoard()
 }
 
-const SwapResources = (player: boolean, present: boolean): void => { //moves resources from one box to another
-    if (player) { //if the swap should be in the player section
-        if (present) { //if the swap should be from the present section to the selected section
+const SwapResources = (player: boolean, present: boolean, playerIndex: number): void => { //moves resources from one box to another
+    if (player) { // if the swap should be in the player section
+        if (present) { // if the swap should be from the present section to the selected section
             let numInput: HTMLInputElement = document.getElementById('player-present-resource-select-input') as HTMLInputElement
-            if (numInput.value) { //makes sure that a number of resources is set by the player
-                if (+numInput.value <= pa_players[currentTurnIndex].n_resources ) { //makes sure the player can take more resources then there are
+            if (numInput.value) { // makes sure that a number of resources is set by the player
+                if (+numInput.value <= pa_players[playerIndex].n_resources ) { //makes sure the player can take more resources then there are
                     resourcesGiven += +numInput.value
-                    pa_players[currentTurnIndex].n_resources -= +numInput.value 
+                    pa_players[playerIndex].n_resources -= +numInput.value 
                 } else {
-                    resourcesGiven += pa_players[currentTurnIndex].n_resources
-                    pa_players[currentTurnIndex].n_resources = 0
+                    resourcesGiven += pa_players[playerIndex].n_resources
+                    pa_players[playerIndex].n_resources = 0
                 }
             }
-        } else { //if the swap should be from the selected section to the present section
+        } else { // if the swap should be from the selected section to the present section
             let numInput: HTMLInputElement = document.getElementById('player-for-trade-resource-select-input') as HTMLInputElement
-            if (numInput.value) { //makes sure that a number of resources is set by the player
-                if (+numInput.value <= resourcesGiven) { //makes sure the player can take more resources then there are
+            if (numInput.value) { // makes sure that a number of resources is set by the player
+                if (+numInput.value <= resourcesGiven) { // makes sure the player can take more resources then there are
                     resourcesGiven -= +numInput.value
-                    pa_players[currentTurnIndex].n_resources += +numInput.value
+                    pa_players[playerIndex].n_resources += +numInput.value
                 } else {
-                    pa_players[currentTurnIndex].n_resources += resourcesGiven
+                    pa_players[playerIndex].n_resources += resourcesGiven
                     resourcesGiven = 0
                 }
             }
@@ -619,14 +623,14 @@ const SwapResources = (player: boolean, present: boolean): void => { //moves res
             }
         }
     }
-    FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
+    FillInTradeWindow(playerIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
 }
 
 const SwapTroop = (start: Army, startIndex: number, target: Army): void => { //moves troops from one box to another
     target.ta_troops.push(start.ta_troops[startIndex]) //adds the troops to the target
     target.ta_troops = SortTroops(target.ta_troops) //sorts the target
     start.ta_troops =  start.ta_troops.filter((t) => t !== start.ta_troops[startIndex]) //removes the troop from where it started
-    FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
+    FillInTradeWindow(start.n_ownerIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
 }
 
 const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
@@ -720,7 +724,7 @@ const FillInBuildWindow = (): void => {
     let hasWarehouse: boolean = false
     let hasFortress: boolean = false
 
-    pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].ba_buildings.forEach((b) => {
+    pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].ba_buildings.forEach((b) => {
         if ((b.bt_type === 0) ? true : false) { // if the time periods already has a training camp
             hasTrainingCamp = true // set it to true
         }
@@ -738,9 +742,9 @@ const FillInBuildWindow = (): void => {
         let trainingCampButton: HTMLButtonElement = document.createElement('button')
         trainingCampButton.innerHTML = `Training Camp - [${buildingCost}]`
         trainingCampButton.addEventListener("click", () => {
-            if (pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(0) //starts the building
+            if (pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
+                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources -= buildingCost //takes the cost
+                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].StartBuilding(0) //starts the building
                 trainingCampButton.remove() //removes the button
                 turnActions.Details.push({
                     "Type": "Build",
@@ -756,9 +760,9 @@ const FillInBuildWindow = (): void => {
         let warehouseButton: HTMLButtonElement = document.createElement('button')
         warehouseButton.innerHTML = `Warehouse - [${buildingCost}]`
         warehouseButton.addEventListener("click", () => {
-            if (pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(1) //starts the building
+            if (pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
+                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources -= buildingCost //takes the cost
+                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].StartBuilding(1) //starts the building
                 warehouseButton.remove() //removes the button
                 turnActions.Details.push({
                     "Type": "Build",
@@ -774,9 +778,9 @@ const FillInBuildWindow = (): void => {
         let fortressButton: HTMLButtonElement = document.createElement('button')
         fortressButton.innerHTML = `Fortress - [${buildingCost}]`
         fortressButton.addEventListener("click", () => {
-            if (pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].n_resources -= buildingCost //takes the cost
-                pa_planets[pa_players[currentTurnIndex].na_location[0]].ta_timePeriods[pa_players[currentTurnIndex].na_location[1]].StartBuilding(2) //starts the building
+            if (pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
+                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources -= buildingCost //takes the cost
+                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].StartBuilding(2) //starts the building
                 fortressButton.remove() //removes the button
                 turnActions.Details.push({
                     "Type": "Build",
@@ -816,7 +820,6 @@ let pa_players: Player[] = [] // stores the list of players in the game
 
 let myIndex: number = 0 // stores which player the client is
 
-let currentTurnIndex: number // stores which player is currently up
 let turnActions: {"Details": any} = {
     "Details": [
     ]
@@ -1026,7 +1029,7 @@ const DrawBoard = (): void => {
             presentPlayersBox.innerHTML = `None`
         }
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === myIndex 
-            && currentTurnIndex === myIndex) { // hides the controls if the player does not own the time period or it is not their turn
+            && !pa_players[myIndex].b_hasSubmitted) { // hides the controls if the player does not own the time period or it is not their turn
             trainTroopButton.innerHTML = `Train Troop - [${trainTroopCost}]`
             controlsSectionSelectorButton.style.display = `block`
             objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "20%")
@@ -1076,7 +1079,7 @@ const DrawBoard = (): void => {
     pa_players.forEach((p) => {
         // creates the string
         let playerHTML: string = `<div class="player-card" id="${p.s_name}-card">`
-        if (p === pa_players[currentTurnIndex]) { // if p is the player whose turn it is
+        if (!p.b_hasSubmitted) { // if p is the player whose turn it is
             playerHTML += `<h3>--[${p.s_name}]--</h3>` // adds the player's name in bold
         } else {
             playerHTML += `<h3>${p.s_name}</h3>` // adds the player's name without the star
@@ -1097,7 +1100,7 @@ const DrawBoard = (): void => {
         if (p.a_troops.n_ownerIndex < playerColors.length && p.a_troops.n_ownerIndex >= 0) { // makes sure there is a color for this number player
             specificPlayerCard.style.backgroundColor = playerColors[p.a_troops.n_ownerIndex]
         }
-        if (p === pa_players[currentTurnIndex]) { // if this player is the player whose turn it is
+        if (!p.b_hasSubmitted) { // if this player is the player whose turn it is
             specificPlayerCard.style.borderColor = "red" // make the border of their box red
         }
     })
@@ -1127,29 +1130,29 @@ const DrawBoard = (): void => {
             troopListSpot.innerHTML = `None`// if not: writes none
         }
         refreshButton.style.display = `inline` // sets the refresh button to always be available
-        if (!(pa_players[myIndex].n_remainingMoves > 0) || currentTurnIndex !== myIndex) { // hides the travel button if the player does not have their travel action or if the player is not the player whose turn it is
+        if (!(pa_players[myIndex].n_remainingMoves > 0) || pa_players[myIndex].b_hasSubmitted) { // hides the travel button if the player does not have their travel action or if the player is not the player whose turn it is
             travelButton.style.display = `none`
         } else {
             travelButton.style.display = `inline`
             travelButton.innerHTML = `Travel - [${pa_players[myIndex].n_remainingMoves}]`
-            if ((pa_players[currentTurnIndex].na_location[0] !== n_selectedPlanetIndex || pa_players[currentTurnIndex].na_location[1] !== n_selectedTimePeriodIndex) && n_selectedPlanetIndex !== -1) {
+            if ((pa_players[myIndex].na_location[0] !== n_selectedPlanetIndex || pa_players[myIndex].na_location[1] !== n_selectedTimePeriodIndex) && n_selectedPlanetIndex !== -1) {
                 travelButton.style.backgroundColor = "white"
             } else {
                 travelButton.style.backgroundColor = buttonBackgroundColor
             }
         }
-        if (!(pa_players[myIndex].n_remainingTrades > 0) || currentTurnIndex !== myIndex) { // hides the trade button if the player does not have their trade action or if the player is not the player whose turn it is
+        if (!(pa_players[myIndex].n_remainingTrades > 0) || pa_players[myIndex].b_hasSubmitted) { // hides the trade button if the player does not have their trade action or if the player is not the player whose turn it is
             tradeButton.style.display = `none`
         } else {
             tradeButton.style.display = `inline`
             tradeButton.innerHTML = `Trade - [${pa_players[myIndex].n_remainingTrades}]`
-            if (pa_players[currentTurnIndex].na_location[0] === n_selectedPlanetIndex && pa_players[currentTurnIndex].na_location[1] === n_selectedTimePeriodIndex && n_selectedPlanetIndex !== -1) {
+            if (pa_players[myIndex].na_location[0] === n_selectedPlanetIndex && pa_players[myIndex].na_location[1] === n_selectedTimePeriodIndex && n_selectedPlanetIndex !== -1) {
                 tradeButton.style.backgroundColor = "white"
             } else {
                 tradeButton.style.backgroundColor = buttonBackgroundColor
             }
         }
-        if (currentTurnIndex !== myIndex) { // hides the end turn button if the player is not the player whose turn it is
+        if (pa_players[myIndex].b_hasSubmitted) { // hides the end turn button if the player is not the player whose turn it is
             endTurnButton.style.display= `none`
         } else {
             endTurnButton.style.display= `inline`
@@ -1193,6 +1196,7 @@ const FetchState = ():void => {
             for (let i: number = 0; i < gamestateJSON.numPlayers; i++) {
                 // create the player object and fill in its data
                 let newPlayer = new Player(i, playersIn[i].name)
+                newPlayer.b_hasSubmitted = playersIn[i].hasSubmitted
                 newPlayer.n_resources = playersIn[i].resources
                 newPlayer.na_location[0] = playersIn[i].location[0]
                 newPlayer.na_location[1] = playersIn[i].location[1]
@@ -1213,7 +1217,6 @@ const FetchState = ():void => {
             }
 
             // Load in tunable values from the gamestate
-            currentTurnIndex = gamestateJSON.currentTurnIndex
             numPlanets = gamestateJSON.numPlanets
             numTimePeriods = gamestateJSON.numTimePeriods
             warehouseBonusPercent = gamestateJSON.warehouseBonusPercent
@@ -1301,7 +1304,7 @@ const FetchState = ():void => {
             ]
         }
         turnActions.Details.push({
-            "CurrentTurnIndex": currentTurnIndex
+            "CurrentTurnIndex": myIndex
         })
     })
     .then(() => DrawBoard())
@@ -1441,12 +1444,12 @@ const Initialize = (): void => {
 
     // makes player control buttons work
     refreshButton.addEventListener("click", () => Refresh()) // refresh button functionality
-    tradeSubmitButton.addEventListener("click", () => Trade(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex], n_selectedPlanetIndex, n_selectedTimePeriodIndex)) // makes the trade submit button work
-    tradeCancelButton.addEventListener("click", () => CloseTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) // makes  the cancel button work
+    tradeSubmitButton.addEventListener("click", () => Trade(myIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex], n_selectedPlanetIndex, n_selectedTimePeriodIndex)) // makes the trade submit button work
+    tradeCancelButton.addEventListener("click", () => CloseTradeWindow(myIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex])) // makes  the cancel button work
     travelButton.addEventListener("click", () => { // travel button functionality
-        if (pa_players[currentTurnIndex].n_remainingMoves > 0 && n_selectedPlanetIndex > -1 && (n_selectedPlanetIndex !== pa_players[currentTurnIndex].na_location[0] || n_selectedTimePeriodIndex !== pa_players[currentTurnIndex].na_location[1])) { // makes sure the player can move this turn, has a time period selected, and are not already there
-            pa_players[currentTurnIndex].n_remainingMoves -= 1 // takes one of the player's moves
-            pa_players[currentTurnIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] // moves the player on the client
+        if (pa_players[myIndex].n_remainingMoves > 0 && n_selectedPlanetIndex > -1 && (n_selectedPlanetIndex !== pa_players[myIndex].na_location[0] || n_selectedTimePeriodIndex !== pa_players[myIndex].na_location[1])) { // makes sure the player can move this turn, has a time period selected, and are not already there
+            pa_players[myIndex].n_remainingMoves -= 1 // takes one of the player's moves
+            pa_players[myIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] // moves the player on the client
             turnActions.Details.push({
                 "Type": "Move",
                 "NewLocation": [n_selectedPlanetIndex, n_selectedTimePeriodIndex]
@@ -1455,9 +1458,9 @@ const Initialize = (): void => {
         }
     })
     tradeButton.addEventListener("click", ()  => { // trade button functionality
-        if (pa_players[currentTurnIndex].n_remainingTrades > 0 && pa_players[currentTurnIndex].na_location[0] === n_selectedPlanetIndex && pa_players[currentTurnIndex].na_location[1] === n_selectedTimePeriodIndex && n_selectedPlanetIndex !== -1) { // makes sure the player can trade this turn and is in the selected time period
-            pa_players[currentTurnIndex].n_remainingTrades -= 1 // takes one of the player's trades
-            FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) // starts the trade
+        if (pa_players[myIndex].n_remainingTrades > 0 && pa_players[myIndex].na_location[0] === n_selectedPlanetIndex && pa_players[myIndex].na_location[1] === n_selectedTimePeriodIndex && n_selectedPlanetIndex !== -1) { // makes sure the player can trade this turn and is in the selected time period
+            pa_players[myIndex].n_remainingTrades -= 1 // takes one of the player's trades
+            FillInTradeWindow(myIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) // starts the trade
         }
     })
     trainTroopButton.innerHTML += ` - ${trainTroopCost}`
@@ -1570,7 +1573,7 @@ const CloseLogin = (): void => {
     currentPlayerInfoBox.style.display = "flex"
 
     setInterval(() => { // once the player successfully logs in, set a automatic refresh interval
-        if (currentTurnIndex !== myIndex) { // if it its not the player's turn
+        if (pa_players[myIndex].b_hasSubmitted) { // if it its not the player's turn
             Refresh() // refresh every so often to see if it is
         }
     }, 5000) // interval of 5000 milliseconds (5 seconds)
@@ -1590,7 +1593,5 @@ ShowLogin() // begin the login process to start the game
 // TODO:
 //
 // Future changes to test:
-// -Everyone should be able to submit their turn at the same time and turns are only resolved when
-// everyone has submitted and all the results are shown to all players at the same time
 // -Revisit how combat is resolved, may not be working as intended
 // --A high level troop took what seemed like way too much damage from a very low level troop
