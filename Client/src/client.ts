@@ -933,11 +933,10 @@ const DrawBoard = (): void => {
                     if (window.getComputedStyle(controlSection).display === 'block') {
                         controlSection.style.display = `none`
                         emptySection.style.display = `block`
-                        controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
-
-                        controlsSectionSelectorButton.style.display = `none`
-                        objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "25%")
+                        controlsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
                     }
+                    controlsSectionSelectorButton.style.display = `none`
+                    objectSectionSelectorSection.querySelectorAll("Button").forEach((b) => (b as HTMLButtonElement).style.width = "25%")
                 } else {
                     n_selectedPlanetIndex = i
                     n_selectedTimePeriodIndex = j
@@ -950,7 +949,7 @@ const DrawBoard = (): void => {
                         if (window.getComputedStyle(controlSection).display === 'block') {
                             controlSection.style.display = `none`
                             emptySection.style.display = `block`
-                            controlsSectionSelectorButton.style.backgroundColor = boardBackgroundColor
+                            controlsSectionSelectorButton.style.backgroundColor = buttonBackgroundColor
                         }
                     } else {
                         controlsSectionSelectorButton.style.display = `inline`
@@ -1132,11 +1131,21 @@ const DrawBoard = (): void => {
             travelButton.style.display = `none`
         } else {
             travelButton.style.display = `inline`
+            if ((pa_players[currentTurnIndex].na_location[0] !== n_selectedPlanetIndex || pa_players[currentTurnIndex].na_location[1] !== n_selectedTimePeriodIndex) && n_selectedPlanetIndex !== -1) {
+                travelButton.style.backgroundColor = "white"
+            } else {
+                travelButton.style.backgroundColor = buttonBackgroundColor
+            }
         }
         if (!pa_players[myIndex].b_canTrade || currentTurnIndex !== myIndex) { // hides the trade button if the player does not have their trade action or if the player is not the player whose turn it is
             tradeButton.style.display = `none`
         } else {
             tradeButton.style.display = `inline`
+            if (pa_players[currentTurnIndex].na_location[0] === n_selectedPlanetIndex && pa_players[currentTurnIndex].na_location[1] === n_selectedTimePeriodIndex && n_selectedPlanetIndex !== -1) {
+                tradeButton.style.backgroundColor = "white"
+            } else {
+                tradeButton.style.backgroundColor = buttonBackgroundColor
+            }
         }
         if (currentTurnIndex !== myIndex) { // hides the end turn button if the player is not the player whose turn it is
             endTurnButton.style.display= `none`
@@ -1444,7 +1453,7 @@ const Initialize = (): void => {
         }
     })
     tradeButton.addEventListener("click", ()  => { // trade button functionality
-        if (pa_players[currentTurnIndex].b_canTrade && pa_players[currentTurnIndex].na_location[0] === n_selectedPlanetIndex && pa_players[currentTurnIndex].na_location[1] === n_selectedTimePeriodIndex) { // makes sure the player can trade this turn and is in the selected time period
+        if (pa_players[currentTurnIndex].b_canTrade && pa_players[currentTurnIndex].na_location[0] === n_selectedPlanetIndex && pa_players[currentTurnIndex].na_location[1] === n_selectedTimePeriodIndex && n_selectedPlanetIndex !== -1) { // makes sure the player can trade this turn and is in the selected time period
             pa_players[currentTurnIndex].b_canTrade = false // takes the player's trade action
             FillInTradeWindow(currentTurnIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) // starts the trade
         }
@@ -1458,7 +1467,7 @@ const Initialize = (): void => {
                     "Type": "Train",
                     "Planet": n_selectedPlanetIndex,
                     "TimePeriod": n_selectedTimePeriodIndex
-                })// Add the training to the turn json
+                }) // Add the training to the turn json
             DrawBoard() // redraws the board
         }
     }) // makes the button to train troops work
@@ -1577,9 +1586,7 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
-// -Change it so trade button is greyed out when you are not selecting the province where you are
-//  which means you can't trade
-
+//
 // Future changes to test:
 // -Travel and trade twice per turn
 // -Everyone should be able to submit their turn at the same time and turns are only resolved when

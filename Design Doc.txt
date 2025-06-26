@@ -192,8 +192,8 @@ Notes:
 -Troops and buildings should be 1 faster, that got reverted at some point [Me] ---
 --As did troop healing percent back to 0.1 from what should be 0.2 [Me] ---
 -Still feels kinda slow: 2 of each action could be interesting [Me+Dan]
--Unclear that you can't trade in a time period you are not in [Dan]
---Maybe the trade button should only appear if you can trade in the selected time period [Me]
+-Unclear that you can't trade in a time period you are not in [Dan] ---
+--Maybe the trade button should only appear if you can trade in the selected time period [Me] ---
 -Build queue functionality unclear [Ben] ---
 --Should be clearer which build will be progressing [Me] ---
 -Build queue stays when time period is conquered [Me]
@@ -210,6 +210,8 @@ Changes:
 -You can now login without matching case
 -Selected Tab in Selected Time period Info will stay open when selecting different time periods but
  reset when deselecting or if you have controls selected and select a time period you don't control 
+-Control buttons now change color to more clearly display whether or not you can use them based on
+ where you are and where you have selected
 -Trainings troops now 2 instead of 3. Building buildings now 4 instead of 5 turns. Troops now heal 0.2 instead of 0.1.
 -Changed the format of the build queue to better convey how it works
 
