@@ -924,9 +924,9 @@ const DrawBoard = (): void => {
             timePeriodBox.classList.add("time-period-box")
             timePeriodBox.id = `age-${j+1}-box`
             timePeriodBox.style.height = `${95 / numTimePeriods}%`
-            if (pa_planets[i].ta_timePeriods[j].n_ownerIndex < playerColors.length && pa_planets[i].ta_timePeriods[j].n_ownerIndex >= 0) { // makes sure there is a color for this number player
+            /*if (pa_planets[i].ta_timePeriods[j].n_ownerIndex < playerColors.length && pa_planets[i].ta_timePeriods[j].n_ownerIndex >= 0) { // makes sure there is a color for this number player
                 timePeriodBox.style.backgroundColor = playerColors[pa_planets[i].ta_timePeriods[j].n_ownerIndex]
-            }
+            }*/
             timePeriodBox.addEventListener('click', () => { // adds the event to each time period box to select it
                 if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) { // deselects the box if it was already selected
                     n_selectedPlanetIndex = -1
@@ -969,16 +969,25 @@ const DrawBoard = (): void => {
             if (n_selectedPlanetIndex === i && n_selectedTimePeriodIndex === j) { // check if this one is selected
                 timePeriodBox.style.borderColor = `red` // if so: set the border to red
             }
+
             // add the info that should appear in the box
+            timePeriodBox.style.display = `flex`
+            timePeriodBox.style.flexFlow = `row nowrap`
             if (pa_planets[i].ta_timePeriods[j].n_ownerIndex > -1) { // if it is owned by a player
-                timePeriodBox.innerHTML = `<p>${pa_players[pa_planets[i].ta_timePeriods[j].n_ownerIndex].s_name}</p>` // TEMP: fill in their name
-                // TODO: put their icon
+                timePeriodBox.innerHTML = 
+                `<div class="time-period-owner-flap" style="background-color: ${playerColors[pa_planets[i].ta_timePeriods[j].n_ownerIndex]}"><p>${pa_players[pa_planets[i].ta_timePeriods[j].n_ownerIndex].s_name}</p></div>` // fill in their name
             } else { // if time period is controlled by natives
-                timePeriodBox.innerHTML = `<p>Uncolonized</p>` // TEMP: fill in "Uncolonized"
-                // TODO: put uncolonized icon
+                timePeriodBox.innerHTML = 
+                `<div class="time-period-owner-flap" style="background-color: ${playerColors[pa_planets[i].ta_timePeriods[j].n_ownerIndex]}"><p>Uncolonized</p></div>` // fill in "Uncolonized"
+                //timePeriodBox.innerHTML = `<p>Uncolonized</p>` // fill in "Uncolonized"
             }
             if (pa_planets[i].ta_timePeriods[j].aa_armies.length > 1) {
-                timePeriodBox.innerHTML += `<br><p>War</P>`
+                timePeriodBox.innerHTML += 
+                `<div class="time-period-war-flap" style="background-color:red"><p>War</p></div>`
+                //timePeriodBox.innerHTML += `<br><p>War</P>`
+            } else {
+                timePeriodBox.innerHTML += 
+                `<div class="time-period-war-flap" style="background-color: ${boardBackgroundColor}"><p>Pax</p></div>`
             }
 
             planetColumn.appendChild(timePeriodBox) //adds the box to the column

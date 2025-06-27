@@ -225,6 +225,11 @@ Things to Watch:
 -Because you have a whole turn before conquests propagate, you can take your troops out before and
  they wont propagate which leaves all of your time periods vulnerable
 -Does the game feel faster and more fun for it
+-Does it feel like you can produce enough units
+-Do the time periods feel TOO similar and unimportant.
+--Should the variation in resource production be larger between time periods
+--Should we move to a multiple resource type system where certain time periods are better for
+  certain resources
 
 Players:
 -Me

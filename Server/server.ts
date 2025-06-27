@@ -620,8 +620,10 @@ class TimePeriod {
                     }
                 }
             })
+            this.pa_propagationOrders = [] // clears out the propagation order list when they have all been done
+        } else {
+            this.pa_propagationOrders = this.pa_propagationOrders.filter((po) => po.constructor === ConquestPropagationOrder)
         }
-        this.pa_propagationOrders = [] // clears out the propagation order list when they have all been done
     }
 }
 
@@ -818,6 +820,7 @@ const AdvanceTurn = (): void => { // ends the current turn and starts the next o
         p.DoPropagation(pIndex) // runs propagation for all planets
         pIndex++ // increments the pIndex so the next planet has the correct index
     })
+    submittedTurns = []
     pa_players.forEach((p) => {
         p.StartTurn()
     })
