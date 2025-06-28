@@ -16,6 +16,9 @@ let gameBackgroundColor: string = "#03053c" // background color of the whole gam
 let boardBackgroundColor: string = "#e8e8e8" // color of the background of the various boards
 let boardOutlineColor: string = "#2c2c2c" // color of the outline of the various boards
 let buttonBackgroundColor: string = "rgba(200, 200, 200, 0.7)" // background color of selected or hovered buttons
+let warColor: string = " #d95f5f" // color of the war flag when its war
+let paxColor: string = " #81d95f" // color of the war flag when its peace
+
 
 let trainTroopCost: number = 0 // how many resources should it cost to train a troop
 let latenessFactor: number = 0.5 // by what factor should later time period resources be reduced
@@ -31,17 +34,17 @@ let buildingCost: number = 500 // how much it costs to build a building
 let buildingTime: number = 5 // how many turns it takes to build a building
 
 const playerColors: string[] = [ // colors to represent the players [14]
-    " #92ff80 ",
     " #80e0ff ",
     " #cfff80 ",
-    " #ff7d7d ",
     " #80ffa7 ",
     " #f480ff ",
     " #9780ff ",
     " #ffa380 ",
     " #80c1ff ",
     " #c280ff ",
+    " #92ff80 ",
     " #ffd680 ",
+    " #ff7d7d ",
     " #808dff ",
     " #ffbf80 ",
     " #80ffd0 "
@@ -983,11 +986,10 @@ const DrawBoard = (): void => {
             }
             if (pa_planets[i].ta_timePeriods[j].aa_armies.length > 1) {
                 timePeriodBox.innerHTML += 
-                `<div class="time-period-war-flap" style="background-color:red"><p>War</p></div>`
-                //timePeriodBox.innerHTML += `<br><p>War</P>`
+                `<div class="time-period-war-flap" style="background-color:${warColor}"><p>War</p></div>`
             } else {
                 timePeriodBox.innerHTML += 
-                `<div class="time-period-war-flap" style="background-color: ${boardBackgroundColor}"><p>Pax</p></div>`
+                `<div class="time-period-war-flap" style="background-color: ${paxColor}"><p>Pax</p></div>`
             }
 
             planetColumn.appendChild(timePeriodBox) //adds the box to the column
