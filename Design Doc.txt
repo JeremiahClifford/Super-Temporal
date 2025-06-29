@@ -258,6 +258,7 @@ Notes:
 --Trading troops out left an empty army and said war when no troops present [Me]
 -Can't trade resources into a time period [Me]
 -Buildings feel too expensive [Many]
+-Trade window does not specify the health of troops [Me]
 
 =====================================================================================
 

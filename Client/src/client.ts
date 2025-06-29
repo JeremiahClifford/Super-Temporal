@@ -1606,6 +1606,7 @@ ShowLogin() // begin the login process to start the game
 // -Trading is broken
 // -War flag can appear when not supposed to while a player is actively taking their turn
 // --Likely need to run CleanArmies() somewhere where it is not currently
+// -Trade window should show health of the troops so you know if you are selecting a health troop
 //
 // Future changes to test:
 // -Buildings feel too expensive in tests
