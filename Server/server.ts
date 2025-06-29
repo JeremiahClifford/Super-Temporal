@@ -44,7 +44,7 @@ const buildingTime: number = settings.Game.buildingTime // how many turns it tak
 
 //#region Helper Function
 const SortTroops = (ta: Troop[]): Troop[] => { // sorts the troops of an army in descending order of power
-    return ta.sort((a, b) => { //uses the built in sort method
+    return ta.sort((a, b) => { // uses the built in sort method
         return (b.n_level + b.n_modifier) - (a.n_level + a.n_modifier)
     })
 }
@@ -159,7 +159,7 @@ class Player {
     }
 
     HealTroops = (): void => {
-        this.a_troops.ta_troops.forEach((t) => t.n_health = t.n_level + t.n_modifier)
+        this.a_troops.ta_troops.forEach((t) => t.Recover())
     }
 
     StartTurn = (): void => {
@@ -203,12 +203,12 @@ class Troop { // represents 1 fighting unit
 
     ProgressIntegration = (c_currentTimePeriodLevel: number): void => {
         if (this.n_rawLevel < c_currentTimePeriodLevel) {
-            this.n_health /= (this.n_level + this.n_modifier) //reduce the health to the percentage of the max
+            this.n_health /= (this.n_level + this.n_modifier) // reduce the health to the percentage of the max
             this.n_modifier /= Math.pow(2, this.n_rawLevel)
             this.n_rawLevel++
             this.n_level = Math.pow(2, this.n_rawLevel)
             this.n_modifier *= Math.pow(2, this.n_rawLevel)
-            this.n_health *= (this.n_level + this.n_modifier) //remultiply by the new max health to get the integrated health
+            this.n_health *= (this.n_level + this.n_modifier) // remultiply by the new max health to get the integrated health
         }
     }
 
@@ -222,7 +222,7 @@ class Troop { // represents 1 fighting unit
     }
 
     ToString = (): string => {
-        return `Level: ${this.n_level + this.n_modifier}`
+        return `Level: ${this.n_level + this.n_modifier} | Health: ${this.n_health} | ID: ${this.n_id}`
     }
 }
 
@@ -698,7 +698,7 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
 
     if (playerArmyIndex > -1) { // if they have an army here
         // swaps all the things around
-        //gives the player the resources they take
+        // gives the player the resources they take
         pa_players[currentTurnIndex].n_resources += rTaken
         pa_planets[p].ta_timePeriods[tp].n_resources -= rTaken
         if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
@@ -738,8 +738,8 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
         pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops = SortTroops(pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops)
 
         console.log(`Trade Made`) // LOG:
-    } else { //if they don't have an army here
-        //This should never happen as an empty army is created when the trade window is filled in if none is found
+    } else { // if they don't have an army here
+        // This should never happen as an empty army is created when the trade window is filled in if none is found
     }
 }
 //#endregion Trading

@@ -253,7 +253,7 @@ Notes:
 -Conquest Propagation is not happening [Me] ---
 -Trading out of a time period in broken [Me] ---
 --Resources blanks the trade window [Me+Ben] ---
--Trading troops can fix their health [Me]
+-Trading troops can fix their health [Me] ---
 -Seeing war when only enemy troops [Justin] ---
 --Trading troops out left an empty army and said war when no troops present [Me] ---
 -Can't trade resources into a time period [Me] ---
@@ -266,6 +266,7 @@ Playtest 5:
 
 Changes:
 -Fixed the conquest propagation issue
+-Troops no longer heal to full in the player's ship
 
 Things to Watch:
 -If combat is resolved in 1 turn, most players won't see it as the troops will arrive and die
