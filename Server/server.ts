@@ -43,13 +43,13 @@ const buildingTime: number = settings.Game.buildingTime // how many turns it tak
 //----------------------------------------------
 
 //#region Helper Function
-const SortTroops = (ta: Troop[]): Troop[] => { //sorts the troops of an army in descending order of power
+const SortTroops = (ta: Troop[]): Troop[] => { // sorts the troops of an army in descending order of power
     return ta.sort((a, b) => { //uses the built in sort method
         return (b.n_level + b.n_modifier) - (a.n_level + a.n_modifier)
     })
 }
 
-const CleanArmies = (): void => { //loops through every time zone and removes any empty time zones. runs every time the game draw
+const CleanArmies = (): void => { // loops through every time zone and removes any empty time zones. runs every time the game draw
     for (let i: number = 0; i < pa_planets.length; i++) { //loops through all of the planets
         for (let j: number = 0; j < pa_planets[i].ta_timePeriods.length; j++) { //loops through all of the time periods
             for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].aa_armies.length; k++) { //loops through all of the armies
@@ -198,7 +198,7 @@ class Troop { // represents 1 fighting unit
         } else {
             this.n_health = c_health
         }
-        this.n_id = Math.random() //TEMP:
+        this.n_id = Math.random()
     }
 
     ProgressIntegration = (c_currentTimePeriodLevel: number): void => {
@@ -718,7 +718,7 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
             }
             for (let i: number = 0; i < pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops.length; i++) { // go through the time period's troops and remove the matching troop
                 if (pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops[i].n_id === t.n_id) {
-                    pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops = pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops.filter((t) => t.n_id !== pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops[i].n_id)
+                    pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops = pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops.filter((t) => t !== pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops[i])
                 }
             }
         })
@@ -731,7 +731,7 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
             }
             for (let i: number = 0; i < pa_players[currentTurnIndex].a_troops.ta_troops.length; i++) { // go through the player's troops and remove the matching troop
                 if (pa_players[currentTurnIndex].a_troops.ta_troops[i].n_id === t.n_id) {
-                    pa_players[currentTurnIndex].a_troops.ta_troops = pa_players[currentTurnIndex].a_troops.ta_troops.filter((t) => t.n_id !== pa_players[currentTurnIndex].a_troops.ta_troops[i].n_id)
+                    pa_players[currentTurnIndex].a_troops.ta_troops = pa_players[currentTurnIndex].a_troops.ta_troops.filter((t) => t !== pa_players[currentTurnIndex].a_troops.ta_troops[i])
                 }
             }
         })
@@ -829,6 +829,8 @@ const AdvanceTurn = (): void => { // ends the current turn and starts the next o
     pa_players.forEach((p) => {
         p.StartTurn()
     })
+
+    CleanArmies()
 }
 
 const Initialize = (): void => {

@@ -107,8 +107,6 @@ body {
     margin-left: auto;
     margin-right: auto;
 
-    border: 1px solid black;
-
     p {
         margin-top: 5px;
         font-size: 1.1vh;
@@ -120,12 +118,15 @@ body {
     margin-left: auto;
     margin-right: auto;
 
-    border: 1px solid black;
-
     p {
         margin-top: 4px;
         font-size: 1.3vh;
     }
+}
+
+.time-period-owner-flap, .time-period-war-flap {
+    border: 1px solid black;
+    border-radius: 5px;
 }
 
 #selected-time-period-display {
@@ -388,10 +389,12 @@ body {
     button {
         border: 2px solid black;
         border-radius: 10px;
+
+        background-color: white;
     }
 
     button:hover {
-        background-color: rgba(87, 216, 246, 0.57);
+        border-color: rgba(235, 136, 55, 0.993);
     }
 }
 
@@ -563,7 +566,7 @@ body {
     }
 
     button:hover {
-        background-color: rgba(87, 216, 246, 0.57);
+        border-color: rgba(235, 136, 55, 0.993);
     }
 }
 

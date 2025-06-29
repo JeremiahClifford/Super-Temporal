@@ -251,14 +251,14 @@ Players:
 
 Notes:
 -Conquest Propagation is not happening [Me] ---
--Trading out of a time period in broken [Me]
---Resources blanks the trade window [Me+Ben]
+-Trading out of a time period in broken [Me] ---
+--Resources blanks the trade window [Me+Ben] ---
 -Trading troops can fix their health [Me]
--Seeing war when only enemy troops [Justin]
---Trading troops out left an empty army and said war when no troops present [Me]
--Can't trade resources into a time period [Me]
--Buildings feel too expensive [Many]
--Trade window does not specify the health of troops [Me]
+-Seeing war when only enemy troops [Justin] ---
+--Trading troops out left an empty army and said war when no troops present [Me] ---
+-Can't trade resources into a time period [Me] ---
+-Buildings feel too expensive [Many] ---
+-Trade window does not specify the health of troops [Me] ---
 
 =====================================================================================
 
@@ -270,6 +270,7 @@ Changes:
 Things to Watch:
 -If combat is resolved in 1 turn, most players won't see it as the troops will arrive and die
  in 1 turn and only the final gamestate will be sent out to players
+-Seeing war when only enemy troops
 -Duplicate players in the player list display. This shouldn't happen as the list is cleared when
  drawn but Dan did see it
 -Because you have a whole turn before conquests propagate, you can take your troops out before and

@@ -62,6 +62,18 @@ const SortTroops = (ta: Troop[]): Troop[] => { //sorts the troops of an army in 
     })
 }
 
+const CleanArmies = (): void => { // loops through every time zone and removes any empty time zones. runs every time the game draw
+    for (let i: number = 0; i < pa_planets.length; i++) { //loops through all of the planets
+        for (let j: number = 0; j < pa_planets[i].ta_timePeriods.length; j++) { //loops through all of the time periods
+            for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].aa_armies.length; k++) { //loops through all of the armies
+                if (pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops.length === 0) { //checks if the army is empty
+                    pa_planets[i].ta_timePeriods[j].aa_armies = pa_planets[i].ta_timePeriods[j].aa_armies.filter((a) => a.ta_troops.length !== 0) //if so: removes it
+                }
+            }
+        }
+    }
+}
+
 const TroopsString = (a: Army, useName: boolean): string => { //gives a string representation of the player's or time period's list of troops
     a.ta_troops = SortTroops(a.ta_troops) //sorts the troops so they are in a good order to be printed
 
@@ -101,7 +113,7 @@ const TroopsString = (a: Army, useName: boolean): string => { //gives a string r
     }
     output += `[${a.ta_troops.length} Troop(s)]:<br>` //adds th e number of troops
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
-        output += `${troopTypes[i].n_count}x Level: ${troopTypes[i].n_level} Health: ${troopTypes[i].n_health}<br>` //adds a line of their info to the output string
+        output += `${troopTypes[i].n_count}x Level: ${troopTypes[i].n_level} Health: ${Math.round(troopTypes[i].n_health * 100) / 100}<br>` //adds a line of their info to the output string
     }
     return output //returns the outputted list
 }
@@ -114,7 +126,7 @@ const TroopCardList = (a: Army, taken: boolean, target: Army): string => { //tak
         let troopCard: HTMLElement = document.createElement('div') as HTMLElement //creates the troop card for this troop
         troopCard.className = 'troop-card' //gives the troop card a class
         troopCard.innerHTML += `
-                Level: ${a.ta_troops[i].n_level + a.ta_troops[i].n_modifier}
+                Level: ${a.ta_troops[i].n_level + a.ta_troops[i].n_modifier} Health: ${Math.round(a.ta_troops[i].n_health * 100) / 100}
         ` //adds the level of the troop to the troop card
         let selectButton: HTMLButtonElement = document.createElement('button') //creates the select button
         selectButton.className = 'swap-button'
@@ -187,7 +199,7 @@ class Troop { //represents 1 fighting unit
         } else {
             this.n_health = c_health
         }
-        this.n_id = Math.random() //TEMP:
+        this.n_id = Math.random()
     }
 
     ToString = (): string => {
@@ -443,51 +455,51 @@ let resourcesTaken: number = 0
 let troopsGiven: Army = new Army(-2, [])
 let troopsTaken: Army = new Army(-3, [])
 
-const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which writes everything that is in the trade. This function runs every time something is changed in the trade to update the UI
+const FillInTradeWindow = (p: number, t: TimePeriod): void => { // function which writes everything that is in the trade. This function runs every time something is changed in the trade to update the UI
 
-    tradingWindow.style.display = "block" //shows the trade window
+    tradingWindow.style.display = "block" // shows the trade window
 
-    //fills in the time periods side
-    //fills in the time period present
-    //resets the text and adds a card for the resources in the time period
+    // fills in the time periods side
+    // fills in the time period present
+    // resets the text and adds a card for the resources in the time period
     if (t.n_ownerIndex === p) {
         timePeriodPresent.innerHTML = `
             <div class="resource-trade-card">
                 <h4>Resources: ${(Math.round(t.n_resources * 100)) / 100}</h4>
                 <input type="number" class="resource-select-input" id="time-period-present-resource-select-input">
-                <button class="resource-select-button" id="time-period-present-resource-select-button" onclick="SwapResources(false, true)">Select</button>
+                <button class="resource-select-button" id="time-period-present-resource-select-button" onclick="SwapResources(false, true, ${p})">Select</button>
             <div>
         `
     } else {
         timePeriodPresent.innerHTML = ``
     }
-    let playerArmyIndex: number = -1 //the index at which the player's army in the time period is. -1 by default as they might not have an army
-    for (let i: number = 0; i < t.aa_armies.length; i++) { //finds which army in the time period belongs to the player if any
+    let playerArmyIndex: number = -1 // the index at which the player's army in the time period is. -1 by default as they might not have an army
+    for (let i: number = 0; i < t.aa_armies.length; i++) { // finds which army in the time period belongs to the player if any
         if (t.aa_armies[i].n_ownerIndex === p) {
             playerArmyIndex = i
         }
     }
-    if (playerArmyIndex > -1) { //checks if the player has an army in the time period
+    if (playerArmyIndex > -1) { // checks if the player has an army in the time period
         timePeriodPresent.innerHTML += TroopCardList(t.aa_armies[playerArmyIndex], false, troopsTaken)//if so: writes out the troops of that army
-        for (let i = 0; i < t.aa_armies[playerArmyIndex].ta_troops.length; i++) { //gives the events to the buttons
+        for (let i = 0; i < t.aa_armies[playerArmyIndex].ta_troops.length; i++) { // gives the events to the buttons
             let selectButton: HTMLButtonElement = document.getElementById(`${false}-${p}-swap-button-${i}-${troopsTaken.n_ownerIndex}`) as HTMLButtonElement
             selectButton.addEventListener('click', () => {
                 SwapTroop(t.aa_armies[playerArmyIndex], i, troopsTaken)
             })
         }
     } else {
-        //if not: creates one to use. if not used, it will be cleaned next time the game draws
+        // if not: creates one to use. if not used, it will be cleaned next time the game draws
         t.aa_armies.push(new Army(p, []))
         playerArmyIndex = t.aa_armies.length - 1
     }
-    //fills in the time period selected
-    //resets the text and adds a card for the resources in the time period
+    // fills in the time period selected
+    // resets the text and adds a card for the resources in the time period
     if (t.n_ownerIndex === p) {
         timePeriodForTrade.innerHTML = `
             <div class="resource-trade-card">
                 <h4>Resources: ${(Math.round(resourcesTaken * 100)) / 100}</h4>
                 <input type="number" class="resource-select-input" id="time-period-for-trade-resource-select-input">
-                <button class="resource-select-button" id="time-period-for-trade-resource-select-button" onclick="SwapResources(false, false)">Select</button>
+                <button class="resource-select-button" id="time-period-for-trade-resource-select-button" onclick="SwapResources(false, false, ${p})">Select</button>
             <div>
         `
     } else {
@@ -501,15 +513,15 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
         })
     }
 
-    //fills in the player side
-    //fills in the player present
-    //resets the text and adds a card for the resources that the player has onboard
+    // fills in the player side
+    // fills in the player present
+    // resets the text and adds a card for the resources that the player has onboard
     if (t.n_ownerIndex === p) {
         playerPresent.innerHTML = `
             <div class="resource-trade-card">
                 <h4>Resources: ${(Math.round(pa_players[p].n_resources * 100)) / 100}</h4>
                 <input type="number" class="resource-select-input" id="player-present-resource-select-input">
-                <button class="resource-select-button" id="player-present-resource-select-button" onclick="SwapResources(true, true)">Select</button>
+                <button class="resource-select-button" id="player-present-resource-select-button" onclick="SwapResources(true, true, ${p})">Select</button>
             <div>
         `
     } else {
@@ -522,14 +534,14 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
             SwapTroop(pa_players[p].a_troops, i, troopsGiven)
         })
     }
-    //fills in the player selected
-    //resets the text and adds a card for the resources in the time period
+    // fills in the player selected
+    // resets the text and adds a card for the resources in the time period
     if (t.n_ownerIndex === p) {
         playerForTrade.innerHTML = `
             <div class="resource-trade-card">
                 <h4>Resources: ${(Math.round(resourcesGiven * 100)) / 100}</h4>
                 <input type="number" class="resource-select-input" id="player-for-trade-resource-select-input">
-                <button class="resource-select-button" id="player-for-trade-resource-select-button" onclick="SwapResources(true, false)">Select</button>
+                <button class="resource-select-button" id="player-for-trade-resource-select-button" onclick="SwapResources(true, false, ${p})">Select</button>
             <div>
         `
     } else {
@@ -545,7 +557,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { //function which
     }
 }
 
-const CloseTradeWindow = (p: number, tp: TimePeriod): void => { //cancels a trade in progress and hides the window
+const CloseTradeWindow = (p: number, tp: TimePeriod): void => { // cancels a trade in progress and hides the window
     tradingWindow.style.display = "none" //hides the trade window
     pa_players[p].n_remainingTrades += 1 //gives the player their trade action back
     //moves all of the selected things back where they came from
@@ -573,10 +585,12 @@ const CloseTradeWindow = (p: number, tp: TimePeriod): void => { //cancels a trad
         troopsTaken.ta_troops = []
     }
 
+    CleanArmies()
+
     DrawBoard()
 }
 
-const SwapResources = (player: boolean, present: boolean, playerIndex: number): void => { //moves resources from one box to another
+const SwapResources = (player: boolean, present: boolean, playerIndex: number): void => { // moves resources from one box to another
     if (player) { // if the swap should be in the player section
         if (present) { // if the swap should be from the present section to the selected section
             let numInput: HTMLInputElement = document.getElementById('player-present-resource-select-input') as HTMLInputElement
@@ -602,7 +616,7 @@ const SwapResources = (player: boolean, present: boolean, playerIndex: number): 
             }
         }
     } else {
-        if (present) { //if the swap should be from the present section to the selected section
+        if (present) { // if the swap should be from the present section to the selected section
             let numInput: HTMLInputElement = document.getElementById('time-period-present-resource-select-input') as HTMLInputElement
             if (numInput.value) { //makes sure that a number of resources is set by the player
                 if (+numInput.value <= pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources) { //makes sure the player can take more resources then there are
@@ -613,7 +627,7 @@ const SwapResources = (player: boolean, present: boolean, playerIndex: number): 
                     pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources = 0
                 }
             }
-        } else { //if the swap should be from the selected section to the present section
+        } else { // if the swap should be from the selected section to the present section
             let numInput: HTMLInputElement = document.getElementById('time-period-for-trade-resource-select-input') as HTMLInputElement
             if (numInput.value) { //makes sure that a number of resources is set by the player
                 if (+numInput.value <= resourcesTaken) { //makes sure the player can take more resources then there are
@@ -629,10 +643,10 @@ const SwapResources = (player: boolean, present: boolean, playerIndex: number): 
     FillInTradeWindow(playerIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
 }
 
-const SwapTroop = (start: Army, startIndex: number, target: Army): void => { //moves troops from one box to another
-    target.ta_troops.push(start.ta_troops[startIndex]) //adds the troops to the target
-    target.ta_troops = SortTroops(target.ta_troops) //sorts the target
-    start.ta_troops =  start.ta_troops.filter((t) => t !== start.ta_troops[startIndex]) //removes the troop from where it started
+const SwapTroop = (start: Army, startIndex: number, target: Army): void => { // moves troops from one box to another
+    target.ta_troops.push(start.ta_troops[startIndex]) // adds the troops to the target
+    target.ta_troops = SortTroops(target.ta_troops) // sorts the target
+    start.ta_troops =  start.ta_troops.filter((t) => t.n_id !== start.ta_troops[startIndex].n_id) // removes the troop from where it started
     FillInTradeWindow(start.n_ownerIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
 }
 
@@ -656,7 +670,6 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
             "TroopsGiven": []
         })
         // fill in the list of troops taken
-        let troopsTakenString: string = ``
         for (let i: number = 0; i < troopsTaken.ta_troops.length; i++) {
             turnActions.Details[turnActions.Details.length-1].TroopsTaken.push({
                 "rawLevel": troopsTaken.ta_troops[i].n_rawLevel,
@@ -667,7 +680,6 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
             })
         }
         // fill in the list of troops given
-        let troopsGivenString: string = ``
         for (let i: number = 0; i < troopsGiven.ta_troops.length; i++) {
             turnActions.Details[turnActions.Details.length-1].TroopsGiven.push({
                 "rawLevel": troopsGiven.ta_troops[i].n_rawLevel,
@@ -1603,10 +1615,7 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
-// -Trading is broken
-// -War flag can appear when not supposed to while a player is actively taking their turn
-// --Likely need to run CleanArmies() somewhere where it is not currently
-// -Trade window should show health of the troops so you know if you are selecting a health troop
+// -Trading troops should not fully heal troops
 //
 // Future changes to test:
 // -Buildings feel too expensive in tests
