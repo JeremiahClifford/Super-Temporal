@@ -36,7 +36,7 @@ let buildingTime: number = 5 // how many turns it takes to build a building
 const playerColors: string[] = [ // colors to represent the players [14]
     " #80e0ff ",
     " #cfff80 ",
-    " #80ffa7 ",
+    " #80ffa5 ",
     " #f480ff ",
     " #9780ff ",
     " #ffa380 ",
@@ -1603,7 +1603,13 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
+// -Trading is broken
+// -War flag can appear when not supposed to while a player is actively taking their turn
+// --Likely need to run CleanArmies() somewhere where it is not currently
 //
 // Future changes to test:
+// -Buildings feel too expensive in tests
+// --Maybe make them cheaper
+// --Maybe make the warehouse cheaper and, if needed, buff it
 // -Revisit how combat is resolved, may not be working as intended
 // --A high level troop took what seemed like way too much damage from a very low level troop

@@ -255,7 +255,7 @@ Notes:
 --Resources blanks the trade window [Me+Ben]
 -Trading troops can fix their health [Me]
 -Seeing war when only enemy troops [Justin]
--Trading troops out left an empty army and said war when no troops present [Me]
+--Trading troops out left an empty army and said war when no troops present [Me]
 -Can't trade resources into a time period [Me]
 -Buildings feel too expensive [Many]
 
@@ -265,6 +265,32 @@ Playtest 5:
 
 Changes:
 -Fixed the conquest propagation issue
+
+Things to Watch:
+-If combat is resolved in 1 turn, most players won't see it as the troops will arrive and die
+ in 1 turn and only the final gamestate will be sent out to players
+-Duplicate players in the player list display. This shouldn't happen as the list is cleared when
+ drawn but Dan did see it
+-Because you have a whole turn before conquests propagate, you can take your troops out before and
+ they wont propagate which leaves all of your time periods vulnerable
+-Does the game feel faster and more fun for it
+-Does it feel like you can produce enough units
+-Do buildings still feel too expensive once you get deeper
+-Do the time periods feel TOO similar and unimportant.
+--Should the variation in resource production be larger between time periods
+--Should we move to a multiple resource type system where certain time periods are better for
+  certain resources
+---Could do 3 types of resources, each time period generates a balanced randomized amount of each
+   and the troops and buildings in each time period take a balance randomized amount of each so
+   the best troops may take resources that you have to get more of from other time periods so that
+   some time periods are valuable for a certain type of resource and some are valuable for the
+   quality of its troops.
+----Balanced in the way that troop quality is balanced to resource gen: as one gets higher the
+    other gets lower.
+-----Have a set number for total resources generated, probably the one I have now which is
+     proportional to the troop quality; and take a random percentage of that for the first
+     resource, then another random percentage of the remaining amount for the second resource,
+     then the remainder for the third resource
 
 Players:
 -Me
