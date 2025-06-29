@@ -1232,6 +1232,7 @@ const FetchState = ():void => {
             numTimePeriods = gamestateJSON.numTimePeriods
             warehouseBonusPercent = gamestateJSON.warehouseBonusPercent
             trainTroopCost = gamestateJSON.trainTroopCost
+            troopTrainBaseTime = gamestateJSON.troopTrainBaseTime
             trainingCampDiscount = gamestateJSON.trainingCampDiscount
             healthRecoveryPercent = gamestateJSON.healthRecoveryPercent
             fortressProtectionPercent = gamestateJSON.fortressProtectionPercent

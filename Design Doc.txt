@@ -202,7 +202,7 @@ Notes:
 -Trade screen values can still have too many decimal places [Me] ---
 -Dan briefly saw player cards duped in the players list box [Dan] ---
 
-=======================================================================================
+=====================================================================================
 
 Playtest 4:
 
@@ -250,7 +250,7 @@ Players:
 -Justin
 
 Notes:
--Conquest Propagation is not happening [Me]
+-Conquest Propagation is not happening [Me] ---
 -Trading out of a time period in broken [Me]
 --Resources blanks the trade window [Me+Ben]
 -Trading troops can fix their health [Me]
@@ -258,3 +258,16 @@ Notes:
 -Trading troops out left an empty army and said war when no troops present [Me]
 -Can't trade resources into a time period [Me]
 -Buildings feel too expensive [Many]
+
+=====================================================================================
+
+Playtest 5:
+
+Changes:
+-Fixed the conquest propagation issue
+
+Players:
+-Me
+
+Notes:
+-

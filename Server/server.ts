@@ -523,27 +523,28 @@ class TimePeriod {
                     }
                 }
             }
-            this.b_hasCombat = true
-
             CleanArmies() // removes empty armies
-            
-            if (this.b_conquested) { // if the time period was conquested in the previous turn, now pass on the propagation order
-                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(true, this.n_ownerIndex, this.n_resources, this.ba_buildings, this.aa_armies)) // create propagation order in next time period
-                this.b_conquested = false // clear the boolean for if it was just conquested so that a new propagation order is not passed on next turn
+            if (this.aa_armies.length > 1) { // only adds the has combat tag if there is more than one army after combat is concluded
+                this.b_hasCombat = true
             }
-
-            if (this.aa_armies.length === 1 && this.aa_armies[this.aa_armies.length - 1].n_ownerIndex !== this.n_ownerIndex) { // if only one army remains, that player's army conquers the time period
-                this.n_ownerIndex = this.aa_armies[0].n_ownerIndex // sets the new owner
-                if (p_tIndex !== numTimePeriods - 1) { // makes sure that this time period is not the last in the list
-                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders = [] // clears the propagation orders of the next time period as the conquest makes them redundant
-                    this.b_conquested = true
-                }
-                this.b_propagationBlocked = true // conquest creates a propagation block
-                this.b_hasCombat = false // sets combat back to false if the combat is fully resolved
+        }
+        
+        if (this.b_conquested) { // if the time period was conquested in the previous turn, now pass on the propagation order
+            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(true, this.n_ownerIndex, this.n_resources, this.ba_buildings, this.aa_armies)) // create propagation order in next time period
+            // TEMP: // this.b_conquested = false // clear the boolean for if it was just conquested so that a new propagation order is not passed on next turn
+        }
+        
+        if (this.aa_armies.length === 1 && this.aa_armies[this.aa_armies.length - 1].n_ownerIndex !== this.n_ownerIndex) { // if only one army remains, that player's army conquers the time period
+            this.n_ownerIndex = this.aa_armies[0].n_ownerIndex // sets the new owner
+            if (p_tIndex !== numTimePeriods - 1) { // makes sure that this time period is not the last in the list
+                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders = [] // clears the propagation orders of the next time period as the conquest makes them redundant
+                this.b_conquested = true
             }
-            if (this.aa_armies.length === 0) { // if there are no armies
-                this.b_hasCombat = false // remove the combat flag
-            }
+            this.b_propagationBlocked = true // conquest creates a propagation block
+            this.b_hasCombat = false // sets combat back to false if the combat is fully resolved
+        }
+        if (this.aa_armies.length === 0) { // if there are no armies
+            this.b_hasCombat = false // remove the combat flag
         }
     }
 
@@ -612,6 +613,8 @@ class TimePeriod {
                     }
                 }
                 if (po.constructor === ConquestPropagationOrder && !this.b_propagationBlocked) { // handles conquest propagation orders if this time period is not propagation blocked
+                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex - 1].b_conquested = false // clear the boolean for if the last timer period was just conquested so that a new propagation order is not passed on next turn
+                    
                     // override the various attributes
                     this.n_ownerIndex = po.n_newOwnerIndex
                     this.n_resources = po.n_newResources
@@ -624,14 +627,8 @@ class TimePeriod {
                     }
                 }
             })
-            this.pa_propagationOrders = [] // clears out the propagation order list when they have all been done
-        } else {
-            this.pa_propagationOrders = this.pa_propagationOrders.filter((po) => po.constructor === ConquestPropagationOrder) // filters the propagation order list to just conquests to see if its supposed to be conquested
-            if (this.pa_propagationOrders.length > 0) { // if it is supposed to be conquested
-                pa_planets[p_pIndex].ta_timePeriods[p_tIndex - 1].b_conquested = true // resets the conquested status so it carries over after
-                this.pa_propagationOrders = [] // clears out the propagation order list when they have all been done
-            }
         }
+        this.pa_propagationOrders = [] // clears out the propagation order list when they have all been done
     }
 }
 
