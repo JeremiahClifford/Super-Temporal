@@ -230,9 +230,31 @@ Things to Watch:
 --Should the variation in resource production be larger between time periods
 --Should we move to a multiple resource type system where certain time periods are better for
   certain resources
+---Could do 3 types of resources, each time period generates a balanced randomized amount of each
+   and the troops and buildings in each time period take a balance randomized amount of each so
+   the best troops may take resources that you have to get more of from other time periods so that
+   some time periods are valuable for a certain type of resource and some are valuable for the
+   quality of its troops.
+----Balanced in the way that troop quality is balanced to resource gen: as one gets higher the
+    other gets lower.
+-----Have a set number for total resources generated, probably the one I have now which is
+     proportional to the troop quality; and take a random percentage of that for the first
+     resource, then another random percentage of the remaining amount for the second resource,
+     then the remainder for the third resource
+
 
 Players:
 -Me
+-Dan
+-Ben
+-Justin
 
 Notes:
--
+-Conquest Propagation is not happening [Me]
+-Trading out of a time period in broken [Me]
+--Resources blanks the trade window [Me+Ben]
+-Trading troops can fix their health [Me]
+-Seeing war when only enemy troops [Justin]
+-Trading troops out left an empty army and said war when no troops present [Me]
+-Can't trade resources into a time period [Me]
+-Buildings feel too expensive [Many]
