@@ -1615,11 +1615,10 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
-// -Trading troops should not fully heal troops
 //
 // Future changes to test:
+// -Revisit how combat is resolved, may not be working as intended
+// --A high level troop took what seemed like way too much damage from a very low level troop
 // -Buildings feel too expensive in tests
 // --Maybe make them cheaper
 // --Maybe make the warehouse cheaper and, if needed, buff it
-// -Revisit how combat is resolved, may not be working as intended
-// --A high level troop took what seemed like way too much damage from a very low level troop

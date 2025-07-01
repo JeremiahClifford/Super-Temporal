@@ -148,7 +148,7 @@ class Player {
 
     constructor (c_index: number, c_name: string) {
         this.s_name = c_name
-        this.a_troops = new Army(c_index, [new Troop(1, 0.5), new Troop(1, 0.5)]) // TEMP: not sure what troops players will start with if any
+        this.a_troops = new Army(c_index, [new Troop(1, 0.5)]) // TEMP: not sure what troops players will start with if any
         this.n_resources = 0
         this.na_location = [-1, -1]
 
@@ -585,10 +585,12 @@ class TimePeriod {
                         this.aa_armies[0].ta_troops[this.aa_armies[0].ta_troops.length - 1].ProgressIntegration(this.n_rawLevel) // increases the level of the troop before the propagation order is passed on but after it has been added so that when it is processed in the next time period it is already the proper level
                         this.aa_armies[0].ta_troops = SortTroops(this.aa_armies[0].ta_troops) // sorts the army with the new troop
                     } else { // if the troop is being removed
-                        for (let i: number = 0; i < this.aa_armies[0].ta_troops.length; i++) {
-                            if (this.aa_armies[0].ta_troops[i].n_id === po.t_target.n_id) {
-                                this.aa_armies[0].ta_troops = this.aa_armies[0].ta_troops.filter((t) => t.n_id !== po.t_target.n_id) // removes the troop that matches
-                            } // if no troop matches, none are removed
+                        if (this.aa_armies.length > 0) {
+                            for (let i: number = 0; i < this.aa_armies[0].ta_troops.length; i++) {
+                                if (this.aa_armies[0].ta_troops[i].n_id === po.t_target.n_id) {
+                                    this.aa_armies[0].ta_troops = this.aa_armies[0].ta_troops.filter((t) => t.n_id !== po.t_target.n_id) // removes the troop that matches
+                                } // if no troop matches, none are removed
+                            }
                         }
                     }
                     // adds a new propagation order for the next time period to continue the propagation down the timeline
