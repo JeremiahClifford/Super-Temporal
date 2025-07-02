@@ -315,7 +315,7 @@ Notes:
     at /home/jeremiah/Documents/Git-Repos/Super-Temporal/Server/server.ts:1079:9
     at Layer.handle [as handle_request] (/home/jeremiah/Documents/Git-Repos/Super-Temporal/node_modules/express/lib/router/layer.js:95:5)
     at next (/home/jeremiah/Documents/Git-Repos/Super-Temporal/node_modules/express/lib/router/route.js:149:13)
--If a player splits there troops on turn one it makes them extremely vulnerable on turn 2
+-If a player splits there troops on turn one it makes them extremely vulnerable on turn 2 ---
 -Being unable to un-submit turns became annoying if someone submitted early by mistake [Many]
 -Turn counter would be nice [Dan+Ben]
 --Move up to now list box could also be nice so you can see what you have done [Me]
@@ -347,7 +347,7 @@ Notes:
 Playtest 6:
 
 Changes:
--
+-Players only start with 1 troop
 
 Things to Watch:
 -

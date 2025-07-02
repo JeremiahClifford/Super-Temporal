@@ -1615,6 +1615,25 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
+// -Rename troops to battalions or something on the UI
+// -Troops list should show total power and total health along side number of troops
+// -Fix the troops disappearing during trading because a different troop with the same ID was traded
+// -Game should generate an ID on initialization which submitted turns should verify against when fetching gamestate and submitting turns
+// --Mismatched ID should kick player to error screen
+// -Turn counter on UI
+// --Submitted turns should submit which turn they are on to verify against the server
+// -Fix Trade Window Buttons
+// --Deselect
+// --Cancel
+// -Add box which shows the actions the player has taken during this turn
+// -Add button to cancel a submitted turn
+// -Fix conquest issue where conquest propagation happens right away
+// -SOme sort of screen or message after you submit to show that it reverted to before your turn while you wait
+// -Troops should propagate after a war if they were brought in during a war
+// -Try out some combat overhaul options to make combat feel better
+// --A hoard of tiny troops should not be able to hold off an attack forever
+// ---Big troops should be able to kill multiply tiny troops at once
+// --Damage dealt should probably be a ratio comparing the power levels of each troop
 //
 // Future changes to test:
 // -Revisit how combat is resolved, may not be working as intended
