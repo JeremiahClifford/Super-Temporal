@@ -317,10 +317,10 @@ Notes:
     at next (/home/jeremiah/Documents/Git-Repos/Super-Temporal/node_modules/express/lib/router/route.js:149:13)
 -If a player splits there troops on turn one it makes them extremely vulnerable on turn 2 ---
 -Being unable to un-submit turns became annoying if someone submitted early by mistake [Many]
--Turn counter would be nice [Dan+Ben]
---Move up to now list box could also be nice so you can see what you have done [Me]
--Players could move in an old game when a new game started [Many]
---some sort of game validation/id would be helpful
+-Turn counter would be nice [Dan+Ben] ---
+--Move up to now list box could also be nice so you can see what you have done [Me] ---
+-Players could move in an old game when a new game started [Many] ---
+--some sort of game validation/id would be helpful ---
 -Trade button disappeared when should have had 1 use left [Ben]
 -Lot of double clicks. Submitting 2 turns, building 2 troops [Ben+Dan]
 -Combat feels kinda dumb and simplistic [Dan+Me]
@@ -347,10 +347,29 @@ Notes:
 Playtest 6:
 
 Changes:
+-You can no longer submit a turn using a previous gamestate on a new server instance
 -Players only start with 1 troop
+-Turn counter and list of actions taken thus far on UI
 
 Things to Watch:
--
+-Duplicate players in the player list display. This shouldn't happen as the list is cleared when
+ drawn but Dan and I have both seen it
+-Do buildings still feel too expensive once you get deeper
+-Do the time periods feel TOO similar and unimportant.
+--Should the variation in resource production be larger between time periods
+--Should we move to a multiple resource type system where certain time periods are better for
+  certain resources
+---Could do 3 types of resources, each time period generates a balanced randomized amount of each
+   and the troops and buildings in each time period take a balance randomized amount of each so
+   the best troops may take resources that you have to get more of from other time periods so that
+   some time periods are valuable for a certain type of resource and some are valuable for the
+   quality of its troops.
+----Balanced in the way that troop quality is balanced to resource gen: as one gets higher the
+    other gets lower.
+-----Have a set number for total resources generated, probably the one I have now which is
+     proportional to the troop quality; and take a random percentage of that for the first
+     resource, then another random percentage of the remaining amount for the second resource,
+     then the remainder for the third resource
 
 Players:
 -

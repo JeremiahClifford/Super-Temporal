@@ -111,9 +111,9 @@ const TroopsString = (a: Army, useName: boolean): string => { //gives a string r
             output = `${pa_players[a.n_ownerIndex].s_name} ` //adds the header to the output showing how many total troops the army has and the owner
         }
     }
-    output += `[${a.ta_troops.length} Troop(s)]:<br>` //adds th e number of troops
+    output += `[${a.ta_troops.length} Battalions(s)]:<br>` //adds th e number of troops
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
-        output += `${troopTypes[i].n_count}x Level: ${troopTypes[i].n_level} Health: ${Math.round(troopTypes[i].n_health * 100) / 100}<br>` //adds a line of their info to the output string
+        output += `${troopTypes[i].n_count}x Level: ${troopTypes[i].n_level} Strength: ${Math.round(troopTypes[i].n_health * 100) / 100}<br>` //adds a line of their info to the output string
     }
     return output //returns the outputted list
 }
@@ -126,7 +126,7 @@ const TroopCardList = (a: Army, taken: boolean, target: Army): string => { //tak
         let troopCard: HTMLElement = document.createElement('div') as HTMLElement //creates the troop card for this troop
         troopCard.className = 'troop-card' //gives the troop card a class
         troopCard.innerHTML += `
-                Level: ${a.ta_troops[i].n_level + a.ta_troops[i].n_modifier} Health: ${Math.round(a.ta_troops[i].n_health * 100) / 100}
+                Level: ${a.ta_troops[i].n_level + a.ta_troops[i].n_modifier} Strength: ${Math.round(a.ta_troops[i].n_health * 100) / 100}
         ` //adds the level of the troop to the troop card
         let selectButton: HTMLButtonElement = document.createElement('button') //creates the select button
         selectButton.className = 'swap-button'
@@ -834,6 +834,8 @@ let port: string = `4050`
 let pa_players: Player[] = [] // stores the list of players in the game
 
 let myIndex: number = 0 // stores which player the client is
+let gameID: number // unique ID for the game you connect to, used to verify with the server
+let turnNumber: number // stores the current turn number, used to verify with the server
 
 let turnActions: {"Details": any} = {
     "Details": [
@@ -881,6 +883,9 @@ const playerListBox: HTMLElement = document.getElementById('player-list-box') as
 
 // holds onto the display for the player's info
 const currentPlayerInfoBox: HTMLElement = document.getElementById('player-info') as HTMLElement // the box that has the player's info
+const turnSection: HTMLElement = document.getElementById('turn-section') as HTMLElement // the section for the current turn
+const turnNumberSpot: HTMLElement = document.getElementById('turn-number-spot') as HTMLElement // the line for the turn number
+const turnListSpot: HTMLElement = document.getElementById('turn-list-spot') as HTMLElement // the list of what the player has done this turn
 const locationSpot: HTMLElement = document.getElementById('location-spot') as HTMLElement // the line for the players location
 const resourceSpot: HTMLElement = document.getElementById('resource-spot') as HTMLElement // the line for the player's resources
 const troopListSpot: HTMLElement = document.getElementById('troop-list-spot') as HTMLElement // the scrolling box that shows what troops the player has
@@ -1141,6 +1146,26 @@ const DrawBoard = (): void => {
         tradeButton.style.display = `none`
         endTurnButton.style.display= `none`
     } else {
+        // fill in the current turn section
+        turnNumberSpot.innerHTML = `Current Turn: ${turnNumber}`
+        turnListSpot.innerHTML = ``
+        for (let i: number = 1; i < turnActions.Details.length; i++) {
+            switch (turnActions.Details[i].Type) {
+                case "Move":
+                    turnListSpot.innerHTML += `Move to ${JSON.stringify(turnActions.Details[i].NewLocation)}<br>`
+                    break;
+                case "Trade":
+                    turnListSpot.innerHTML += `Trade at ${JSON.stringify(turnActions.Details[i].TargetTimePeriod)}<br>`
+                    break;
+                case "Build":
+                    turnListSpot.innerHTML += `Build ${JSON.stringify(turnActions.Details[i].BuildingType)} at ${JSON.stringify(turnActions.Details[i].Planet)}, ${JSON.stringify(turnActions.Details[i].TimePeriod)}<br>`
+                    break;
+                case "Train":
+                    turnListSpot.innerHTML += `Train Troop at ${JSON.stringify(turnActions.Details[i].Planet)}, ${JSON.stringify(turnActions.Details[i].TimePeriod)}<br>`
+                    break;
+            }
+        }
+
         if (pa_players[myIndex].na_location[0] === -1 && myIndex !== -1) { // checks if the player has not yet gone to a time period
             locationSpot.innerHTML = `Location: Nowhere` // if so: show them as nowhere
         } else {
@@ -1198,7 +1223,13 @@ const SubmitTurn = (): void => {
         },
         body: JSON.stringify(turnActions)
     }).then((response) => response.json())
-    .then((responseFile) => console.log(responseFile.responseValue)) // LOG: Debug the response of whether the turn went through or not
+    .then((responseFile) => {
+        if (responseFile.responseValue === false) {
+            console.log(`Server rejected your submission`)
+            ShowLogin()
+            ShowLoginFailed("Server rejected your submission. Please refresh, log back in, and try again")
+        }
+    }) // LOG: Debug the response of whether the turn went through or not
     .then(() => Refresh()) // refresh the client
     .catch(() => { // if the server does not respond
         ShowLogin()
@@ -1212,6 +1243,14 @@ const FetchState = ():void => {
     .then((gamestateImport) => {
             console.log(gamestateImport) // LOG: debug
             let gamestateJSON = JSON.parse(gamestateImport)
+
+            // check the game info
+            if (gamestateJSON.gameID !== gameID) {
+                console.log(`Wrong gameID detected. Refresh needed`) // TEMP:
+                ShowLogin()
+                ShowLoginFailed("Wrong gameID detected. Refresh needed")
+            }
+            turnNumber = gamestateJSON.turnNumber // set our turn number to the server turn number
 
             // Load in players from the gamestate
             let playersIn = gamestateJSON.players // get the list of players
@@ -1328,7 +1367,9 @@ const FetchState = ():void => {
             ]
         }
         turnActions.Details.push({
-            "CurrentTurnIndex": myIndex
+            "CurrentTurnIndex": myIndex,
+            "GameID": gameID,
+            "TurnNumber": turnNumber
         })
     })
     .then(() => DrawBoard())
@@ -1568,7 +1609,11 @@ const AttemptLogin = (): void => {
         })
     })
     .then((response) => response.json())
-    .then((responseFile) => myIndex = responseFile.index)
+    .then((responseFile) => {
+        myIndex = responseFile.index
+        gameID = responseFile.gameID
+        turnNumber = responseFile.turnNumber
+    })
     .then(() => {
         if (myIndex !== -1) {
             console.log(`Login Succeeded | Index: ${myIndex}`) // LOG:
@@ -1615,13 +1660,8 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
-// -Rename troops to battalions or something on the UI
 // -Troops list should show total power and total health along side number of troops
 // -Fix the troops disappearing during trading because a different troop with the same ID was traded
-// -Game should generate an ID on initialization which submitted turns should verify against when fetching gamestate and submitting turns
-// --Mismatched ID should kick player to error screen
-// -Turn counter on UI
-// --Submitted turns should submit which turn they are on to verify against the server
 // -Fix Trade Window Buttons
 // --Deselect
 // --Cancel

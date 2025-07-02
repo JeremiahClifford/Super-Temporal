@@ -758,6 +758,9 @@ for (let i: number = 0; i < playerListJSON.Players.length; i++) {
     pa_players.push(playerIn)
 }
 
+let gameID: number // Unique ID for this game to verify clients
+let turnNumber: number // which turn it is
+
 let submittedTurns: any[] = [] // stores the turns submitted for this round
 
 const pa_planets: Planet[] = [] // stores the list of the planets in play
@@ -828,6 +831,7 @@ const AdvanceTurn = (): void => { // ends the current turn and starts the next o
         pIndex++ // increments the pIndex so the next planet has the correct index
     })
     submittedTurns = []
+    turnNumber++ // increment the turn number
     pa_players.forEach((p) => {
         p.StartTurn()
     })
@@ -836,6 +840,11 @@ const AdvanceTurn = (): void => { // ends the current turn and starts the next o
 }
 
 const Initialize = (): void => {
+    gameID = Math.random()
+    responseFile.gameID = gameID
+    turnNumber = 0
+    responseFile.turnNumber = turnNumber
+
     pa_players.forEach((p) => p.StartTurn())
     //pa_players[currentTurnIndex].StartTurn() // sets the current player up so they have their actions
 
@@ -904,6 +913,10 @@ app.get("/gamestate", (request: any, response: any) => {
 
     gamestateOut += `{` // file open
     
+    // game info
+    gamestateOut += `"gameID": ${gameID},`
+    gamestateOut += `"turnNumber": ${turnNumber},`
+
     // players
     gamestateOut += `"numPlayers": ${pa_players.length},` // for the client to know how long to loop when loading in the players
     gamestateOut += `"players": [` // players open
@@ -1068,14 +1081,21 @@ app.post("/submitturn", (request: any, response: any) => {
 
     console.log(`Turn Submitted: ${JSON.stringify(turnSubmitted)}`) // log the submitted turn in the console
     
-    if (!pa_players[turnSubmitted.Details[0].CurrentTurnIndex].b_hasSubmitted) {
-        submittedTurns.push(turnSubmitted) // adds the turn to the list of submitted turns
-        pa_players[turnSubmitted.Details[0].CurrentTurnIndex].EndTurn() // ends the player's turn
-        responseFile.responseValue = true
-    } else {
+    if (turnSubmitted.Details[0].GameID !== gameID) { // if the gameID is mismatched
         responseFile.responseValue = false
+    } else {
+        if (turnSubmitted.Details[0].TurnNumber !== turnNumber) { // if the player has the wrong turn number
+            responseFile.responseValue = false
+        } else { // only accept the turn if both things check out
+            if (!pa_players[turnSubmitted.Details[0].CurrentTurnIndex].b_hasSubmitted) {
+                submittedTurns.push(turnSubmitted) // adds the turn to the list of submitted turns
+                pa_players[turnSubmitted.Details[0].CurrentTurnIndex].EndTurn() // ends the player's turn
+                responseFile.responseValue = true
+            } else {
+                responseFile.responseValue = false
+            }
+        }
     }
-
     if (submittedTurns.length === pa_players.length) {
         console.log(`All players submitted. Advancing turn.`)
         AdvanceTurn()

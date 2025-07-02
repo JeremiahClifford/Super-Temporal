@@ -1,4 +1,6 @@
 {
     "index": -2,
-    "responseValue": false
+    "responseValue": false,
+    "turnNumber": -1,
+    "gameID": 0
 }
