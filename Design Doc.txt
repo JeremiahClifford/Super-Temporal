@@ -325,15 +325,17 @@ Notes:
 --Probably the same ID which is checked in the transfer function [Me] ---
 -Troops should have a better name [Ben] ---
 --Battalion, Platoon, etc ---
+
 -Power levels should be hidden until you take a planet [Ben]
+-What does scorched earth do [Ben]
+-Lot of double clicks. Submitting 2 turns, building 2 troops [Ben+Dan]
+
 -Being unable to un-submit turns became annoying if someone submitted early by mistake [Many]
 -Troops wont propagate if they are brought in during a war, even if they survive the war [Me]
--What does scorched earth do [Ben]
 -Something should show after you hit submit to make it clear that your game board has reverted to
  before you took your turn [Me]
  -Time period controls stayed up when selecting a time period where they shouldn't [Me]
  -Trade button disappeared when should have had 1 use left [Ben]
--Lot of double clicks. Submitting 2 turns, building 2 troops [Ben+Dan]
 -Sometimes take 2 planets when conquering [Many]
 --Probably an issue with conquering and then propagation happening in the same turn [Me]
 -Combat feels kinda dumb and simplistic [Dan+Me]
@@ -348,6 +350,7 @@ Playtest 6:
 
 Changes:
 -You can no longer submit a turn using a previous gamestate on a new server instance
+-Players can now take back a submitted turn as long as all players have not submitted triggering end of turn calculation
 -Players only start with 1 troop
 -Turn counter and list of actions taken thus far on UI
 -Army lists now show a total level and total health

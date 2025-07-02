@@ -1076,8 +1076,7 @@ app.get("/gamestate", (request: any, response: any) => {
 
 // submit function
 app.post("/submitturn", (request: any, response: any) => {
-    // ingests the data
-    const turnSubmitted = JSON.parse(JSON.stringify(request.body))
+    const turnSubmitted = JSON.parse(JSON.stringify(request.body)) // ingests the data
 
     console.log(`Turn Submitted: ${JSON.stringify(turnSubmitted)}`) // log the submitted turn in the console
     
@@ -1104,6 +1103,21 @@ app.post("/submitturn", (request: any, response: any) => {
     console.log(`Sending Response: ${JSON.stringify(responseFile)}`) // LOG:
     response.json(responseFile) // sends the response to the client
     console.log(`Response Sent`) //LOG:
+})
+
+app.post("/cancelturn", (request: any, response: any) => {
+    const requestSubmitted = JSON.parse(JSON.stringify(request.body)) // ingest the request data
+
+    console.log(`Request Submitted: ${JSON.stringify(requestSubmitted)}`) // log the submitted turn in the console
+
+    submittedTurns = submittedTurns.filter((t) => t.Details[0].CurrentTurnIndex !== requestSubmitted.PlayerIndex) // filter the turn of the requesting player out of the turn list
+    pa_players[requestSubmitted.PlayerIndex].StartTurn()
+
+
+    responseFile.index = requestSubmitted.PlayerIndex
+    responseFile.responseValue = true
+    responseFile.turnNumber = turnNumber
+    response.json(responseFile)
 })
 
 //#endregion Main Server Logic

@@ -801,6 +801,7 @@ const refreshButton: HTMLButtonElement = document.getElementById('refresh-button
 const travelButton: HTMLButtonElement = document.getElementById('travel-button') as HTMLButtonElement // travel button
 const tradeButton: HTMLButtonElement = document.getElementById('trade-button') as HTMLButtonElement // trade button
 const endTurnButton: HTMLButtonElement = document.getElementById('end-turn-button') as HTMLButtonElement // end turn button
+const cancelTurnButton: HTMLElement = document.getElementById('cancel-turn-button') as HTMLElement // button to retract your turn
 //#endregion HTML Elements
 
 // stores the coordinates of the selected time period
@@ -1106,13 +1107,36 @@ const DrawBoard = (): void => {
                 tradeButton.style.backgroundColor = buttonBackgroundColor
             }
         }
-        if (pa_players[myIndex].b_hasSubmitted) { // hides the end turn button if the player is not the player whose turn it is
+        if (pa_players[myIndex].b_hasSubmitted) { // hides the end turn button if the player is not the player whose turn it is and does the inverse for the cancel turn button
             endTurnButton.style.display= `none`
+            cancelTurnButton.style.display = 'inline'
         } else {
             endTurnButton.style.display= `inline`
+            cancelTurnButton.style.display = 'none'
         }
     }
     //#endregion Current Player Info Board
+}
+
+const CancelTurn = (): void => {
+    console.log(`Cancelling Turn`) // LOG:
+
+    fetch(`http://${ip}:${port}/cancelturn`, {
+        method: "POST",
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "PlayerIndex": myIndex
+        })
+    }).then((response) => response.json())
+    .then((responseFile) => console.log(responseFile.responseValue))
+    .then(() => Refresh()) // refresh the client
+    .catch(() => { // if the server does not respond
+        ShowLogin()
+        ShowLoginFailed("Server not responding")
+    })
 }
 
 const SubmitTurn = (): void => {
@@ -1453,6 +1477,8 @@ const Initialize = (): void => {
         DrawBoard() // redraws the board
     }) // makes the scorched earth button work
     endTurnButton.addEventListener("click", () => SubmitTurn()) // end turn button functionality, makes the end turn button run the AdvanceTurn() function
+    cancelTurnButton.addEventListener("click", () => CancelTurn()) // cancel turn button functionality
+    cancelTurnButton.style.display = 'none'
 
     FetchState() // fetches the gamestate from the server
 }
@@ -1566,7 +1592,6 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
-// -Add button to cancel a submitted turn
 // -Fix conquest issue where conquest propagation happens right away
 // -Some sort of screen or message after you submit to show that it reverted to before your turn while you wait
 // -Troops should propagate after a war if they were brought in during a war
