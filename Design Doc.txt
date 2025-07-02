@@ -301,8 +301,8 @@ Players:
 -Dan
 
 Notes:
--Deselect Button in trade screen doesn't work [Me]
--Canceling a trade doesn't reset the selected troops and resources [Me]
+-Deselect Button in trade screen doesn't work [Me] ---
+-Canceling a trade doesn't reset the selected troops and resources [Me] ---
 -Error in propagation froze the server [Me] ---
 --TypeError: Cannot read properties of undefined (reading 'ta_troops')
     at /home/jeremiah/Documents/Git-Repos/Super-Temporal/Server/server.ts:588:71
@@ -316,31 +316,31 @@ Notes:
     at Layer.handle [as handle_request] (/home/jeremiah/Documents/Git-Repos/Super-Temporal/node_modules/express/lib/router/layer.js:95:5)
     at next (/home/jeremiah/Documents/Git-Repos/Super-Temporal/node_modules/express/lib/router/route.js:149:13)
 -If a player splits there troops on turn one it makes them extremely vulnerable on turn 2 ---
--Being unable to un-submit turns became annoying if someone submitted early by mistake [Many]
 -Turn counter would be nice [Dan+Ben] ---
 --Move up to now list box could also be nice so you can see what you have done [Me] ---
 -Players could move in an old game when a new game started [Many] ---
 --some sort of game validation/id would be helpful ---
--Trade button disappeared when should have had 1 use left [Ben]
+-Total power on troop list could be nice [Me] ---
+-Trading a troop made a different troop also disappear [Me] ---
+--Probably the same ID which is checked in the transfer function [Me] ---
+-Troops should have a better name [Ben] ---
+--Battalion, Platoon, etc ---
+-Power levels should be hidden until you take a planet [Ben]
+-Being unable to un-submit turns became annoying if someone submitted early by mistake [Many]
+-Troops wont propagate if they are brought in during a war, even if they survive the war [Me]
+-What does scorched earth do [Ben]
+-Something should show after you hit submit to make it clear that your game board has reverted to
+ before you took your turn [Me]
+ -Time period controls stayed up when selecting a time period where they shouldn't [Me]
+ -Trade button disappeared when should have had 1 use left [Ben]
 -Lot of double clicks. Submitting 2 turns, building 2 troops [Ben+Dan]
+-Sometimes take 2 planets when conquering [Many]
+--Probably an issue with conquering and then propagation happening in the same turn [Me]
 -Combat feels kinda dumb and simplistic [Dan+Me]
 --Damage dealt should probably be a ratio comparing the power levels of each troop [Me]
 --With only 1 troop max dying per round, spamming small troops onto a time period can make a
   battle last literally forever. [Me]
 ---A big troop should probably be able to kill multiple tiny troops at once. [Me]
--Sometimes take 2 planets when conquering [Many]
---Probably an issue with conquering and then propagation happening in the same turn [Me]
--Time period controls stayed up when selecting a time period where they shouldn't [Me]
--Total power on troop list could be nice [Me]
--Trading a troop made a different troop also disappear [Me]
---Probably the same ID which is checked in the transfer function [Me]
--Something should show after you hit submit to make it clear that your game board has reverted to
- before you took your turn [Me]
--Power levels should be hidden until you take a planet [Ben]
--What does scorched earth do [Ben]
--Troops wont propagate if they are brought in during a war, even if they survive the war [Me]
--Troops should have a better name [Ben]
---Battalion, Platoon, etc
 
 =====================================================================================
 
@@ -350,6 +350,7 @@ Changes:
 -You can no longer submit a turn using a previous gamestate on a new server instance
 -Players only start with 1 troop
 -Turn counter and list of actions taken thus far on UI
+-Army lists now show a total level and total health
 
 Things to Watch:
 -Duplicate players in the player list display. This shouldn't happen as the list is cleared when

@@ -103,6 +103,14 @@ const TroopsString = (a: Army, useName: boolean): string => { //gives a string r
         }
     }
 
+    // find the total level and health of the army
+    let totalLevel: number = 0
+    let totalHealth: number = 0
+    a.ta_troops.forEach((t) => {
+        totalLevel += (t.n_level + t.n_modifier)
+        totalHealth += t.n_health
+    })
+
     let output: string = ``
     if (useName) { //if this use case requires the name of the owner to distinguish, add the name of the owner. only really used on the selected time period display as multiple armies owned by multiple players can appear there
         if (a.n_ownerIndex === -1) {
@@ -111,9 +119,9 @@ const TroopsString = (a: Army, useName: boolean): string => { //gives a string r
             output = `${pa_players[a.n_ownerIndex].s_name} ` //adds the header to the output showing how many total troops the army has and the owner
         }
     }
-    output += `[${a.ta_troops.length} Battalions(s)]:<br>` //adds th e number of troops
+    output += `[${a.ta_troops.length} Battalions(s) | L: ${totalLevel} | S: ${totalHealth}]:<br>` //adds th e number of troops
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
-        output += `${troopTypes[i].n_count}x Level: ${troopTypes[i].n_level} Strength: ${Math.round(troopTypes[i].n_health * 100) / 100}<br>` //adds a line of their info to the output string
+        output += `${troopTypes[i].n_count}x Level: ${troopTypes[i].n_level} | Strength: ${Math.round(troopTypes[i].n_health * 100) / 100}<br>` //adds a line of their info to the output string
     }
     return output //returns the outputted list
 }
@@ -255,94 +263,6 @@ class BuildOrder {
     }
 }
 
-//#region Propagation Objects
-class PropagationOrder {
-
-    b_adding: boolean //refers to if this order is to add something or remove something
-
-    constructor (c_adding: boolean) {
-        this.b_adding = c_adding
-    }
-}
-
-class ResourcePropagationOrder extends PropagationOrder {
-
-    n_amount: number
-
-    constructor (c_adding: boolean, c_amount: number) {
-        super(c_adding)
-
-        this.n_amount = c_amount
-    }
-
-    ToString () {
-        return `Type: Resource | Adding: ${this.b_adding} | Amount: ${this.n_amount}`
-    }
-}
-
-class TroopPropagationOrder extends PropagationOrder {
-
-    t_target: Troop
-
-    constructor (c_adding: boolean, c_target: Troop) {
-        super(c_adding)
-        
-        //manually copy over the troop
-        this.t_target = new Troop(c_target.n_rawLevel, c_target.n_modifier, c_target.n_health)
-    }
-
-    ToString () {
-        return `Type: Troop | Adding: ${this.b_adding} | Troop: ${(this.t_target as Troop).ToString()}`
-    }
-}
-
-class BuildingPropagationOrder extends PropagationOrder {
-
-    b_target: Building
-
-    constructor (c_adding: boolean, c_target: Building) {
-        super(c_adding)
-
-        //manually copy over the building
-        this.b_target = new Building(c_target.bt_type, c_target.s_name)
-    }
-}
-
-class ConquestPropagationOrder extends PropagationOrder {
-
-    n_newOwnerIndex: number
-    n_newResources: number //resources from the time period that originated the propagation order that overrides the resources
-    ba_newBuildings: Building[] //building list from the time period that originated the propagation order that overrides the building list
-    aa_newArmies: Army[] //army list from the time period that originated the propagation order that overrides the army list
-
-    constructor (c_adding: boolean, c_newOwnerIndex: number, c_newResources: number, c_newBuildings: Building[], c_newArmies: Army[]) {
-        super(c_adding)
-
-        this.n_newOwnerIndex = c_newOwnerIndex
-        this.n_newResources = c_newResources
-        //manually copy over the buildings array
-        this.ba_newBuildings = []
-        for (let i: number = 0; i < c_newBuildings.length; i++) {
-            this.ba_newBuildings.push(new Building(c_newBuildings[i].bt_type, c_newBuildings[i].s_name))
-        }
-        //manually copy over the armies array
-        this.aa_newArmies = []
-        for (let i: number = 0; i < c_newArmies.length; i++) {
-            //copy over the troops array of the armies
-            let ta_newTroops: Troop[] = []
-            for (let j: number = 0; j < c_newArmies[i].ta_troops.length; j++) {
-                ta_newTroops.push(new Troop(c_newArmies[i].ta_troops[j].n_rawLevel, c_newArmies[i].ta_troops[j].n_modifier, c_newArmies[i].ta_troops[j].n_health))
-            }
-            this.aa_newArmies.push(new Army(c_newArmies[i].n_ownerIndex, ta_newTroops))
-        }
-    }
-
-    ToString () {
-        return `Type: Conquest | Adding: ${this.b_adding} | New Owner: ${this.n_newOwnerIndex}`
-    }
-}
-//#endregion Propagation Objects
-
 class TimePeriod {
 
     n_ownerIndex: number
@@ -356,7 +276,6 @@ class TimePeriod {
     ba_buildings: Building[]
     aa_armies: Army[]
     boa_buildQueue: BuildOrder[]
-    pa_propagationOrders: (ResourcePropagationOrder | TroopPropagationOrder | BuildingPropagationOrder | ConquestPropagationOrder)[]
     b_hasCombat: boolean
     b_propagationBlocked: boolean
     b_conquested: boolean
@@ -386,7 +305,6 @@ class TimePeriod {
         this.ba_buildings = []
         this.aa_armies = []
         this.boa_buildQueue = []
-        this.pa_propagationOrders = []
         this.b_hasCombat = false
         this.b_propagationBlocked = false
         this.b_conquested = false
@@ -480,7 +398,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { // function whic
         }
     }
     if (playerArmyIndex > -1) { // checks if the player has an army in the time period
-        timePeriodPresent.innerHTML += TroopCardList(t.aa_armies[playerArmyIndex], false, troopsTaken)//if so: writes out the troops of that army
+        timePeriodPresent.innerHTML += TroopCardList(t.aa_armies[playerArmyIndex], false, troopsTaken)// if so: writes out the troops of that army
         for (let i = 0; i < t.aa_armies[playerArmyIndex].ta_troops.length; i++) { // gives the events to the buttons
             let selectButton: HTMLButtonElement = document.getElementById(`${false}-${p}-swap-button-${i}-${troopsTaken.n_ownerIndex}`) as HTMLButtonElement
             selectButton.addEventListener('click', () => {
@@ -506,7 +424,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { // function whic
         timePeriodForTrade.innerHTML = ``
     }
     timePeriodForTrade.innerHTML += TroopCardList(troopsTaken, true, t.aa_armies[playerArmyIndex])
-    for (let i: number = 0; i < troopsTaken.ta_troops.length; i++) { //gives the events to the buttons
+    for (let i: number = 0; i < troopsTaken.ta_troops.length; i++) { // gives the events to the buttons
         let selectButton: HTMLButtonElement = document.getElementById(`${true}-${troopsTaken.n_ownerIndex}-swap-button-${i}-${p}`) as HTMLButtonElement
         selectButton.addEventListener('click', () => {
             SwapTroop(troopsTaken, i, t.aa_armies[playerArmyIndex])
@@ -558,28 +476,28 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { // function whic
 }
 
 const CloseTradeWindow = (p: number, tp: TimePeriod): void => { // cancels a trade in progress and hides the window
-    tradingWindow.style.display = "none" //hides the trade window
-    pa_players[p].n_remainingTrades += 1 //gives the player their trade action back
-    //moves all of the selected things back where they came from
-    //returns the player's resources
+    tradingWindow.style.display = "none" // hides the trade window
+    pa_players[p].n_remainingTrades += 1 // gives the player their trade action back
+    // moves all of the selected things back where they came from
+    // returns the player's resources
     pa_players[p].n_resources += resourcesGiven
     resourcesGiven = 0
-    //returns the time periods resources
+    // returns the time periods resources
     tp.n_resources += resourcesTaken
     resourcesTaken = 0
-    //returns the player's troops and sorts their army
+    // returns the player's troops and sorts their army
     troopsGiven.ta_troops.forEach((t) => pa_players[p].a_troops.ta_troops.push(t))
     pa_players[p].a_troops.ta_troops = SortTroops(pa_players[p].a_troops.ta_troops)
     troopsGiven.ta_troops = []
-    //returns the time period's troops and sorts their army
-    let playerArmyIndex: number = -1 //the index at which the player's army in the time period is. -1 by default as they might not have an army
-    for (let i: number = 0; i < tp.aa_armies.length; i++) { //finds which army in the time period belongs to the player if any
+    // returns the time period's troops and sorts their army
+    let playerArmyIndex: number = -1 // the index at which the player's army in the time period is. -1 by default as they might not have an army
+    for (let i: number = 0; i < tp.aa_armies.length; i++) { // finds which army in the time period belongs to the player if any
         if (tp.aa_armies[i].n_ownerIndex === p) {
             playerArmyIndex = i
         }
     }
-    if (playerArmyIndex > -1) { //checks if the player has an army in the time period
-        //if so: returns the troops and sorts the army
+    if (playerArmyIndex > -1) { // checks if the player has an army in the time period
+        // if so: returns the troops and sorts the army
         troopsTaken.ta_troops.forEach((t) => tp.aa_armies[playerArmyIndex].ta_troops.push(t))
         tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
         troopsTaken.ta_troops = []
@@ -646,8 +564,8 @@ const SwapResources = (player: boolean, present: boolean, playerIndex: number): 
 const SwapTroop = (start: Army, startIndex: number, target: Army): void => { // moves troops from one box to another
     target.ta_troops.push(start.ta_troops[startIndex]) // adds the troops to the target
     target.ta_troops = SortTroops(target.ta_troops) // sorts the target
-    start.ta_troops =  start.ta_troops.filter((t) => t.n_id !== start.ta_troops[startIndex].n_id) // removes the troop from where it started
-    FillInTradeWindow(start.n_ownerIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
+    start.ta_troops = start.ta_troops.filter((t) => t !== start.ta_troops[startIndex]) // removes the troop from where it started
+    FillInTradeWindow(myIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
 }
 
 const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
@@ -692,31 +610,19 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
         // swaps all the things around
         // gives the player the resources they take
         pa_players[p].n_resources += resourcesTaken
-        if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
-            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ResourcePropagationOrder(false, resourcesTaken)) //add the propagation order to propagate the trade results in next time period
-        }
         resourcesTaken = 0
         // gives the time period the resources it has been given
         tp.n_resources += resourcesGiven
-        if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
-            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ResourcePropagationOrder(true, resourcesGiven)) //add the propagation order to propagate the trade results in next time period
-        }
         resourcesGiven = 0
         // moves the taken troops to the player
         troopsTaken.ta_troops.forEach((t) => {
             pa_players[p].a_troops.ta_troops.push(t)
-            if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
-                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, t)) //add the propagation order to propagate the trade results in next time period
-            }
         })
         pa_players[p].a_troops.ta_troops = SortTroops(pa_players[p].a_troops.ta_troops)
         troopsTaken.ta_troops = []
         // moves the given troops to the time period
         troopsGiven.ta_troops.forEach((t) => {
             tp.aa_armies[playerArmyIndex].ta_troops.push(t)
-            if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { //checks if this is not the last time periods
-                pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, t)) //add the propagation order to propagate the trade results in next time period
-            }
         })
         tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
         troopsGiven.ta_troops = []
@@ -1660,16 +1566,13 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
-// -Troops list should show total power and total health along side number of troops
-// -Fix the troops disappearing during trading because a different troop with the same ID was traded
-// -Fix Trade Window Buttons
-// --Deselect
-// --Cancel
-// -Add box which shows the actions the player has taken during this turn
 // -Add button to cancel a submitted turn
 // -Fix conquest issue where conquest propagation happens right away
-// -SOme sort of screen or message after you submit to show that it reverted to before your turn while you wait
+// -Some sort of screen or message after you submit to show that it reverted to before your turn while you wait
 // -Troops should propagate after a war if they were brought in during a war
+// --Propagation orders should stay if the previous time period has war instead of clearing
+// ---This would mean that troops dying in combat needs to create a propagation  order as well as 
+//    potentially other things that happen in combat
 // -Try out some combat overhaul options to make combat feel better
 // --A hoard of tiny troops should not be able to hold off an attack forever
 // ---Big troops should be able to kill multiply tiny troops at once
