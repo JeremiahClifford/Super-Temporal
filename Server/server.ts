@@ -61,7 +61,7 @@ const CleanArmies = (): void => { // loops through every time zone and removes a
     }
 }
 
-const Combat = (a1: Army, a2: Army, fortress: number = 0): void => { // carries out combat between 2 armies. if one of the armies is the defender and has a fortress, the fortress number will be 1 or 2
+const Combat = (p: number, tp: number, a1: Army, a2: Army, fortress: number = 0): void => { // carries out combat between 2 armies. if one of the armies is the defender and has a fortress, the fortress number will be 1 or 2
     //both armies are sorted
     a1.ta_troops = SortTroops(a1.ta_troops)
     a2.ta_troops = SortTroops(a2.ta_troops)
@@ -75,9 +75,15 @@ const Combat = (a1: Army, a2: Army, fortress: number = 0): void => { // carries 
             a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
             //remove dead troops
             if (a1.ta_troops[0].n_health <= 0) {
+                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a1.ta_troops[0], a1.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+                }
                 a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
             }
             if (a2.ta_troops[0].n_health <= 0) {
+                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a2.ta_troops[0], a2.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+                }
                 a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
             }
             break;
@@ -87,9 +93,15 @@ const Combat = (a1: Army, a2: Army, fortress: number = 0): void => { // carries 
             a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
             //remove dead troops
             if (a1.ta_troops[0].n_health <= 0) {
+                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a1.ta_troops[0], a1.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+                }
                 a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
             }
             if (a2.ta_troops[0].n_health <= 0) {
+                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a2.ta_troops[0], a2.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+                }
                 a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
             }
             break;
@@ -99,9 +111,15 @@ const Combat = (a1: Army, a2: Army, fortress: number = 0): void => { // carries 
             a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier) * fortressProtectionPercent //army 2 takes less damage because they have a fortress
             //remove dead troops
             if (a1.ta_troops[0].n_health <= 0) {
+                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a1.ta_troops[0], a1.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+                }
                 a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
             }
             if (a2.ta_troops[0].n_health <= 0) {
+                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a2.ta_troops[0], a2.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+                }
                 a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
             }
             break;
@@ -314,9 +332,12 @@ class ResourcePropagationOrder extends PropagationOrder {
 class TroopPropagationOrder extends PropagationOrder {
 
     t_target: Troop
+    n_ownerIndex: number
 
-    constructor (c_adding: boolean, c_target: Troop) {
+    constructor (c_adding: boolean, c_target: Troop, c_ownerIndex: number) {
         super(c_adding)
+
+        this.n_ownerIndex = c_ownerIndex
         
         // manually copy over the troop
         this.t_target = new Troop(c_target.n_rawLevel, c_target.n_modifier, c_target.n_health)
@@ -476,7 +497,7 @@ class TimePeriod {
                         this.aa_armies[ownerArmyIndex].ta_troops.push(this.boa_buildQueue[0].tb_target as Troop) //add the troop
                     }
                     if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
-                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, new Troop(this.boa_buildQueue[0].tb_target.n_rawLevel, this.boa_buildQueue[0].tb_target.n_modifier))) //create propagation order in next time period
+                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, new Troop(this.boa_buildQueue[0].tb_target.n_rawLevel, this.boa_buildQueue[0].tb_target.n_modifier), ownerArmyIndex)) //create propagation order in next time period
                     }
                 } else { //if a building is being built
                     this.ba_buildings.push(this.boa_buildQueue[0].tb_target as Building) //add the building
@@ -490,10 +511,15 @@ class TimePeriod {
     }
 
     DoCombat = (p_pIndex: number, p_tIndex: number): void => {
+        if (this.b_conquested) { // if the time period was conquested in the previous turn, now pass on the propagation order
+            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(true, this.n_ownerIndex, this.n_resources, this.ba_buildings, this.aa_armies)) // create propagation order in next time period
+            this.b_conquested = false
+        }
+        
         this.b_hasCombat = false // resets has combat to false so if no combat takes place it is properly marked
         
         if (this.aa_armies.length === 1) { // if there is only one army in the time period
-            if (this.aa_armies[this.aa_armies.length -1].n_ownerIndex != this.n_ownerIndex) { // if the owner of the only army is different from the owner of the time period, that army conquers the time period
+            if (this.aa_armies[this.aa_armies.length - 1].n_ownerIndex != this.n_ownerIndex) { // if the owner of the only army is different from the owner of the time period, that army conquers the time period
                 this.n_ownerIndex = this.aa_armies[0].n_ownerIndex // sets the new owner
                 if (p_tIndex !== numTimePeriods - 1) { // makes sure that this time period is not the last in the list
                     pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders = [] // clears the propagation orders of the next time period as the conquest makes them redundant
@@ -511,14 +537,14 @@ class TimePeriod {
             for (let i: number = 0; i < this.aa_armies.length - 1; i++) { // loops through the armies
                 if (this.aa_armies[i].n_ownerIndex === this.n_ownerIndex) { // if the current army is the army of the time period
                     for (let j: number = i + 1; j < this.aa_armies.length; j++) {
-                        Combat(this.aa_armies[i], this.aa_armies[j], (1 * (hasFortress ? 1 : 0))) // has the troops of those armies fight each other. if there is a fortress, feed 1 into the fortress parameter, if not feed 0
+                        Combat(p_pIndex, p_tIndex, this.aa_armies[i], this.aa_armies[j], (1 * (hasFortress ? 1 : 0))) // has the troops of those armies fight each other. if there is a fortress, feed 1 into the fortress parameter, if not feed 0
                     }
                 } else {
                     for (let j: number = i + 1; j < this.aa_armies.length; j++) {
                         if (this.aa_armies[j].n_ownerIndex === this.n_ownerIndex) { // if the current second army is the army of the time period
-                            Combat(this.aa_armies[i], this.aa_armies[j], (2 * (hasFortress ? 1 : 0))) // has the troops of those armies fight each other. if there is a fortress, feed 2 into the fortress parameter, if not feed 0
+                            Combat(p_pIndex, p_tIndex, this.aa_armies[i], this.aa_armies[j], (2 * (hasFortress ? 1 : 0))) // has the troops of those armies fight each other. if there is a fortress, feed 2 into the fortress parameter, if not feed 0
                         } else { // if neither army is the army of the time period
-                            Combat(this.aa_armies[i], this.aa_armies[j]) // has the troops of those armies fight each other
+                            Combat(p_pIndex, p_tIndex, this.aa_armies[i], this.aa_armies[j]) // has the troops of those armies fight each other
                         }
                     }
                 }
@@ -527,11 +553,6 @@ class TimePeriod {
             if (this.aa_armies.length > 1) { // only adds the has combat tag if there is more than one army after combat is concluded
                 this.b_hasCombat = true
             }
-        }
-        
-        if (this.b_conquested) { // if the time period was conquested in the previous turn, now pass on the propagation order
-            pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new ConquestPropagationOrder(true, this.n_ownerIndex, this.n_resources, this.ba_buildings, this.aa_armies)) // create propagation order in next time period
-            // TEMP: // this.b_conquested = false // clear the boolean for if it was just conquested so that a new propagation order is not passed on next turn
         }
         
         if (this.aa_armies.length === 1 && this.aa_armies[this.aa_armies.length - 1].n_ownerIndex !== this.n_ownerIndex) { // if only one army remains, that player's army conquers the time period
@@ -559,7 +580,6 @@ class TimePeriod {
     }
 
     DoPropagation = (p_pIndex: number, p_tIndex: number): void => {
-        // TEMP: Testing | if (!this.b_hasCombat) { // only does propagation if there is no combat
         if (!pa_planets[p_pIndex].ta_timePeriods[p_tIndex - 1].b_hasCombat) { // only does propagation if the previous time period does not have combat
             this.pa_propagationOrders.forEach((po) => {
                 if (po.constructor === ResourcePropagationOrder) { // handles resource propagation orders
@@ -579,23 +599,23 @@ class TimePeriod {
                 if (po.constructor === TroopPropagationOrder && !this.b_propagationBlocked) { // handles troop propagation orders if this time period is not propagation blocked
                     if (po.b_adding) { // if the troop is being added
                         if (this.aa_armies.length === 0) { // if there is no army to put the troops in
-                            this.aa_armies.push(new Army(this.n_ownerIndex, [])) // add an army to put the troop in
+                            this.aa_armies.push(new Army(po.n_ownerIndex, [])) // add an army to put the troop in
                         }
                         this.aa_armies[0].ta_troops.push((po.t_target as Troop)) // adds the troop
                         this.aa_armies[0].ta_troops[this.aa_armies[0].ta_troops.length - 1].ProgressIntegration(this.n_rawLevel) // increases the level of the troop before the propagation order is passed on but after it has been added so that when it is processed in the next time period it is already the proper level
                         this.aa_armies[0].ta_troops = SortTroops(this.aa_armies[0].ta_troops) // sorts the army with the new troop
                     } else { // if the troop is being removed
                         if (this.aa_armies.length > 0) {
-                            for (let i: number = 0; i < this.aa_armies[0].ta_troops.length; i++) {
-                                if (this.aa_armies[0].ta_troops[i].n_id === po.t_target.n_id) {
-                                    this.aa_armies[0].ta_troops = this.aa_armies[0].ta_troops.filter((t) => t.n_id !== po.t_target.n_id) // removes the troop that matches
+                            for (let i: number = 0; i < this.aa_armies[po.n_ownerIndex].ta_troops.length; i++) {
+                                if (this.aa_armies[po.n_ownerIndex].ta_troops[i].n_id === po.t_target.n_id) {
+                                    this.aa_armies[po.n_ownerIndex].ta_troops = this.aa_armies[po.n_ownerIndex].ta_troops.filter((t) => t.n_id !== po.t_target.n_id) // removes the troop that matches
                                 } // if no troop matches, none are removed
                             }
                         }
                     }
                     // adds a new propagation order for the next time period to continue the propagation down the timeline
                     if (p_tIndex !== pa_planets[p_pIndex].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(po.b_adding, po.t_target)) // add the new propagation order, manually copied, to the next time period
+                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(po.b_adding, po.t_target, po.n_ownerIndex)) // add the new propagation order, manually copied, to the next time period
                     }
                 }
                 if (po.constructor === BuildingPropagationOrder && !this.b_propagationBlocked) { // handles building propagation orders if this time period is not propagation blocked
@@ -615,8 +635,6 @@ class TimePeriod {
                     }
                 }
                 if (po.constructor === ConquestPropagationOrder && !this.b_propagationBlocked) { // handles conquest propagation orders if this time period is not propagation blocked
-                    pa_planets[p_pIndex].ta_timePeriods[p_tIndex - 1].b_conquested = false // clear the boolean for if the last timer period was just conquested so that a new propagation order is not passed on next turn
-                    
                     // override the various attributes
                     this.n_ownerIndex = po.n_newOwnerIndex
                     this.n_resources = po.n_newResources
@@ -629,8 +647,8 @@ class TimePeriod {
                     }
                 }
             })
+            this.pa_propagationOrders = [] // clears out the propagation order list when they have all been done
         }
-        this.pa_propagationOrders = [] // clears out the propagation order list when they have all been done
     }
 }
 
@@ -716,7 +734,7 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
         tTaken.forEach((t) => {
             pa_players[currentTurnIndex].a_troops.ta_troops.push(t)
             if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, t)) // add the propagation order to propagate the trade results in next time period
+                pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, t, currentTurnIndex)) // add the propagation order to propagate the trade results in next time period
             }
             for (let i: number = 0; i < pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops.length; i++) { // go through the time period's troops and remove the matching troop
                 if (pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops[i].n_id === t.n_id) {
@@ -729,7 +747,7 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
         tGiven.forEach((t) => {
             pa_planets[p].ta_timePeriods[tp].aa_armies[playerArmyIndex].ta_troops.push(t)
             if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, t)) // add the propagation order to propagate the trade results in next time period
+                pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, t, currentTurnIndex)) // add the propagation order to propagate the trade results in next time period
             }
             for (let i: number = 0; i < pa_players[currentTurnIndex].a_troops.ta_troops.length; i++) { // go through the player's troops and remove the matching troop
                 if (pa_players[currentTurnIndex].a_troops.ta_troops[i].n_id === t.n_id) {

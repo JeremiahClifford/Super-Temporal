@@ -325,24 +325,24 @@ Notes:
 --Probably the same ID which is checked in the transfer function [Me] ---
 -Troops should have a better name [Ben] ---
 --Battalion, Platoon, etc ---
+-Being unable to un-submit turns became annoying if someone submitted early by mistake [Many] ---
+-Troops wont propagate if they are brought in during a war, even if they survive the war [Me]---
+-Sometimes take 2 planets when conquering [Many] ---
+--Probably an issue with conquering and then propagation happening in the same turn [Me] ---
 
--Power levels should be hidden until you take a planet [Ben]
--What does scorched earth do [Ben]
--Lot of double clicks. Submitting 2 turns, building 2 troops [Ben+Dan]
-
--Being unable to un-submit turns became annoying if someone submitted early by mistake [Many]
--Troops wont propagate if they are brought in during a war, even if they survive the war [Me]
 -Something should show after you hit submit to make it clear that your game board has reverted to
  before you took your turn [Me]
- -Time period controls stayed up when selecting a time period where they shouldn't [Me]
- -Trade button disappeared when should have had 1 use left [Ben]
--Sometimes take 2 planets when conquering [Many]
---Probably an issue with conquering and then propagation happening in the same turn [Me]
 -Combat feels kinda dumb and simplistic [Dan+Me]
 --Damage dealt should probably be a ratio comparing the power levels of each troop [Me]
 --With only 1 troop max dying per round, spamming small troops onto a time period can make a
   battle last literally forever. [Me]
 ---A big troop should probably be able to kill multiple tiny troops at once. [Me]
+
+-Power levels should be hidden until you take a planet [Ben]
+-What does scorched earth do [Ben]
+-Lot of double clicks. Submitting 2 turns, building 2 troops [Ben+Dan]
+-Time period controls stayed up when selecting a time period where they shouldn't [Me]
+-Trade button disappeared when should have had 1 use left [Ben]
 
 =====================================================================================
 
@@ -354,26 +354,13 @@ Changes:
 -Players only start with 1 troop
 -Turn counter and list of actions taken thus far on UI
 -Army lists now show a total level and total health
+-Propagation will now happen properly when a time period is conquested and another player immediately attacks that time
+ time period. It will happen after the war resolves.
 
 Things to Watch:
 -Duplicate players in the player list display. This shouldn't happen as the list is cleared when
  drawn but Dan and I have both seen it
 -Do buildings still feel too expensive once you get deeper
--Do the time periods feel TOO similar and unimportant.
---Should the variation in resource production be larger between time periods
---Should we move to a multiple resource type system where certain time periods are better for
-  certain resources
----Could do 3 types of resources, each time period generates a balanced randomized amount of each
-   and the troops and buildings in each time period take a balance randomized amount of each so
-   the best troops may take resources that you have to get more of from other time periods so that
-   some time periods are valuable for a certain type of resource and some are valuable for the
-   quality of its troops.
-----Balanced in the way that troop quality is balanced to resource gen: as one gets higher the
-    other gets lower.
------Have a set number for total resources generated, probably the one I have now which is
-     proportional to the troop quality; and take a random percentage of that for the first
-     resource, then another random percentage of the remaining amount for the second resource,
-     then the remainder for the third resource
 
 Players:
 -

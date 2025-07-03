@@ -119,7 +119,7 @@ const TroopsString = (a: Army, useName: boolean): string => { //gives a string r
             output = `${pa_players[a.n_ownerIndex].s_name} ` //adds the header to the output showing how many total troops the army has and the owner
         }
     }
-    output += `[${a.ta_troops.length} Battalions(s) | L: ${totalLevel} | S: ${totalHealth}]:<br>` //adds th e number of troops
+    output += `[${a.ta_troops.length} Battalions(s) | L: ${Math.round(totalLevel * 100) / 100} | S: ${Math.round(totalHealth * 100) / 100}]:<br>` //adds th e number of troops
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
         output += `${troopTypes[i].n_count}x Level: ${troopTypes[i].n_level} | Strength: ${Math.round(troopTypes[i].n_health * 100) / 100}<br>` //adds a line of their info to the output string
     }
@@ -1476,7 +1476,11 @@ const Initialize = (): void => {
         pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth = !pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].b_scorchedEarth // toggles the scorched earth of the selected time period
         DrawBoard() // redraws the board
     }) // makes the scorched earth button work
-    endTurnButton.addEventListener("click", () => SubmitTurn()) // end turn button functionality, makes the end turn button run the AdvanceTurn() function
+    endTurnButton.addEventListener("click", () => {
+        if (window.getComputedStyle(tradingWindow).display !== 'block' && window.getComputedStyle(buildingWindow).display !== 'block') {
+            SubmitTurn()
+        }
+    }) // end turn button functionality, makes the end turn button run the AdvanceTurn() function
     cancelTurnButton.addEventListener("click", () => CancelTurn()) // cancel turn button functionality
     cancelTurnButton.style.display = 'none'
 
@@ -1592,12 +1596,7 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
-// -Fix conquest issue where conquest propagation happens right away
 // -Some sort of screen or message after you submit to show that it reverted to before your turn while you wait
-// -Troops should propagate after a war if they were brought in during a war
-// --Propagation orders should stay if the previous time period has war instead of clearing
-// ---This would mean that troops dying in combat needs to create a propagation  order as well as 
-//    potentially other things that happen in combat
 // -Try out some combat overhaul options to make combat feel better
 // --A hoard of tiny troops should not be able to hold off an attack forever
 // ---Big troops should be able to kill multiply tiny troops at once
@@ -1609,3 +1608,18 @@ ShowLogin() // begin the login process to start the game
 // -Buildings feel too expensive in tests
 // --Maybe make them cheaper
 // --Maybe make the warehouse cheaper and, if needed, buff it
+// -Do the time periods feel TOO similar and unimportant.
+// --Should the variation in resource production be larger between time periods
+// --Should we move to a multiple resource type system where certain time periods are better for
+//   certain resources
+// ---Could do 3 types of resources, each time period generates a balanced randomized amount of each
+//    and the troops and buildings in each time period take a balance randomized amount of each so
+//    the best troops may take resources that you have to get more of from other time periods so that
+//    some time periods are valuable for a certain type of resource and some are valuable for the
+//    quality of its troops.
+// ----Balanced in the way that troop quality is balanced to resource gen: as one gets higher the
+//     other gets lower.
+// -----Have a set number for total resources generated, probably the one I have now which is
+//      proportional to the troop quality; and take a random percentage of that for the first
+//      resource, then another random percentage of the remaining amount for the second resource,
+//      then the remainder for the third resource
