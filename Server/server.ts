@@ -70,6 +70,68 @@ const Combat = (p: number, tp: number, a1: Army, a2: Army, fortress: number = 0)
     }
     switch (fortress) {
         case 0: //neither army has a fortress
+            /* Test for a new way to do combat [Not Working]
+            // find which army troop has the highest raw level (combat width)
+            if (a1.ta_troops[0].n_rawLevel === a2.ta_troops[0].n_rawLevel) { // if they are equal, they damage each other
+                //both troops deal damage to each other
+                a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
+                a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
+                //remove dead troops
+                if (a1.ta_troops[0].n_health <= 0) {
+                    if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+                        pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a1.ta_troops[0], a1.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+                    }
+                    a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
+                }
+                if (a2.ta_troops[0].n_health <= 0) {
+                    if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+                        pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a2.ta_troops[0], a2.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+                    }
+                    a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
+                }
+            }
+            if (a1.ta_troops[0].n_rawLevel > a2.ta_troops[0].n_rawLevel) { // if army 1 bigger, match that troop against multiple from a2
+                let targetWidth: number = a1.ta_troops[0].n_rawLevel
+                let enemyWidth: number = 0;
+                let enemyFormation: number[] = []
+
+                for (let i: number = 0; i < a2.ta_troops.length; i++) { // go through the troops and add as many as we can to fit under the combat width
+                    if (a2.ta_troops[i].n_rawLevel <= (targetWidth - enemyWidth)) {
+                        enemyWidth += a2.ta_troops[i].n_rawLevel
+                        enemyFormation.push(i)
+                    }
+                }
+
+                enemyFormation.forEach((t) => { // troops do damage to each other
+                    a1.ta_troops[0].n_health -= (a2.ta_troops[t].n_level + a2.ta_troops[t].n_modifier)
+                    a2.ta_troops[t].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
+                })
+
+                // remove any dead troops
+                a1.ta_troops = a1.ta_troops.filter((t) => t.n_health > 0)
+                a2.ta_troops = a2.ta_troops.filter((t) => t.n_health > 0)
+            }
+            if (a1.ta_troops[0].n_rawLevel < a2.ta_troops[0].n_rawLevel) { // if army 2 bigger, match that troop against multiple from a1
+                let targetWidth: number = a2.ta_troops[0].n_rawLevel
+                let enemyWidth: number = 0;
+                let enemyFormation: number[] = []
+
+                for (let i: number = 0; i < a1.ta_troops.length; i++) { // go through the troops and add as many as we can to fit under the combat width
+                    if (a1.ta_troops[i].n_rawLevel <= (targetWidth - enemyWidth)) {
+                        enemyWidth += a1.ta_troops[i].n_rawLevel
+                        enemyFormation.push(i)
+                    }
+                }
+
+                enemyFormation.forEach((t) => { // troops do damage to each other
+                    a2.ta_troops[0].n_health -= (a1.ta_troops[t].n_level + a1.ta_troops[t].n_modifier)
+                    a1.ta_troops[t].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
+                })
+
+                // remove any dead troops
+                a1.ta_troops = a1.ta_troops.filter((t) => t.n_health > 0)
+                a2.ta_troops = a2.ta_troops.filter((t) => t.n_health > 0)
+            }*/
             //both troops deal damage to each other
             a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
             a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
