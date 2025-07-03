@@ -1313,11 +1313,11 @@ const FetchState = ():void => {
 const Refresh = (): void => {
     pa_players = [] // resets the list of players in the game
     pa_planets = [] // resets the list of planets in the game
+    
+    FetchState() // fetches the gamestate from the server
 
     tradingWindow.style.display = 'none' // hides the trading window as it is not in use when the game start
-    buildingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
-
-    FetchState() // fetches the gamestate from the server
+    buildingWindow.style.display = 'none' // hides the building window as it is not in use when the game start
 }
 
 const Initialize = (): void => {
@@ -1336,6 +1336,7 @@ const Initialize = (): void => {
 
     tradingWindow.style.backgroundColor = boardBackgroundColor // set the background color of the trading window
     buildingWindow.style.backgroundColor = boardBackgroundColor // sets the background color of the building window
+
     // sets up the central position of the trading window
     tradingWindow.style.position = 'fixed'
     tradingWindow.style.left = '5%'
@@ -1519,7 +1520,7 @@ const ShowLogin = (): void => {
     buildingWindow.style.position = 'fixed'
     buildingWindow.style.left = '25%'
     buildingWindow.style.top = '100px'
-    buildingWindow.style.display = 'none' //hides the trading window as it is not in use when the game start
+    buildingWindow.style.display = 'none' // hides the trading window as it is not in use when the game start
 }
 
 const AttemptLogin = (): void => {
@@ -1596,7 +1597,6 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
-// -Some sort of screen or message after you submit to show that it reverted to before your turn while you wait
 // -Try out some combat overhaul options to make combat feel better
 // --A hoard of tiny troops should not be able to hold off an attack forever
 // ---Big troops should be able to kill multiply tiny troops at once
@@ -1605,9 +1605,11 @@ ShowLogin() // begin the login process to start the game
 // Future changes to test:
 // -Revisit how combat is resolved, may not be working as intended
 // --A high level troop took what seemed like way too much damage from a very low level troop
+//
 // -Buildings feel too expensive in tests
 // --Maybe make them cheaper
 // --Maybe make the warehouse cheaper and, if needed, buff it
+//
 // -Do the time periods feel TOO similar and unimportant.
 // --Should the variation in resource production be larger between time periods
 // --Should we move to a multiple resource type system where certain time periods are better for

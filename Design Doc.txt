@@ -329,9 +329,9 @@ Notes:
 -Troops wont propagate if they are brought in during a war, even if they survive the war [Me]---
 -Sometimes take 2 planets when conquering [Many] ---
 --Probably an issue with conquering and then propagation happening in the same turn [Me] ---
-
 -Something should show after you hit submit to make it clear that your game board has reverted to
- before you took your turn [Me]
+ before you took your turn [Me] ---
+
 -Combat feels kinda dumb and simplistic [Dan+Me]
 --Damage dealt should probably be a ratio comparing the power levels of each troop [Me]
 --With only 1 troop max dying per round, spamming small troops onto a time period can make a
