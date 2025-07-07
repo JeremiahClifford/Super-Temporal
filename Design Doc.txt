@@ -336,9 +336,9 @@ Notes:
 --With only 1 troop max dying per round, spamming small troops onto a time period can make a
   battle last literally forever. [Me] ---
 ---A big troop should probably be able to kill multiple tiny troops at once. [Me] ---
+-What does scorched earth do [Ben] ---
 
 -Power levels should be hidden until you take a planet [Ben]
--What does scorched earth do [Ben]
 -Lot of double clicks. Submitting 2 turns, building 2 troops [Ben+Dan]
 -Time period controls stayed up when selecting a time period where they shouldn't [Me]
 -Trade button disappeared when should have had 1 use left [Ben]
@@ -366,6 +366,9 @@ Things to Watch:
 
 Players:
 -
+
+Pregame Notes:
+-Adding resources will propagate through a block unless you activate scorched earth
 
 Notes:
 -
