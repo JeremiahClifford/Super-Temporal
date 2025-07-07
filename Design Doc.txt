@@ -331,12 +331,11 @@ Notes:
 --Probably an issue with conquering and then propagation happening in the same turn [Me] ---
 -Something should show after you hit submit to make it clear that your game board has reverted to
  before you took your turn [Me] ---
-
--Combat feels kinda dumb and simplistic [Dan+Me]
+-Combat feels kinda dumb and simplistic [Dan+Me] ---
 --Damage dealt should probably be a ratio comparing the power levels of each troop [Me]
 --With only 1 troop max dying per round, spamming small troops onto a time period can make a
-  battle last literally forever. [Me]
----A big troop should probably be able to kill multiple tiny troops at once. [Me]
+  battle last literally forever. [Me] ---
+---A big troop should probably be able to kill multiple tiny troops at once. [Me] ---
 
 -Power levels should be hidden until you take a planet [Ben]
 -What does scorched earth do [Ben]
@@ -356,11 +355,14 @@ Changes:
 -Army lists now show a total level and total health
 -Propagation will now happen properly when a time period is conquested and another player immediately attacks that time
  time period. It will happen after the war resolves.
+-New Combat algorithm means that 1 large troop will be able to engage many small troops in one turn
 
 Things to Watch:
 -Duplicate players in the player list display. This shouldn't happen as the list is cleared when
  drawn but Dan and I have both seen it
 -Do buildings still feel too expensive once you get deeper
+-Is damage dealt in combat bad feelings?
+--Should damage dealt should probably be a ratio comparing the power levels of each troop
 
 Players:
 -
