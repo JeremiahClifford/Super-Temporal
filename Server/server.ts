@@ -675,35 +675,37 @@ class TimePeriod {
     }
 
     ProgressBuildQueue = (p_pIndex: number, p_tIndex: number): void => {
-        if (this.boa_buildQueue.length > 0) { //makes sure to run the progression only if there is something in the queue
-            this.boa_buildQueue[0].n_turnsRemaining-- //reduces the turns remaining by 1
-            if (this.boa_buildQueue[0].n_turnsRemaining <= 0) { //if the build order has no turns remaining
-                if (this.boa_buildQueue[0].tb_target.constructor === Troop) { //if a troop is being trained
-                    //finds which army, if any, is the owner's
+        if (this.boa_buildQueue.length > 0) { // makes sure to run the progression only if there is something in the queue
+            this.boa_buildQueue[0].n_turnsRemaining-- // reduces the turns remaining by 1
+            if (this.boa_buildQueue[0].n_turnsRemaining <= 0) { // if the build order has no turns remaining
+                if (this.boa_buildQueue[0].tb_target.constructor === Troop) { // if a troop is being trained
+                    console.log(`Creating troop: ${this.boa_buildQueue[0].tb_target} in [${p_pIndex}, ${p_tIndex}]`) // LOG:
+                    // finds which army, if any, is the owner's
                     let ownerArmyIndex: number = -1
                     for (let i: number = 0; i < this.aa_armies.length; i++) {
                         if (this.aa_armies[i].n_ownerIndex === this.n_ownerIndex) {
                             ownerArmyIndex = i
                         }
                     }
-                    //add the troop to the army
-                    if (ownerArmyIndex > -1) { //if the owner has an army present
-                        this.aa_armies[ownerArmyIndex].ta_troops.push(this.boa_buildQueue[0].tb_target as Troop) //add the troop
-                    } else { //if they don't
-                        this.aa_armies.push(new Army(this.n_ownerIndex, [])) //Make one
-                        ownerArmyIndex = this.aa_armies.length -1 //set the owner index
-                        this.aa_armies[ownerArmyIndex].ta_troops.push(this.boa_buildQueue[0].tb_target as Troop) //add the troop
+                    // add the troop to the army
+                    if (ownerArmyIndex > -1) { // if the owner has an army present
+                        this.aa_armies[ownerArmyIndex].ta_troops.push(this.boa_buildQueue[0].tb_target as Troop) // add the troop
+                    } else { // if they don't
+                        this.aa_armies.push(new Army(this.n_ownerIndex, [])) // Make one
+                        ownerArmyIndex = this.aa_armies.length - 1 // set the owner index
+                        this.aa_armies[ownerArmyIndex].ta_troops.push(this.boa_buildQueue[0].tb_target as Troop) // add the troop
                     }
-                    if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
+                    if (p_tIndex !== numTimePeriods - 1) { // makes sure that this time period is not the last in the list
                         pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, new Troop(this.boa_buildQueue[0].tb_target.n_rawLevel, this.boa_buildQueue[0].tb_target.n_modifier), ownerArmyIndex)) //create propagation order in next time period
                     }
-                } else { //if a building is being built
-                    this.ba_buildings.push(this.boa_buildQueue[0].tb_target as Building) //add the building
-                    if (p_tIndex !== numTimePeriods - 1) { //makes sure that this time period is not the last in the list
-                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new BuildingPropagationOrder(true, this.boa_buildQueue[0].tb_target as Building)) //creates the propagation order in the next time period
+                } else { // if a building is being built
+                    console.log(`Creating building: ${this.boa_buildQueue[0].tb_target} in [${p_pIndex}, ${p_tIndex}]`) // LOG:
+                    this.ba_buildings.push(this.boa_buildQueue[0].tb_target as Building) // add the building
+                    if (p_tIndex !== numTimePeriods - 1) { // makes sure that this time period is not the last in the list
+                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new BuildingPropagationOrder(true, this.boa_buildQueue[0].tb_target as Building)) // creates the propagation order in the next time period
                     }
                 }
-                this.boa_buildQueue.shift() //remove the completed build from the queue
+                this.boa_buildQueue.shift() // remove the completed build from the queue
             }
         }
     }
@@ -804,10 +806,18 @@ class TimePeriod {
                         this.aa_armies[0].ta_troops = SortTroops(this.aa_armies[0].ta_troops) // sorts the army with the new troop
                     } else { // if the troop is being removed
                         if (this.aa_armies.length > 0) {
-                            for (let i: number = 0; i < this.aa_armies[po.n_ownerIndex].ta_troops.length; i++) {
-                                if (this.aa_armies[po.n_ownerIndex].ta_troops[i].n_id === po.t_target.n_id) {
-                                    this.aa_armies[po.n_ownerIndex].ta_troops = this.aa_armies[po.n_ownerIndex].ta_troops.filter((t) => t.n_id !== po.t_target.n_id) // removes the troop that matches
-                                } // if no troop matches, none are removed
+                            let armyIndex: number = -1
+                            for (let i: number = 0; i < this.aa_armies.length; i++) {
+                                if (this.aa_armies[i].n_ownerIndex === po.n_ownerIndex) { // find the player's army's index
+                                    armyIndex = i
+                                }
+                            }
+                            if (armyIndex !== -1) { // make sure there is an army to take from
+                                for (let i: number = 0; i < this.aa_armies[armyIndex].ta_troops.length; i++) {
+                                    if (this.aa_armies[armyIndex].ta_troops[i].n_id === po.t_target.n_id) {
+                                        this.aa_armies[armyIndex].ta_troops = this.aa_armies[armyIndex].ta_troops.filter((t) => t.n_id !== po.t_target.n_id) // removes the troop that matches
+                                    } // if no troop matches, none are removed
+                                }
                             }
                         }
                     }
@@ -835,7 +845,7 @@ class TimePeriod {
                 if (po.constructor === ConquestPropagationOrder && !this.b_propagationBlocked) { // handles conquest propagation orders if this time period is not propagation blocked
                     // override the various attributes
                     this.n_ownerIndex = po.n_newOwnerIndex
-                    this.n_resources = po.n_newResources
+                    this.n_resources = po.n_newResources + this.n_resourceProduction
                     this.ba_buildings = po.ba_newBuildings
                     this.aa_armies = po.aa_newArmies
                     this.aa_armies.forEach((a) => a.DoIntegration(this.n_rawLevel)) // integrates the armies so they are the proper level when propagated to the next time period
