@@ -3,3 +3,5 @@ node_modules
 .vscode
 Builds
 log.txt
+err.txt
+logs

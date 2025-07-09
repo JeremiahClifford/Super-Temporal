@@ -175,10 +175,14 @@ body {
         border-radius: 10px;
         border-bottom-left-radius: 0px;
         border-bottom-right-radius: 0px;
-    }
+    
+        &:hover {
+            border-color: rgba(235, 136, 55, 0.993);
+        }
 
-    button:hover {
-        border-color: rgba(235, 136, 55, 0.993);
+        &:active {
+            background-color: rgba(151, 248, 255, 0.767);
+        }
     }
 }
 
@@ -237,10 +241,14 @@ body {
 
         border: 2px solid rgb(107, 107, 107);
         border-radius: 10px;
-    }
 
-    button:hover {
-        border-color: rgba(235, 136, 55, 0.993);
+        &:hover {
+            border-color: rgba(235, 136, 55, 0.993);
+        }
+
+        &:active {
+            background-color: rgba(151, 248, 255, 0.767);
+        }
     }
 }
 
@@ -354,10 +362,14 @@ body {
     border-radius: 10px;
 
     background-color: white;
-}
 
-.control-button:hover {
-    border-color: rgba(235, 136, 55, 0.993);
+    &:hover {
+        border-color: rgba(235, 136, 55, 0.993);
+    }
+
+    &:active {
+        background-color: rgba(151, 248, 255, 0.767);
+    }
 }
 
 #middle-section {
@@ -402,10 +414,14 @@ body {
         border-radius: 10px;
 
         background-color: white;
-    }
 
-    button:hover {
-        border-color: rgba(235, 136, 55, 0.993);
+        &:hover {
+            border-color: rgba(235, 136, 55, 0.993);
+        }
+
+        &:active {
+            background-color: rgba(151, 248, 255, 0.767);
+        }
     }
 }
 
@@ -486,10 +502,16 @@ body {
 
         border: 2px solid rgb(107, 107, 107);
         border-radius: 15px;
-    }
 
-    button:hover {
-        background-color: rgba(87, 216, 246, 0.57);
+        background-color: white;
+
+        &:hover {
+            border-color: rgba(235, 136, 55, 0.993);
+        }
+
+        &:active {
+            background-color: rgba(151, 248, 255, 0.767);
+        }
     }
 }
 
@@ -570,14 +592,18 @@ body {
         border: 2px solid black;
         border-radius: 25px;
 
+        &:hover {
+            border-color: rgba(235, 136, 55, 0.993);
+        }
+
+        &:active {
+            background-color: rgba(151, 248, 255, 0.767);
+        }
+
         h3 {
             margin-top: auto;
             margin-bottom: auto;
         }
-    }
-
-    button:hover {
-        border-color: rgba(235, 136, 55, 0.993);
     }
 }
 
