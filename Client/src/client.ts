@@ -1060,16 +1060,16 @@ const DrawBoard = (): void => {
             for (let i: number = 1; i < turnActions.Details.length; i++) {
                 switch (turnActions.Details[i].Type) {
                     case "Move":
-                        turnListSpot.innerHTML += `Move to ${JSON.stringify(turnActions.Details[i].NewLocation)}<br>`
+                        turnListSpot.innerHTML += `Move to ${pa_planets[turnActions.Details[i].NewLocation[0]].s_name} : ${turnActions.Details[i].NewLocation[1] + 1}<br>`
                         break;
                     case "Trade":
-                        turnListSpot.innerHTML += `Trade at ${JSON.stringify(turnActions.Details[i].TargetTimePeriod)}<br>`
+                        turnListSpot.innerHTML += `Trade at ${pa_planets[turnActions.Details[i].TargetTimePeriod[0]].s_name} : ${turnActions.Details[i].TargetTimePeriod[1] + 1}<br>`
                         break;
                     case "Build":
-                        turnListSpot.innerHTML += `Build ${JSON.stringify(turnActions.Details[i].BuildingType)} at ${JSON.stringify(turnActions.Details[i].Planet)}, ${JSON.stringify(turnActions.Details[i].TimePeriod)}<br>`
+                        turnListSpot.innerHTML += `Build ${BuildingType[turnActions.Details[i].BuildingType].toString()} at ${pa_planets[turnActions.Details[i].Planet].s_name} : ${turnActions.Details[i].TimePeriod + 1}<br>`
                         break;
                     case "Train":
-                        turnListSpot.innerHTML += `Train Troop at ${JSON.stringify(turnActions.Details[i].Planet)}, ${JSON.stringify(turnActions.Details[i].TimePeriod)}<br>`
+                        turnListSpot.innerHTML += `Train Troop at ${pa_planets[turnActions.Details[i].Planet].s_name} : ${turnActions.Details[i].TimePeriod + 1}<br>`
                         break;
                 }
             }
