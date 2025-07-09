@@ -1054,23 +1054,27 @@ const DrawBoard = (): void => {
         endTurnButton.style.display= `none`
     } else {
         // fill in the current turn section
-        turnNumberSpot.innerHTML = `Current Turn: ${turnNumber}`
-        turnListSpot.innerHTML = ``
-        for (let i: number = 1; i < turnActions.Details.length; i++) {
-            switch (turnActions.Details[i].Type) {
-                case "Move":
-                    turnListSpot.innerHTML += `Move to ${JSON.stringify(turnActions.Details[i].NewLocation)}<br>`
-                    break;
-                case "Trade":
-                    turnListSpot.innerHTML += `Trade at ${JSON.stringify(turnActions.Details[i].TargetTimePeriod)}<br>`
-                    break;
-                case "Build":
-                    turnListSpot.innerHTML += `Build ${JSON.stringify(turnActions.Details[i].BuildingType)} at ${JSON.stringify(turnActions.Details[i].Planet)}, ${JSON.stringify(turnActions.Details[i].TimePeriod)}<br>`
-                    break;
-                case "Train":
-                    turnListSpot.innerHTML += `Train Troop at ${JSON.stringify(turnActions.Details[i].Planet)}, ${JSON.stringify(turnActions.Details[i].TimePeriod)}<br>`
-                    break;
+        if (!pa_players[myIndex].b_hasSubmitted) { // if its the player's turn
+            turnNumberSpot.innerHTML = `Current Turn: ${turnNumber}`
+            turnListSpot.innerHTML = ``
+            for (let i: number = 1; i < turnActions.Details.length; i++) {
+                switch (turnActions.Details[i].Type) {
+                    case "Move":
+                        turnListSpot.innerHTML += `Move to ${JSON.stringify(turnActions.Details[i].NewLocation)}<br>`
+                        break;
+                    case "Trade":
+                        turnListSpot.innerHTML += `Trade at ${JSON.stringify(turnActions.Details[i].TargetTimePeriod)}<br>`
+                        break;
+                    case "Build":
+                        turnListSpot.innerHTML += `Build ${JSON.stringify(turnActions.Details[i].BuildingType)} at ${JSON.stringify(turnActions.Details[i].Planet)}, ${JSON.stringify(turnActions.Details[i].TimePeriod)}<br>`
+                        break;
+                    case "Train":
+                        turnListSpot.innerHTML += `Train Troop at ${JSON.stringify(turnActions.Details[i].Planet)}, ${JSON.stringify(turnActions.Details[i].TimePeriod)}<br>`
+                        break;
+                }
             }
+        } else { // if they have already submitted
+            turnListSpot.innerHTML = `You have submitted your turn. Wait for other players to submit. Game Board currently shows state from before your turn.`
         }
 
         if (pa_players[myIndex].na_location[0] === -1 && myIndex !== -1) { // checks if the player has not yet gone to a time period

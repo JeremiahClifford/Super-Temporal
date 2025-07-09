@@ -1,6 +1,3 @@
-import { hasSubscribers } from "diagnostics_channel"
-import { json } from "stream/consumers"
-
 // data from the json files
 let settings = require('./data/settings.json') // settings that the server are setup on
 let playerListJSON = require('./data/playerList.json') // list of players that will be in the game
@@ -384,7 +381,7 @@ class Player {
 
         this.b_hasSubmitted = false
 
-        console.log(`Turn Started`) //LOG:
+        console.log(`Turn Started: PlayerIndex ${this.a_troops.n_ownerIndex}`) //LOG:
     }
 
     EndTurn = (): void => {
@@ -393,7 +390,7 @@ class Player {
 
         this.b_hasSubmitted = true
 
-        console.log(`Turn Ended`) //LOG:
+        console.log(`Turn Ended: PlayerIndex ${this.a_troops.n_ownerIndex}`) //LOG:
     }
 }
 
@@ -979,7 +976,7 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
 //#region Main Game Logic
 let pa_players: Player[] = [] // stores the list of players in the game
 
-for (let i: number = 0; i < playerListJSON.Players.length; i++) {
+for (let i: number = 0; i < playerListJSON.Players.length; i++) { // import players from player file
     const playerIn: Player = new Player(i, playerListJSON.Players[i])
     pa_players.push(playerIn)
 }
@@ -997,7 +994,7 @@ const doPlayerMove = (turnSubmitted: any): void => {
             if (turnSubmitted.Details[i].Type === "Move") { // if its a move
                 pa_players[turnSubmitted.Details[0].CurrentTurnIndex].n_remainingMoves -= 1 // takes one of the player's move actions on the server
                 pa_players[turnSubmitted.Details[0].CurrentTurnIndex].na_location = [turnSubmitted.Details[i].NewLocation[0], turnSubmitted.Details[i].NewLocation[1]] // moves the player on the server
-                console.log(`Player Moved`) // LOG:
+                console.log(`Player ${turnSubmitted.Details[0].CurrentTurnIndex} Moved`) // LOG:
             }
             if (turnSubmitted.Details[i].Type === "Trade") { // if its a trade
                 pa_players[turnSubmitted.Details[0].CurrentTurnIndex].n_remainingTrades -= 1 // takes one of the player's trade actions
@@ -1070,7 +1067,7 @@ const AdvanceTurn = (): void => { // ends the current turn and starts the next o
 const Initialize = (): void => {
     gameID = Math.random()
     responseFile.gameID = gameID
-    turnNumber = 0
+    turnNumber = 1
     responseFile.turnNumber = turnNumber
 
     pa_players.forEach((p) => p.StartTurn())
@@ -1336,7 +1333,7 @@ app.post("/submitturn", (request: any, response: any) => {
 app.post("/cancelturn", (request: any, response: any) => {
     const requestSubmitted = JSON.parse(JSON.stringify(request.body)) // ingest the request data
 
-    console.log(`Request Submitted: ${JSON.stringify(requestSubmitted)}`) // log the submitted turn in the console
+    console.log(`Retract Request Submitted: ${JSON.stringify(requestSubmitted)}`) // log the submitted turn in the console
 
     submittedTurns = submittedTurns.filter((t) => t.Details[0].CurrentTurnIndex !== requestSubmitted.PlayerIndex) // filter the turn of the requesting player out of the turn list
     pa_players[requestSubmitted.PlayerIndex].StartTurn()
