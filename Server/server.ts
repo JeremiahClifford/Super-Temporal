@@ -7,7 +7,6 @@ let responseFile = require('./data/responseFile.json')
 //--------------Tunable Values------------------
 //----------------------------------------------
 
-//#region Tunable Values
 // These all come in from the settings
 const numPlanets: number = settings.Game.numPlanets // number of planets that the game should have
 const numTimePeriods: number = settings.Game.numTimePeriods // stores how many time periods each planet should have
@@ -33,13 +32,11 @@ const healthRecoveryPercent: number = settings.Game.healthRecoveryPercent // how
 const fortressProtectionPercent: number = settings.Game.fortressProtectionPercent // how much damage do troops take if they are in a fortress
 const buildingCost: number = settings.Game.buildingCost // how much it costs to build a building
 const buildingTime: number = settings.Game.buildingTime // how many turns it takes to build a building
-//#endregion Tunable Values
 
 //----------------------------------------------
 //--------------Helper Functions----------------
 //----------------------------------------------
 
-//#region Helper Function
 const SortTroops = (ta: Troop[]): Troop[] => { // sorts the troops of an army in descending order of power
     return ta.sort((a, b) => { // uses the built in sort method
         return (b.n_level + b.n_modifier) - (a.n_level + a.n_modifier)
@@ -332,21 +329,17 @@ const SelectPlanetName = (): string => { // selects a name from the list of opti
     }
     return selectedName
 }
-//#endregion Helper Functions
 
 //----------------------------------------------
 //-------------Classes and Enums----------------
 //----------------------------------------------
 
-//#region Enums
 enum BuildingType {
     Training_Camp = 0, //makes training troops faster
     Warehouse = 1, //increases resource production (thematically reduces resource losses to spoilage)
     Fortress = 2 //gives bonus to defending troops
 }
-//#endregion Enums
 
-//#region Classes
 class Player {
 
     s_name: string
@@ -499,7 +492,6 @@ class BuildOrder {
     }
 }
 
-//#region Propagation Objects
 class PropagationOrder {
 
     b_adding: boolean //refers to if this order is to add something or remove something
@@ -590,7 +582,6 @@ class ConquestPropagationOrder extends PropagationOrder {
         return `Type: Conquest | Adding: ${this.b_adding} | New Owner: ${this.n_newOwnerIndex}`
     }
 }
-//#endregion Propagation Objects
 
 class TimePeriod {
 
@@ -902,13 +893,11 @@ class Planet {
         }
     }
 }
-//#endregion Classes
 
 //----------------------------------------------
 //-----------------Trading----------------------
 //----------------------------------------------
 
-//#region Trading
 const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Troop[], tGiven: Troop[], currentTurnIndex: number): void => {
     let playerArmyIndex: number = -1
     for (let i: number = 0; i < pa_planets[p].ta_timePeriods[tp].aa_armies.length; i++) { // finds if the player already has an army in this time period
@@ -967,13 +956,11 @@ const Trade = (p: number, tp: number, rTaken: number, rGiven: number, tTaken: Tr
         // This should never happen as an empty army is created when the trade window is filled in if none is found
     }
 }
-//#endregion Trading
 
 //----------------------------------------------
 //-------------MAIN GAME LOGIC------------------
 //----------------------------------------------
 
-//#region Main Game Logic
 let pa_players: Player[] = [] // stores the list of players in the game
 
 for (let i: number = 0; i < playerListJSON.Players.length; i++) { // import players from player file
@@ -1082,13 +1069,11 @@ const Initialize = (): void => {
         }
     }
 }
-//#endregion Main Game Logic
 
 //----------------------------------------------
 //------------MAIN SERVER LOGIC-----------------
 //----------------------------------------------
 
-//#region Main Server Logic
 // express server setup
 const express = require("express")
 const bodyParser = require('body-parser')
@@ -1344,7 +1329,6 @@ app.post("/cancelturn", (request: any, response: any) => {
     response.json(responseFile)
 })
 
-//#endregion Main Server Logic
 
 Initialize() // Initializes the game when the server starts up
 

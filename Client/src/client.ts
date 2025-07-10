@@ -2,7 +2,6 @@
 //--------------Tunable Values------------------
 //----------------------------------------------
 
-//#region Tunable Values
 let numPlanets: number = 5 // number of planets that the game should have
 let numTimePeriods: number = 10 // stores how many time periods each planet should have
 
@@ -18,7 +17,6 @@ let boardOutlineColor: string = "#2c2c2c" // color of the outline of the various
 let buttonBackgroundColor: string = "rgba(200, 200, 200, 0.7)" // background color of selected or hovered buttons
 let warColor: string = " #d95f5f" // color of the war flag when its war
 let paxColor: string = " #81d95f" // color of the war flag when its peace
-
 
 let trainTroopCost: number = 0 // how many resources should it cost to train a troop
 let latenessFactor: number = 0.5 // by what factor should later time period resources be reduced
@@ -49,13 +47,11 @@ const playerColors: string[] = [ // colors to represent the players [14]
     " #ffbf80 ",
     " #80ffd0 "
 ]
-//#endregion Tunable Values
 
 //----------------------------------------------
 //--------------Helper Functions----------------
 //----------------------------------------------
 
-//#region Helper Function
 const SortTroops = (ta: Troop[]): Troop[] => { //sorts the troops of an army in descending order of power
     return ta.sort((a, b) => { //uses the built in sort method
         return (b.n_level + b.n_modifier) - (a.n_level + a.n_modifier)
@@ -150,21 +146,17 @@ const TroopCardList = (a: Army, taken: boolean, target: Army): string => { //tak
 
     return output.outerHTML //returns the generated HTML
 }
-//#endregion Helper Function
 
 //----------------------------------------------
 //-------------Classes and Enums----------------
 //----------------------------------------------
 
-//#region Enums
 enum BuildingType {
     Training_Camp = 0, //makes training troops faster
     Warehouse = 1, //increases resource production (thematically reduces resource losses to spoilage)
     Fortress = 2 //gives bonus to defending troops
 }
-//#endregion Enums
 
-//#region Classes
 class Player {
 
     s_name: string
@@ -352,13 +344,11 @@ class Planet {
         }
     }
 }
-//#endregion Classes
 
 //----------------------------------------------
 //-----------Trading and Building---------------
 //----------------------------------------------
 
-//#region Trading
 //holds onto the trading window elements
 const tradingWindow: HTMLElement = document.getElementById('trading-window') as HTMLElement //the whole trading window
 const timePeriodPresent: HTMLElement = document.getElementById('time-period-present') as HTMLElement //the box where the things in the time period go
@@ -632,9 +622,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
 
     DrawBoard()
 }
-//#endregion Trading
 
-//#region Building
 // hold onto the building window elements
 const buildingWindow: HTMLElement = document.getElementById('building-window') as HTMLElement //the whole building window
 
@@ -727,13 +715,11 @@ const CloseBuildWindow = (): void => {
 
     DrawBoard()
 }
-//#endregion Building
 
 //----------------------------------------------
 //-------------MAIN GAME LOGIC------------------
 //----------------------------------------------
 
-//#region Main Game Logic
 let ip: string = `127.0.0.1`
 let port: string = `4050`
 
@@ -750,7 +736,6 @@ let turnActions: {"Details": any} = {
 
 let pa_planets: Planet[] = [] // stores the list of the planets in play
 
-//#region HTML Elements
 // holds onto the time period board display
 const timePeriodBoard: HTMLElement = document.getElementById('time-period-board') as HTMLElement
 
@@ -802,7 +787,6 @@ const travelButton: HTMLButtonElement = document.getElementById('travel-button')
 const tradeButton: HTMLButtonElement = document.getElementById('trade-button') as HTMLButtonElement // trade button
 const endTurnButton: HTMLButtonElement = document.getElementById('end-turn-button') as HTMLButtonElement // end turn button
 const cancelTurnButton: HTMLElement = document.getElementById('cancel-turn-button') as HTMLElement // button to retract your turn
-//#endregion HTML Elements
 
 // stores the coordinates of the selected time period
 let n_selectedPlanetIndex: number
@@ -1491,13 +1475,11 @@ const Initialize = (): void => {
 
     FetchState() // fetches the gamestate from the server
 }
-//#endregion Main Game Logic
 
 //----------------------------------------------
 //---------------Login LOGIC--------------------
 //----------------------------------------------
 
-//#region Login
 const loginWindow: HTMLElement = document.getElementById('login-window') as HTMLElement
 const loginFailedMessage: HTMLElement = document.getElementById('login-failed-message') as HTMLElement
 const topLayer: HTMLElement = document.getElementById('top-layer') as HTMLMediaElement
@@ -1596,7 +1578,6 @@ const ShowLoginFailed = (errorMessage: string): void => {
     loginFailedMessage.innerHTML = errorMessage
 
 }
-//#endregion Login
 
 ShowLogin() // begin the login process to start the game
 
