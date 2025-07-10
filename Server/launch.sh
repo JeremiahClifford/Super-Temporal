@@ -1,6 +1,7 @@
 curl https://ipinfo.io/ip
 echo ""
 echo "Server Running. Outputting to log.txt"
+mkdir -p logs
 cd logs
 mkdir "[$1]_`date +"%d-%m-%Y_%H:%M:%S"`"
 cd ..
