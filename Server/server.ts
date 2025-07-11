@@ -676,7 +676,7 @@ class TimePeriod {
             this.boa_buildQueue[0].n_turnsRemaining-- // reduces the turns remaining by 1
             if (this.boa_buildQueue[0].n_turnsRemaining <= 0) { // if the build order has no turns remaining
                 if (this.boa_buildQueue[0].tb_target.constructor === Troop) { // if a troop is being trained
-                    console.log(`Creating troop: ${this.boa_buildQueue[0].tb_target} in [${p_pIndex}, ${p_tIndex}]`) // LOG:
+                    console.log(`Creating troop: ${JSON.stringify(this.boa_buildQueue[0].tb_target)} in [${p_pIndex}, ${p_tIndex}]`) // LOG:
                     // finds which army, if any, is the owner's
                     let ownerArmyIndex: number = -1
                     for (let i: number = 0; i < this.aa_armies.length; i++) {
@@ -997,7 +997,7 @@ const doPlayerMove = (turnSubmitted: any): void => {
             console.log(`Player ${turnSubmitted.Header.CurrentTurnIndex} Moved`) // LOG:
         }
         if (turnSubmitted.Actions[i].Type === "Trade") { // if its a trade
-            pa_players[turnSubmitted.Headers.CurrentTurnIndex].n_remainingTrades -= 1 // takes one of the player's trade actions
+            pa_players[turnSubmitted.Header.CurrentTurnIndex].n_remainingTrades -= 1 // takes one of the player's trade actions
             // read in the list of troops taken
             let troopsTaken: Troop[] = []
             for (let j: number = 0; j < turnSubmitted.Actions[i].TroopsTaken.length; j++) {

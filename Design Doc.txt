@@ -340,7 +340,6 @@ Notes:
 -Time period controls stayed up when selecting a time period where they shouldn't [Me] ---
 -Trade button disappeared when should have had 1 use left [Ben] ---
 -Lot of double clicks. Submitting 2 turns, building 2 troops [Ben+Dan] ---
-
 -Power levels should be hidden until you take a planet [Ben]
 
 =====================================================================================
