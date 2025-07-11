@@ -73,10 +73,10 @@ const CleanArmies = (): void => { // loops through every time zone and removes a
     }
 }
 
-const TroopsString = (a: Army, useName: boolean): string => { //gives a string representation of the player's or time period's list of troops
-    a.ta_troops = SortTroops(a.ta_troops) //sorts the troops so they are in a good order to be printed
+const TroopsString = (a: Army, useName: boolean): string => { // gives a string representation of the player's or time period's list of troops
+    a.ta_troops = SortTroops(a.ta_troops) // sorts the troops so they are in a good order to be printed
 
-    //squashes troops of the same level into 1 line
+    // squashes troops of the same level into 1 line
     type troopType = {
         n_level: number
         n_health: number
@@ -85,15 +85,15 @@ const TroopsString = (a: Army, useName: boolean): string => { //gives a string r
     let troopTypes: troopType[] = []
     let found: boolean = false
 
-    for (let i: number = 0; i < a.ta_troops.length; i++) { //loops through the army
+    for (let i: number = 0; i < a.ta_troops.length; i++) { // loops through the army
         found = false
-        for (let j: number = 0; j < troopTypes.length; j++) { //loops through the saved troop types
+        for (let j: number = 0; j < troopTypes.length; j++) { // loops through the saved troop types
             if (troopTypes[j].n_level === (a.ta_troops[i].n_level + a.ta_troops[i].n_modifier) && troopTypes[j].n_health === a.ta_troops[i].n_health) { //checks if the troop type matches
-                troopTypes[j].n_count++ //if so: increment the count
+                troopTypes[j].n_count++ // if so: increment the count
                 found = true
             }
         }
-        if (!found) { //if not: add new type to the list
+        if (!found) { // if not: add new type to the list
             troopTypes.push({
                 n_level: a.ta_troops[i].n_level + a.ta_troops[i].n_modifier,
                 n_health: a.ta_troops[i].n_health,
@@ -111,7 +111,7 @@ const TroopsString = (a: Army, useName: boolean): string => { //gives a string r
     })
 
     let output: string = ``
-    if (useName) { //if this use case requires the name of the owner to distinguish, add the name of the owner. only really used on the selected time period display as multiple armies owned by multiple players can appear there
+    if (useName) { // if this use case requires the name of the owner to distinguish, add the name of the owner. only really used on the selected time period display as multiple armies owned by multiple players can appear there
         if (a.n_ownerIndex === -1) {
             output = `Natives ` //adds the header to the output showing how many total troops the army has and the owner
         } else {
@@ -122,7 +122,7 @@ const TroopsString = (a: Army, useName: boolean): string => { //gives a string r
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
         output += `${troopTypes[i].n_count}x Level: ${troopTypes[i].n_level} | Strength: ${Math.round(troopTypes[i].n_health * 100) / 100}<br>` //adds a line of their info to the output string
     }
-    return output //returns the outputted list
+    return output // returns the outputted list
 }
 
 const TroopCardList = (a: Army, taken: boolean, target: Army): string => { //takes an army and returns a string which is a list of all the individual troops with controls which are used on the trade screen to move them back and forth. If taken is true that means this list goes in the selected box. If taken is false, it is going in the present box. This changes what the button s say
@@ -412,7 +412,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { // function whic
         for (let i = 0; i < t.aa_armies[playerArmyIndex].ta_troops.length; i++) { // gives the events to the buttons
             let selectButton: HTMLButtonElement = document.getElementById(`${false}-${p}-swap-button-${i}-${troopsTaken.n_ownerIndex}`) as HTMLButtonElement
             selectButton.addEventListener('click', () => {
-                SwapTroop(t.aa_armies[playerArmyIndex], i, troopsTaken)
+                SwapTroop(t.aa_armies[playerArmyIndex], i, troopsTaken, true)
             })
         }
     } else {
@@ -437,7 +437,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { // function whic
     for (let i: number = 0; i < troopsTaken.ta_troops.length; i++) { // gives the events to the buttons
         let selectButton: HTMLButtonElement = document.getElementById(`${true}-${troopsTaken.n_ownerIndex}-swap-button-${i}-${p}`) as HTMLButtonElement
         selectButton.addEventListener('click', () => {
-            SwapTroop(troopsTaken, i, t.aa_armies[playerArmyIndex])
+            SwapTroop(troopsTaken, i, t.aa_armies[playerArmyIndex], true)
         })
     }
 
@@ -459,7 +459,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { // function whic
     for (let i = 0; i < pa_players[p].a_troops.ta_troops.length; i++) { //gives the events to the buttons
         let selectButton: HTMLButtonElement = document.getElementById(`${false}-${p}-swap-button-${i}-${troopsGiven.n_ownerIndex}`) as HTMLButtonElement
         selectButton.addEventListener('click', () => {
-            SwapTroop(pa_players[p].a_troops, i, troopsGiven)
+            SwapTroop(pa_players[p].a_troops, i, troopsGiven, true)
         })
     }
     // fills in the player selected
@@ -480,7 +480,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { // function whic
     for (let i: number = 0; i < troopsGiven.ta_troops.length; i++) { //gives the events to the buttons
         let selectButton: HTMLButtonElement = document.getElementById(`${true}-${troopsGiven.n_ownerIndex}-swap-button-${i}-${p}`) as HTMLButtonElement
         selectButton.addEventListener('click', () => {
-            SwapTroop(troopsGiven, i, pa_players[p].a_troops)
+            SwapTroop(troopsGiven, i, pa_players[p].a_troops, true)
         })
     }
 }
@@ -571,11 +571,13 @@ const SwapResources = (player: boolean, present: boolean, playerIndex: number): 
     FillInTradeWindow(playerIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
 }
 
-const SwapTroop = (start: Army, startIndex: number, target: Army): void => { // moves troops from one box to another
+const SwapTroop = (start: Army, startIndex: number, target: Army, doUI: boolean): void => { // moves troops from one box to another
     target.ta_troops.push(start.ta_troops[startIndex]) // adds the troops to the target
     target.ta_troops = SortTroops(target.ta_troops) // sorts the target
     start.ta_troops = start.ta_troops.filter((t) => t !== start.ta_troops[startIndex]) // removes the troop from where it started
-    FillInTradeWindow(myIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) //redraws the trade window
+    if (doUI){
+        FillInTradeWindow(myIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) // redraws the trade window
+    }
 }
 
 const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): void => { //function to move troops and resources between a player's ship and a time period given and taken are form the player's perspective. P is the index in pa_players of the player doing the trading
@@ -636,11 +638,71 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
         })
         tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
         troopsGiven.ta_troops = []
-    } else { //if they don't have an army here
-        //This should never happen as an empty army is created when the trade window is filled in if none is found
+    } else { // if they don't have an army here
+        // This should never happen as an empty army is created when the trade window is filled in if none is found
     }
 
     DrawBoard()
+}
+
+const TradeBetweenTurns = (tp: TimePeriod, rGiven: number, rTaken: number, tGiven: Troop[], tTaken: Troop[]): void => {
+    console.log(`Trading`) // LOG:
+            console.log(`  Troops Taken: ${JSON.stringify(tTaken)}`) // LOG:
+            console.log(`  Troops Given: ${JSON.stringify(tGiven)}`) // LOG:
+            console.log(`  Resources Taken: ${rTaken}`) // LOG:
+            console.log(`  Resources Given: ${rGiven}`) // LOG:
+    
+    let playerArmyIndex: number = -1
+    for (let i: number = 0; i < tp.aa_armies.length; i++) { // finds if the player already has an army in this time period
+        if (tp.aa_armies[i].n_ownerIndex === myIndex) {
+            playerArmyIndex = i
+        }
+    }
+
+    if (playerArmyIndex === -1) {
+        tp.aa_armies.push(new Army(myIndex, []))
+        playerArmyIndex = tp.aa_armies.length - 1
+    }
+
+    pa_players[myIndex].n_resources += rTaken
+    tp.n_resources += rGiven
+    pa_players[myIndex].n_resources -= rGiven
+    tp.n_resources -= rTaken
+    
+    for (let i: number = 0; i < tGiven.length; i++) {
+        for (let j: number = 0; j < pa_players[myIndex].a_troops.ta_troops.length; j++) {
+            if (
+                pa_players[myIndex].a_troops.ta_troops[j].n_id === tGiven[i].n_id &&
+                pa_players[myIndex].a_troops.ta_troops[j].n_rawLevel === tGiven[i].n_rawLevel &&
+                pa_players[myIndex].a_troops.ta_troops[j].n_level === tGiven[i].n_level &&
+                pa_players[myIndex].a_troops.ta_troops[j].n_modifier === tGiven[i].n_modifier &&
+                pa_players[myIndex].a_troops.ta_troops[j].n_health === tGiven[i].n_health
+            ) {
+                console.log(`Troop Found`) //LOG:
+                tp.aa_armies[playerArmyIndex].ta_troops.push(pa_players[myIndex].a_troops.ta_troops[j])
+                tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
+                pa_players[myIndex].a_troops.ta_troops = pa_players[myIndex].a_troops.ta_troops.filter((t) => t !== pa_players[myIndex].a_troops.ta_troops[j])
+            }
+        }
+    }
+    for (let i: number = 0; i < tTaken.length; i++) {
+        for (let j: number = 0; j < tp.aa_armies[playerArmyIndex].ta_troops.length; j++) {
+            if (
+                tp.aa_armies[playerArmyIndex].ta_troops[j].n_id === tTaken[i].n_id &&
+                tp.aa_armies[playerArmyIndex].ta_troops[j].n_rawLevel === tTaken[i].n_rawLevel &&
+                tp.aa_armies[playerArmyIndex].ta_troops[j].n_level === tTaken[i].n_level &&
+                tp.aa_armies[playerArmyIndex].ta_troops[j].n_modifier === tTaken[i].n_modifier &&
+                tp.aa_armies[playerArmyIndex].ta_troops[j].n_health === tTaken[i].n_health
+            ) {
+                console.log(`Troop Found`) //LOG:
+                pa_players[myIndex].a_troops.ta_troops.push(tp.aa_armies[playerArmyIndex].ta_troops[j])
+                pa_players[myIndex].a_troops.ta_troops = SortTroops(pa_players[myIndex].a_troops.ta_troops)
+                tp.aa_armies[playerArmyIndex].ta_troops = tp.aa_armies[playerArmyIndex].ta_troops.filter((t) => t !== tp.aa_armies[playerArmyIndex].ta_troops[j])
+            }
+        }
+    }
+
+    CleanArmies()
 }
 //#endregion Trading
 
@@ -1074,7 +1136,7 @@ const DrawBoard = (): void => {
         // fill in the current turn section
         turnNumberSpot.innerHTML = `Current Turn: ${turnNumber}`
         turnListSpot.innerHTML = ``
-        for (let i: number = 1; i < turnActions.Actions.length; i++) {
+        for (let i: number = 0; i < turnActions.Actions.length; i++) {
             switch (turnActions.Actions[i].Type) {
                 case "Move":
                     turnListSpot.innerHTML += `Move to ${pa_planets[turnActions.Actions[i].NewLocation[0]].s_name} : ${turnActions.Actions[i].NewLocation[1] + 1}<br>`
@@ -1187,6 +1249,26 @@ const SubmitTurn = (): void => {
         ShowLogin()
         ShowLoginFailed("Server not responding")
     })
+}
+
+const FillInPlayerTurn = (actions: TurnActionsObject): void => {
+    for (let i: number = 0; i < actions.Actions.length; i++) {
+        // check if action is move or trade
+        if (actions.Actions[i].Type === "Move") { // if its a move
+            pa_players[actions.Header.CurrentTurnIndex].na_location = [actions.Actions[i].NewLocation[0], actions.Actions[i].NewLocation[1]] // moves the player on the server
+        }
+        if (actions.Actions[i].Type === "Trade") { // if its a trade
+            TradeBetweenTurns(pa_planets[actions.Actions[i].TargetTimePeriod[0]].ta_timePeriods[actions.Actions[i].TargetTimePeriod[1]], actions.Actions[i].ResourcesGiven, actions.Actions[i].ResourcesTaken, actions.Actions[i].TroopsGiven, actions.Actions[i].TroopsTaken) // execute the trade
+        }
+        if (actions.Actions[i].Type === "Build") { // if its a build
+            pa_planets[actions.Actions[i].Planet].ta_timePeriods[actions.Actions[i].TimePeriod].n_resources -= buildingCost // takes the cost
+            pa_planets[actions.Actions[i].Planet].ta_timePeriods[actions.Actions[i].TimePeriod].StartBuilding(actions.Actions[i].BuildingType) // starts the building
+        }
+        if (actions.Actions[i].Type === "Train") { // if its a training
+            pa_planets[actions.Actions[i].Planet].ta_timePeriods[actions.Actions[i].TimePeriod].StartTroopTraining() // starts training a troop
+            pa_planets[actions.Actions[i].Planet].ta_timePeriods[actions.Actions[i].TimePeriod].n_resources -= trainTroopCost // charges the train troop cost
+        }
+    }
 }
 
 const FetchState = ():void => {
@@ -1312,6 +1394,7 @@ const FetchState = ():void => {
         console.log(playerTurn)
         if (playerTurn.length > 0) {
             turnActions = playerTurn[0]
+            FillInPlayerTurn(turnActions)
         }
     })
     .then(() => {
@@ -1323,9 +1406,7 @@ const FetchState = ():void => {
                     GameID: gameID,
                     TurnNumber: turnNumber
                 },
-                Actions: [
-
-                ]
+                Actions: []
             }
         }
     })
@@ -1643,6 +1724,7 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
+// -Get TradeBetweenTurns working
 //
 // Future changes to test:
 // -Revisit how combat is resolved, may not be working as intended

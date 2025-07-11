@@ -1288,8 +1288,6 @@ app.get("/gamestate", (request: any, response: any) => {
         gamestateReturn.planets.push(planetOut)
     }
 
-    console.log(JSON.stringify(gamestateReturn))
-
     response.send(JSON.stringify(gamestateReturn))
 })
 
