@@ -792,6 +792,38 @@ const cancelTurnButton: HTMLElement = document.getElementById('cancel-turn-butto
 let n_selectedPlanetIndex: number
 let n_selectedTimePeriodIndex: number
 
+const DrawPlayerList = (): void => {
+    playerListBox.innerHTML = ``
+    pa_players.forEach((p) => {
+        // creates the string
+        let playerHTML: string = `<div class="player-card" id="${p.s_name}-card">`
+        if (!p.b_hasSubmitted) { // if p is the player whose turn it is
+            playerHTML += `<h3>--[${p.s_name}]--</h3>` // adds the player's name in bold
+        } else {
+            playerHTML += `<h3>${p.s_name}</h3>` // adds the player's name without the star
+        }
+        if (p.na_location[0] === -1) { // adds the player's location if they have one
+            playerHTML += `<h4>Location: Nowhere</h4>` // if they don't
+        } else { // if they do
+            playerHTML += `<h4>Location: ${pa_planets[p.na_location[0]].s_name} Age ${p.na_location[1] + 1}</h4>`
+        }
+        playerHTML += `<h4>Resources: ${p.n_resources}</h4>` // adds the player's resources
+        playerHTML += `<div style="height:70px;border:3px solid #ccc;background-color: #FFF;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" class="player-list-troop-list-spot">` //starts the player's troop list
+        playerHTML += TroopsString(p.a_troops, false) // adds their list of troops
+        playerHTML += `</div>` // closes the troop list div
+        playerHTML += `</div>` // closes the div
+        playerListBox.innerHTML += playerHTML // adds the generated player card to the list
+        
+        let specificPlayerCard: HTMLElement = document.getElementById(`${p.s_name}-card`) as HTMLElement
+        if (p.a_troops.n_ownerIndex < playerColors.length && p.a_troops.n_ownerIndex >= 0) { // makes sure there is a color for this number player
+            specificPlayerCard.style.backgroundColor = playerColors[p.a_troops.n_ownerIndex]
+        }
+        if (!p.b_hasSubmitted) { // if this player is the player whose turn it is
+            specificPlayerCard.style.borderColor = "red" // make the border of their box red
+        }
+    })
+}
+
 const DrawBoard = (): void => {
 
     //#region Time Period Board
@@ -993,37 +1025,8 @@ const DrawBoard = (): void => {
     }
     //#endregion Selected Time Period Info Board
 
-    //#region Players Board
-    playerListBox.innerHTML = ``
-    pa_players.forEach((p) => {
-        // creates the string
-        let playerHTML: string = `<div class="player-card" id="${p.s_name}-card">`
-        if (!p.b_hasSubmitted) { // if p is the player whose turn it is
-            playerHTML += `<h3>--[${p.s_name}]--</h3>` // adds the player's name in bold
-        } else {
-            playerHTML += `<h3>${p.s_name}</h3>` // adds the player's name without the star
-        }
-        if (p.na_location[0] === -1) { // adds the player's location if they have one
-            playerHTML += `<h4>Location: Nowhere</h4>` // if they don't
-        } else { // if they do
-            playerHTML += `<h4>Location: ${pa_planets[p.na_location[0]].s_name} Age ${p.na_location[1] + 1}</h4>`
-        }
-        playerHTML += `<h4>Resources: ${p.n_resources}</h4>` // adds the player's resources
-        playerHTML += `<div style="height:70px;border:3px solid #ccc;background-color: #FFF;font:16px/26px Georgia, Garamond, Serif;overflow:auto;" class="player-list-troop-list-spot">` //starts the player's troop list
-        playerHTML += TroopsString(p.a_troops, false) // adds their list of troops
-        playerHTML += `</div>` // closes the troop list div
-        playerHTML += `</div>` // closes the div
-        playerListBox.innerHTML += playerHTML // adds the generated player card to the list
-        
-        let specificPlayerCard: HTMLElement = document.getElementById(`${p.s_name}-card`) as HTMLElement
-        if (p.a_troops.n_ownerIndex < playerColors.length && p.a_troops.n_ownerIndex >= 0) { // makes sure there is a color for this number player
-            specificPlayerCard.style.backgroundColor = playerColors[p.a_troops.n_ownerIndex]
-        }
-        if (!p.b_hasSubmitted) { // if this player is the player whose turn it is
-            specificPlayerCard.style.borderColor = "red" // make the border of their box red
-        }
-    })
-    //#endregion Players Board
+    //Players Board
+    DrawPlayerList()
 
     //#region Current Player Info Board
     refreshButton.style.display = `inline` // sets the refresh button to always be available
@@ -1038,27 +1041,27 @@ const DrawBoard = (): void => {
         endTurnButton.style.display= `none`
     } else {
         // fill in the current turn section
-        if (!pa_players[myIndex].b_hasSubmitted) { // if its the player's turn
-            turnNumberSpot.innerHTML = `Current Turn: ${turnNumber}`
-            turnListSpot.innerHTML = ``
-            for (let i: number = 1; i < turnActions.Details.length; i++) {
-                switch (turnActions.Details[i].Type) {
-                    case "Move":
-                        turnListSpot.innerHTML += `Move to ${pa_planets[turnActions.Details[i].NewLocation[0]].s_name} : ${turnActions.Details[i].NewLocation[1] + 1}<br>`
-                        break;
-                    case "Trade":
-                        turnListSpot.innerHTML += `Trade at ${pa_planets[turnActions.Details[i].TargetTimePeriod[0]].s_name} : ${turnActions.Details[i].TargetTimePeriod[1] + 1}<br>`
-                        break;
-                    case "Build":
-                        turnListSpot.innerHTML += `Build ${BuildingType[turnActions.Details[i].BuildingType].toString()} at ${pa_planets[turnActions.Details[i].Planet].s_name} : ${turnActions.Details[i].TimePeriod + 1}<br>`
-                        break;
-                    case "Train":
-                        turnListSpot.innerHTML += `Train Troop at ${pa_planets[turnActions.Details[i].Planet].s_name} : ${turnActions.Details[i].TimePeriod + 1}<br>`
-                        break;
-                }
+        turnNumberSpot.innerHTML = `Current Turn: ${turnNumber}`
+        turnListSpot.innerHTML = ``
+        for (let i: number = 1; i < turnActions.Details.length; i++) {
+            switch (turnActions.Details[i].Type) {
+                case "Move":
+                    turnListSpot.innerHTML += `Move to ${pa_planets[turnActions.Details[i].NewLocation[0]].s_name} : ${turnActions.Details[i].NewLocation[1] + 1}<br>`
+                    break;
+                case "Trade":
+                    turnListSpot.innerHTML += `Trade at ${pa_planets[turnActions.Details[i].TargetTimePeriod[0]].s_name} : ${turnActions.Details[i].TargetTimePeriod[1] + 1}<br>`
+                    break;
+                case "Build":
+                    turnListSpot.innerHTML += `Build ${BuildingType[turnActions.Details[i].BuildingType].toString()} at ${pa_planets[turnActions.Details[i].Planet].s_name} : ${turnActions.Details[i].TimePeriod + 1}<br>`
+                    break;
+                case "Train":
+                    turnListSpot.innerHTML += `Train Troop at ${pa_planets[turnActions.Details[i].Planet].s_name} : ${turnActions.Details[i].TimePeriod + 1}<br>`
+                    break;
             }
-        } else { // if they have already submitted
-            turnListSpot.innerHTML = `You have submitted your turn. Wait for other players to submit. Game Board currently shows state from before your turn.`
+        }
+        if (pa_players[myIndex].b_hasSubmitted) {
+            turnListSpot.innerHTML += `Submit Turn<br>`
+            turnListSpot.innerHTML += `Waiting for other players to submit their turns`
         }
 
         if (pa_players[myIndex].na_location[0] === -1 && myIndex !== -1) { // checks if the player has not yet gone to a time period
@@ -1158,139 +1161,160 @@ const SubmitTurn = (): void => {
 const FetchState = ():void => {
     fetch(`http://${ip}:${port}/gamestate`, {method: "GET"})
     .then(res => res.json())
-    .then((gamestateImport) => {
-            console.log(gamestateImport) // LOG: debug
-            let gamestateJSON = JSON.parse(gamestateImport)
+    .then((gamestateJSON) => {
+        console.log(gamestateJSON) // LOG: debug
 
-            // check the game info
-            if (gamestateJSON.gameID !== gameID) {
-                console.log(`Wrong gameID detected. Refresh needed`) // TEMP:
-                ShowLogin()
-                ShowLoginFailed("Wrong gameID detected. Refresh needed")
-            }
-            turnNumber = gamestateJSON.turnNumber // set our turn number to the server turn number
+        // check the game info
+        if (gamestateJSON.gameID !== gameID) {
+            console.log(`Wrong gameID detected. Refresh needed`) // TEMP:
+            ShowLogin()
+            ShowLoginFailed("Wrong gameID detected. Refresh needed")
+        }
+        turnNumber = gamestateJSON.turnNumber // set our turn number to the server turn number
 
-            // Load in players from the gamestate
-            let playersIn = gamestateJSON.players // get the list of players
-            console.log(playersIn) // LOG: debug
-            for (let i: number = 0; i < gamestateJSON.numPlayers; i++) {
-                // create the player object and fill in its data
-                let newPlayer = new Player(i, playersIn[i].name)
-                newPlayer.b_hasSubmitted = playersIn[i].hasSubmitted
-                newPlayer.n_resources = playersIn[i].resources
-                newPlayer.na_location[0] = playersIn[i].location[0]
-                newPlayer.na_location[1] = playersIn[i].location[1]
-                newPlayer.n_remainingMoves = playersIn[i].remainingMoves
-                newPlayer.n_remainingTrades = playersIn[i].remainingTrades
-                
-                // Import Troops
-                newPlayer.a_troops.ta_troops = [] // clear the default army
-                let troopsIn = playersIn[i].troops // get the list of troops from the current player
-                for (let j: number = 0; j < troopsIn.length; j++) { // loop through the troops
+        // Load in players from the gamestate
+        let playersIn = gamestateJSON.players // get the list of players
+        console.log(playersIn) // LOG: debug
+        for (let i: number = 0; i < gamestateJSON.numPlayers; i++) {
+            // create the player object and fill in its data
+            let newPlayer = new Player(i, playersIn[i].name)
+            newPlayer.b_hasSubmitted = playersIn[i].hasSubmitted
+            newPlayer.n_resources = playersIn[i].resources
+            newPlayer.na_location[0] = playersIn[i].location[0]
+            newPlayer.na_location[1] = playersIn[i].location[1]
+            newPlayer.n_remainingMoves = playersIn[i].remainingMoves
+            newPlayer.n_remainingTrades = playersIn[i].remainingTrades
+            
+            // Import Troops
+            newPlayer.a_troops.ta_troops = [] // clear the default army
+            let troopsIn = playersIn[i].troops // get the list of troops from the current player
+            for (let j: number = 0; j < troopsIn.length; j++) { // loop through the troops
                     // create the troop object and fill in its data
                     let newTroop: Troop = new Troop(troopsIn[j].rawLevel, troopsIn[j].modifier, troopsIn[j].health)
                     newTroop.n_level = troopsIn[j].level
                     newTroop.n_id = troopsIn[j].id
                     newPlayer.a_troops.ta_troops.push(newTroop) // push the troop to the army
-                }
-                pa_players.push(newPlayer) // add the loaded in player to the list
             }
+            pa_players.push(newPlayer) // add the loaded in player to the list
+        }
 
-            // Load in tunable values from the gamestate
-            numPlanets = gamestateJSON.numPlanets
-            numTimePeriods = gamestateJSON.numTimePeriods
-            warehouseBonusPercent = gamestateJSON.warehouseBonusPercent
-            trainTroopCost = gamestateJSON.trainTroopCost
-            troopTrainBaseTime = gamestateJSON.troopTrainBaseTime
-            trainingCampDiscount = gamestateJSON.trainingCampDiscount
-            healthRecoveryPercent = gamestateJSON.healthRecoveryPercent
-            fortressProtectionPercent = gamestateJSON.fortressProtectionPercent
-            buildingCost = gamestateJSON.buildingCost
-            buildingTime = gamestateJSON.buildingTime
+        // Load in tunable values from the gamestate
+        numPlanets = gamestateJSON.numPlanets
+        numTimePeriods = gamestateJSON.numTimePeriods
+        warehouseBonusPercent = gamestateJSON.warehouseBonusPercent
+        trainTroopCost = gamestateJSON.trainTroopCost
+        troopTrainBaseTime = gamestateJSON.troopTrainBaseTime
+        trainingCampDiscount = gamestateJSON.trainingCampDiscount
+        healthRecoveryPercent = gamestateJSON.healthRecoveryPercent
+        fortressProtectionPercent = gamestateJSON.fortressProtectionPercent
+        buildingCost = gamestateJSON.buildingCost
+        buildingTime = gamestateJSON.buildingTime
 
-            // Load in planets from the gamestate
-            let planetsIn = gamestateJSON.planets // get the list of planets
-            console.log(planetsIn) // LOG: debug
-            for (let i: number = 0; i < numPlanets; i++) {
-                // create the planet object and fill in its data
-                let newPlanet: Planet = new Planet(planetsIn[`${i}`].name, 0) // dark age point not sent here, send in each time period
+        // Load in planets from the gamestate
+        let planetsIn = gamestateJSON.planets // get the list of planets
+        console.log(planetsIn) // LOG: debug
+        for (let i: number = 0; i < numPlanets; i++) {
+            // create the planet object and fill in its data
+            let newPlanet: Planet = new Planet(planetsIn[`${i}`].name, 0) // dark age point not sent here, send in each time period
                 
-                let timePeriodsIn = planetsIn[i].time_periods // get the list of time periods
-                for (let j: number = 0; j < numTimePeriods; j++) {
-                    // create the time period object and fill in its data
-                    let newTimePeriod: TimePeriod = new TimePeriod(timePeriodsIn[j].rawLevel, timePeriodsIn[j].rawModifierFactor, timePeriodsIn[j].darkAgeValue)
-                    newTimePeriod.n_ownerIndex = timePeriodsIn[j].ownerIndex
-                    newTimePeriod.n_level = timePeriodsIn[j].level
-                    newTimePeriod.n_powerModifier = timePeriodsIn[j].powerModifier
-                    newTimePeriod.n_resources = timePeriodsIn[j].resources
-                    newTimePeriod.n_resourceProduction  = timePeriodsIn[j].resourceProduction
+            let timePeriodsIn = planetsIn[i].time_periods // get the list of time periods
+            for (let j: number = 0; j < numTimePeriods; j++) {
+                // create the time period object and fill in its data
+                let newTimePeriod: TimePeriod = new TimePeriod(timePeriodsIn[j].rawLevel, timePeriodsIn[j].rawModifierFactor, timePeriodsIn[j].darkAgeValue)
+                newTimePeriod.n_ownerIndex = timePeriodsIn[j].ownerIndex
+                newTimePeriod.n_level = timePeriodsIn[j].level
+                newTimePeriod.n_powerModifier = timePeriodsIn[j].powerModifier
+                newTimePeriod.n_resources = timePeriodsIn[j].resources
+                newTimePeriod.n_resourceProduction  = timePeriodsIn[j].resourceProduction
                     
-                    // Buildings
-                    let buildingsIn = timePeriodsIn[j].buildings
-                    for (let k: number = 0; k < buildingsIn.length; k++) {
-                        let newBuilding: Building = new Building(buildingsIn[k].type, buildingsIn[k].name) // create the new building and fill in its data
-                        newTimePeriod.ba_buildings.push(newBuilding) // push the building to the time period
-                    }
-
-                    // Armies
-                    let armiesIn = timePeriodsIn[j].armies
-                    for (let k: number = 0; k < armiesIn.length; k++) {
-                        let newArmy: Army = new Army(armiesIn[k].owner_index, []) // create the new army and fill in the owner
-
-                        let troopsIn = armiesIn[k].troops
-                        for (let m: number = 0; m < troopsIn.length; m++) {
-                            // create the troop object and fill in its data
-                            let newTroop: Troop = new Troop(troopsIn[m].rawLevel, troopsIn[m].modifier, troopsIn[m].health)
-                            newTroop.n_level = troopsIn[m].level
-                            newTroop.n_id = troopsIn[m].id
-                            newArmy.ta_troops.push(newTroop) // push the troop to the army
-                        }
-
-                        newTimePeriod.aa_armies.push(newArmy) // add the army to the time period list
-                    }
-
-                    // Build orders
-                    let buildOrdersIn = timePeriodsIn[j].build_orders
-                    for (let k: number = 0; k < buildOrdersIn.length; k++) {
-                        let newTarget: Troop | Building = new Building(0) // create the object for the target of the build order
-                        // fill it in depending on the type
-                        if (buildOrdersIn[k].type === "Building") { // if its a building
-                            newTarget = new Building(buildOrdersIn[k].target.type, buildOrdersIn[k].target.name) // fill it in
-                        }
-                        if (buildOrdersIn[k].type === "Troop") { // if its a troop
-                            // fill it in
-                            newTarget = new Troop(buildOrdersIn[k].target.rawLevel, buildOrdersIn[k].target.modifier, buildOrdersIn[k].target.health)
-                            newTarget.n_level = buildOrdersIn[k].target.level
-                            newTarget.n_id = buildOrdersIn[k].target.id
-                        }
-                        let newBuildOrder: BuildOrder = new BuildOrder(newTarget, buildOrdersIn[k].turns_remaining) // create the build order and fill it in with the target object
-                        newTimePeriod.boa_buildQueue.push(newBuildOrder) // add the loaded build order to the list
-                    }
-
-                    newTimePeriod.b_hasCombat = timePeriodsIn[j].hasCombat
-                    newTimePeriod.b_propagationBlocked = timePeriodsIn[j].propagationBlocked
-                    newTimePeriod.b_conquested = timePeriodsIn[j].conquested
-                    newTimePeriod.b_scorchedEarth = timePeriodsIn[j].scorchedEarth
-
-                    newPlanet.ta_timePeriods[j] = newTimePeriod // set the newly loaded time period to be the correct time period in the planet
+                // Buildings
+                let buildingsIn = timePeriodsIn[j].buildings
+                for (let k: number = 0; k < buildingsIn.length; k++) {
+                    let newBuilding: Building = new Building(buildingsIn[k].type, buildingsIn[k].name) // create the new building and fill in its data
+                    newTimePeriod.ba_buildings.push(newBuilding) // push the building to the time period
                 }
 
-                pa_planets.push(newPlanet) // add the loaded in planet to the list
+                // Armies
+                let armiesIn = timePeriodsIn[j].armies
+                for (let k: number = 0; k < armiesIn.length; k++) {
+                    let newArmy: Army = new Army(armiesIn[k].owner_index, []) // create the new army and fill in the owner
+                    let troopsIn = armiesIn[k].troops
+                    for (let m: number = 0; m < troopsIn.length; m++) {
+                        // create the troop object and fill in its data
+                        let newTroop: Troop = new Troop(troopsIn[m].rawLevel, troopsIn[m].modifier, troopsIn[m].health)
+                        newTroop.n_level = troopsIn[m].level
+                        newTroop.n_id = troopsIn[m].id
+                        newArmy.ta_troops.push(newTroop) // push the troop to the army
+                    }
+                    newTimePeriod.aa_armies.push(newArmy) // add the army to the time period list
+                }
+
+                // Build orders
+                let buildOrdersIn = timePeriodsIn[j].build_orders
+                for (let k: number = 0; k < buildOrdersIn.length; k++) {
+                    let newTarget: Troop | Building = new Building(0) // create the object for the target of the build order
+                    // fill it in depending on the type
+                    if (buildOrdersIn[k].type === "Building") { // if its a building
+                        newTarget = new Building(buildOrdersIn[k].target.type, buildOrdersIn[k].target.name) // fill it in
+                    }
+                    if (buildOrdersIn[k].type === "Troop") { // if its a troop
+                        // fill it in
+                        newTarget = new Troop(buildOrdersIn[k].target.rawLevel, buildOrdersIn[k].target.modifier, buildOrdersIn[k].target.health)
+                        newTarget.n_level = buildOrdersIn[k].target.level
+                        newTarget.n_id = buildOrdersIn[k].target.id
+                    }
+                    let newBuildOrder: BuildOrder = new BuildOrder(newTarget, buildOrdersIn[k].turns_remaining) // create the build order and fill it in with the target object
+                    newTimePeriod.boa_buildQueue.push(newBuildOrder) // add the loaded build order to the list
+                }
+
+                newTimePeriod.b_hasCombat = timePeriodsIn[j].hasCombat
+                newTimePeriod.b_propagationBlocked = timePeriodsIn[j].propagationBlocked
+                newTimePeriod.b_conquested = timePeriodsIn[j].conquested
+                newTimePeriod.b_scorchedEarth = timePeriodsIn[j].scorchedEarth
+                newPlanet.ta_timePeriods[j] = newTimePeriod // set the newly loaded time period to be the correct time period in the planet
             }
+
+            pa_planets.push(newPlanet) // add the loaded in planet to the list
+        }
+
+        let playerTurn: any = JSON.parse(gamestateJSON.playerTurns).filter((t:any) => t.Details[0].CurrentTurnIndex === myIndex)
+        console.log(playerTurn)
+        if (playerTurn.length > 0) {
+            turnActions = playerTurn[0]
+        }
     })
     .then(() => {
-        // resets the turn actions object
-        turnActions = {
-            "Details": [
-            ]
+        if (!pa_players[myIndex].b_hasSubmitted) {
+            // resets the turn actions object
+            turnActions = {
+                "Details": [
+                ]
+            }
+            turnActions.Details.push({
+                "CurrentTurnIndex": myIndex,
+                "GameID": gameID,
+                "TurnNumber": turnNumber
+            })
         }
-        turnActions.Details.push({
-            "CurrentTurnIndex": myIndex,
-            "GameID": gameID,
-            "TurnNumber": turnNumber
-        })
     })
     .then(() => DrawBoard())
+    .catch((e) => { // if the server does not respond
+        console.log(e)
+        ShowLogin()
+        ShowLoginFailed("Server not responding")
+    })
+}
+
+const FetchSubmissionStates = (): void => {
+    fetch(`http://${ip}:${port}/submissionstates`, {method: "GET"})
+    .then(res => res.json())
+    .then((submissionStates) => {
+        console.log(submissionStates)
+        for (let i: number = 0; i < submissionStates.states.length; i++) {
+            pa_players[i].b_hasSubmitted = submissionStates.states[i]
+        }
+    })
+    .then(() => DrawPlayerList())
     .catch((e) => { // if the server does not respond
         console.log(e)
         ShowLogin()
@@ -1567,6 +1591,8 @@ const CloseLogin = (): void => {
     setInterval(() => { // once the player successfully logs in, set a automatic refresh interval
         if (pa_players[myIndex].b_hasSubmitted) { // if it its not the player's turn
             Refresh() // refresh every so often to see if it is
+        } else {
+            FetchSubmissionStates() // refresh just whether or not each player has submitted
         }
     }, 5000) // interval of 5000 milliseconds (5 seconds)
 }
@@ -1582,10 +1608,6 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
-// -Try out some combat overhaul options to make combat feel better
-// --A hoard of tiny troops should not be able to hold off an attack forever
-// ---Big troops should be able to kill multiply tiny troops at once
-// --Damage dealt should probably be a ratio comparing the power levels of each troop
 //
 // Future changes to test:
 // -Revisit how combat is resolved, may not be working as intended

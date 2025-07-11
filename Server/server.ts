@@ -1,3 +1,5 @@
+import { json } from "stream/consumers"
+
 // data from the json files
 let settings = require('./data/settings.json') // settings that the server are setup on
 let playerListJSON = require('./data/playerList.json') // list of players that will be in the game
@@ -977,50 +979,50 @@ const pa_planets: Planet[] = [] // stores the list of the planets in play
 
 const doPlayerMove = (turnSubmitted: any): void => {
     for (let i: number = 1; i < turnSubmitted.Details.length; i++) { // loop through the actions. length will always be 1 to 3 depending on if the player does both possible actions on there turn or just one or none
-            // check if action is move or trade
-            if (turnSubmitted.Details[i].Type === "Move") { // if its a move
-                pa_players[turnSubmitted.Details[0].CurrentTurnIndex].n_remainingMoves -= 1 // takes one of the player's move actions on the server
-                pa_players[turnSubmitted.Details[0].CurrentTurnIndex].na_location = [turnSubmitted.Details[i].NewLocation[0], turnSubmitted.Details[i].NewLocation[1]] // moves the player on the server
-                console.log(`Player ${turnSubmitted.Details[0].CurrentTurnIndex} Moved`) // LOG:
-            }
-            if (turnSubmitted.Details[i].Type === "Trade") { // if its a trade
-                pa_players[turnSubmitted.Details[0].CurrentTurnIndex].n_remainingTrades -= 1 // takes one of the player's trade actions
-                // read in the list of troops taken
-                let troopsTaken: Troop[] = []
-                for (let j: number = 0; j < turnSubmitted.Details[i].TroopsTaken.length; j++) {
-                    let newTroop: Troop = new Troop(turnSubmitted.Details[i].TroopsTaken[j].rawLevel, turnSubmitted.Details[i].TroopsTaken[j].modifier, turnSubmitted.Details[i].TroopsTaken[j].health) // create the troop using the read in details
-                    // fill in some extra details of the troop
-                    newTroop.n_level = turnSubmitted.Details[i].TroopsTaken[j].level
-                    newTroop.n_id = turnSubmitted.Details[i].TroopsTaken[j].id
-
-                    troopsTaken.push(newTroop) // add the new troop to the list
-                }
-                // read in the list of troops given
-                let troopsGiven: Troop[] = []
-                for (let j: number = 0; j < turnSubmitted.Details[i].TroopsGiven.length; j++) {
-                    let newTroop: Troop = new Troop(turnSubmitted.Details[i].TroopsGiven[j].rawLevel, turnSubmitted.Details[i].TroopsGiven[j].modifier, turnSubmitted.Details[i].TroopsGiven[j].health) // create the troop using the read in details
-                    // fill in some extra details of the troop
-                    newTroop.n_level = turnSubmitted.Details[i].TroopsGiven[j].level
-                    newTroop.n_id = turnSubmitted.Details[i].TroopsGiven[j].id
-
-                    troopsGiven.push(newTroop) // add the new troop to the list
-                }
-                console.log(`Trading`) // LOG:
-                console.log(`  Troops Taken: ${JSON.stringify(troopsTaken)}`) // LOG:
-                console.log(`  Troops Given: ${JSON.stringify(troopsGiven)}`) // LOG:
-                console.log(`  Resources Taken: ${JSON.stringify(turnSubmitted.Details[i].ResourcesTaken)}`) // LOG:
-                console.log(`  Resources Given: ${JSON.stringify(turnSubmitted.Details[i].ResourcesGiven)}`) // LOG:
-                Trade(turnSubmitted.Details[i].TargetTimePeriod[0], turnSubmitted.Details[i].TargetTimePeriod[1], turnSubmitted.Details[i].ResourcesTaken, turnSubmitted.Details[i].ResourcesGiven, troopsTaken, troopsGiven, turnSubmitted.Details[0].CurrentTurnIndex) // execute the trade
-            }
-            if (turnSubmitted.Details[i].Type === "Build") { // if its a build
-                pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].n_resources -= buildingCost // takes the cost
-                pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].StartBuilding(turnSubmitted.Details[i].BuildingType) // starts the building
-            }
-            if (turnSubmitted.Details[i].Type === "Train") { // if its a training
-                pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].StartTroopTraining() // starts training a troop
-                pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].n_resources -= trainTroopCost // charges the train troop cost
-            }
+        // check if action is move or trade
+        if (turnSubmitted.Details[i].Type === "Move") { // if its a move
+            pa_players[turnSubmitted.Details[0].CurrentTurnIndex].n_remainingMoves -= 1 // takes one of the player's move actions on the server
+            pa_players[turnSubmitted.Details[0].CurrentTurnIndex].na_location = [turnSubmitted.Details[i].NewLocation[0], turnSubmitted.Details[i].NewLocation[1]] // moves the player on the server
+            console.log(`Player ${turnSubmitted.Details[0].CurrentTurnIndex} Moved`) // LOG:
         }
+        if (turnSubmitted.Details[i].Type === "Trade") { // if its a trade
+            pa_players[turnSubmitted.Details[0].CurrentTurnIndex].n_remainingTrades -= 1 // takes one of the player's trade actions
+            // read in the list of troops taken
+            let troopsTaken: Troop[] = []
+            for (let j: number = 0; j < turnSubmitted.Details[i].TroopsTaken.length; j++) {
+                let newTroop: Troop = new Troop(turnSubmitted.Details[i].TroopsTaken[j].rawLevel, turnSubmitted.Details[i].TroopsTaken[j].modifier, turnSubmitted.Details[i].TroopsTaken[j].health) // create the troop using the read in details
+                // fill in some extra details of the troop
+                newTroop.n_level = turnSubmitted.Details[i].TroopsTaken[j].level
+                newTroop.n_id = turnSubmitted.Details[i].TroopsTaken[j].id
+
+                troopsTaken.push(newTroop) // add the new troop to the list
+            }
+            // read in the list of troops given
+            let troopsGiven: Troop[] = []
+            for (let j: number = 0; j < turnSubmitted.Details[i].TroopsGiven.length; j++) {
+                let newTroop: Troop = new Troop(turnSubmitted.Details[i].TroopsGiven[j].rawLevel, turnSubmitted.Details[i].TroopsGiven[j].modifier, turnSubmitted.Details[i].TroopsGiven[j].health) // create the troop using the read in details
+                // fill in some extra details of the troop
+                newTroop.n_level = turnSubmitted.Details[i].TroopsGiven[j].level
+                newTroop.n_id = turnSubmitted.Details[i].TroopsGiven[j].id
+
+                troopsGiven.push(newTroop) // add the new troop to the list
+            }
+            console.log(`Trading`) // LOG:
+            console.log(`  Troops Taken: ${JSON.stringify(troopsTaken)}`) // LOG:
+            console.log(`  Troops Given: ${JSON.stringify(troopsGiven)}`) // LOG:
+            console.log(`  Resources Taken: ${JSON.stringify(turnSubmitted.Details[i].ResourcesTaken)}`) // LOG:
+            console.log(`  Resources Given: ${JSON.stringify(turnSubmitted.Details[i].ResourcesGiven)}`) // LOG:
+            Trade(turnSubmitted.Details[i].TargetTimePeriod[0], turnSubmitted.Details[i].TargetTimePeriod[1], turnSubmitted.Details[i].ResourcesTaken, turnSubmitted.Details[i].ResourcesGiven, troopsTaken, troopsGiven, turnSubmitted.Details[0].CurrentTurnIndex) // execute the trade
+        }
+        if (turnSubmitted.Details[i].Type === "Build") { // if its a build
+            pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].n_resources -= buildingCost // takes the cost
+            pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].StartBuilding(turnSubmitted.Details[i].BuildingType) // starts the building
+        }
+        if (turnSubmitted.Details[i].Type === "Train") { // if its a training
+            pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].StartTroopTraining() // starts training a troop
+            pa_planets[turnSubmitted.Details[i].Planet].ta_timePeriods[turnSubmitted.Details[i].TimePeriod].n_resources -= trainTroopCost // charges the train troop cost
+        }
+    }
 }
 
 const AdvanceTurn = (): void => { // ends the current turn and starts the next one
@@ -1119,169 +1121,173 @@ app.post("/login", (request: any, response: any) => {
 })
 
 app.get("/gamestate", (request: any, response: any) => {
-    let gamestateOut: string = ``
+    let gamestateReturn: any = {
+        gameID: gameID,
+        turnNumber: turnNumber,
 
-    gamestateOut += `{` // file open
-    
-    // game info
-    gamestateOut += `"gameID": ${gameID},`
-    gamestateOut += `"turnNumber": ${turnNumber},`
+        numPlayers: pa_players.length,
 
-    // players
-    gamestateOut += `"numPlayers": ${pa_players.length},` // for the client to know how long to loop when loading in the players
-    gamestateOut += `"players": [` // players open
-    for (let i: number = 0; i < pa_players.length; i++) { // loop through all players
-        gamestateOut += `{` // specific player open
-        // Fill in the Player Data
-        // Fill in the rest of the player data
-        gamestateOut += `"name": "${pa_players[i].s_name}",`
+        players: [],
 
-        gamestateOut += `"hasSubmitted": ${pa_players[i].b_hasSubmitted},`
-        
-        // Troops
-        gamestateOut += `"troops": [` // troops open
-        // Troop data
-        for (let j: number = 0; j < pa_players[i].a_troops.ta_troops.length; j++) { // loop through the troops in the army of the current player
-            gamestateOut += `{` // specific troop open
+        numPlanets: numPlanets,
+        numTimePeriods: numTimePeriods,
+        warehouseBonusPercent: warehouseBonusPercent,
+        trainTroopCost: trainTroopCost,
+        troopTrainBaseTime: troopTrainBaseTime,
+        trainingCampDiscount: trainingCampDiscount,
+        healthRecoveryPercent: healthRecoveryPercent,
+        fortressProtectionPercent: fortressProtectionPercent,
+        buildingCost: buildingCost,
+        buildingTime:  buildingTime,
 
-            gamestateOut += `"rawLevel": ${pa_players[i].a_troops.ta_troops[j].n_rawLevel},`
-            gamestateOut += `"level": ${pa_players[i].a_troops.ta_troops[j].n_level},`
-            gamestateOut += `"modifier": ${pa_players[i].a_troops.ta_troops[j].n_modifier},`
-            gamestateOut += `"health": ${pa_players[i].a_troops.ta_troops[j].n_health},`
-            gamestateOut += `"id": ${pa_players[i].a_troops.ta_troops[j].n_id}`
+        planets: [],
 
-            gamestateOut += `${j === pa_players[i].a_troops.ta_troops.length-1 ? "}" : "},"}` // specific troop close | if its the last one, leave out the trailing comma
-        }
-        gamestateOut += `],` // troops close
-
-        gamestateOut += `"resources": ${pa_players[i].n_resources},`
-        gamestateOut += `"remainingMoves": "${pa_players[i].n_remainingMoves}",`
-        gamestateOut += `"remainingTrades": "${pa_players[i].n_remainingTrades}",`
-
-        gamestateOut += `"location": [` // location open
-        gamestateOut += `${pa_players[i].na_location[0]},`
-        gamestateOut += `${pa_players[i].na_location[1]}`
-        gamestateOut += `]` // location close
-
-        gamestateOut += `${i === pa_players.length-1 ? "}" : "},"}` // specific player close | if its the last one, leave out the trailing comma
+        playerTurns: JSON.stringify(submittedTurns)
     }
-    gamestateOut +=  `],` // players close
-    
-    // tunable values
-    gamestateOut += `"numPlanets": ${numPlanets},`
-    gamestateOut += `"numTimePeriods": ${numTimePeriods},`
-    gamestateOut += `"warehouseBonusPercent": ${warehouseBonusPercent},`
-    gamestateOut += `"trainTroopCost": ${trainTroopCost},`
-    gamestateOut += `"troopTrainBaseTime": ${troopTrainBaseTime},`
-    gamestateOut += `"trainingCampDiscount": ${trainingCampDiscount},`
-    gamestateOut += `"healthRecoveryPercent": ${healthRecoveryPercent},`
-    gamestateOut += `"fortressProtectionPercent": ${fortressProtectionPercent},`
-    gamestateOut += `"buildingCost": ${buildingCost},`
-    gamestateOut += `"buildingTime":  ${buildingTime},`
 
-    // planets
-    gamestateOut += `"planets": [` // planets open
-    for (let i: number = 0; i < pa_planets.length; i++) { // loop through all planets
-        gamestateOut += `{` // specific planet open
-        // Fill in planet data
-        gamestateOut += `"name": "${pa_planets[i].s_name}",`
+    // load in the players
+    for (let i: number = 0; i < pa_players.length; i++) {
+        let playerOut: any = {
+            name: pa_players[i].s_name,
+            hasSubmitted: pa_players[i].b_hasSubmitted,
 
-        gamestateOut += `"time_periods": [` // time periods open
-        for (let j: number = 0; j < pa_planets[i].ta_timePeriods.length; j++) { // loop through all time periods
-            gamestateOut += `{` // specific time period open
-            
-            // Fill in time periods data
-            gamestateOut += `"ownerIndex": ${pa_planets[i].ta_timePeriods[j].n_ownerIndex},`
-            gamestateOut += `"rawLevel": ${pa_planets[i].ta_timePeriods[j].n_rawLevel},`
-            gamestateOut += `"level": ${pa_planets[i].ta_timePeriods[j].n_level},`
-            gamestateOut += `"rawModifierFactor": ${pa_planets[i].ta_timePeriods[j].n_rawModifierFactor},`
-            gamestateOut += `"powerModifier": ${pa_planets[i].ta_timePeriods[j].n_powerModifier},`
-            gamestateOut += `"resources": ${pa_planets[i].ta_timePeriods[j].n_resources},`
-            gamestateOut += `"resourceProduction": ${pa_planets[i].ta_timePeriods[j].n_resourceProduction},`
-            gamestateOut += `"darkAgeValue": ${pa_planets[i].ta_timePeriods[j].n_darkAgeValue},`
-            
-            // Buildings
-            gamestateOut += `"buildings": [` // buildings open
+            troops: [],
+
+            resources: pa_players[i].n_resources,
+            remainingMoves: pa_players[i].n_remainingMoves,
+            remainingTrades: pa_players[i].n_remainingTrades,
+
+            location: [
+                pa_players[i].na_location[0],
+                pa_players[i].na_location[1]
+            ]
+        }
+
+        for (let j: number = 0; j < pa_players[i].a_troops.ta_troops.length; j++) {
+            let troopOut: any = {
+                rawLevel: pa_players[i].a_troops.ta_troops[j].n_rawLevel,
+                level: pa_players[i].a_troops.ta_troops[j].n_level,
+                modifier: pa_players[i].a_troops.ta_troops[j].n_modifier,
+                health: pa_players[i].a_troops.ta_troops[j].n_health,
+                id: pa_players[i].a_troops.ta_troops[j].n_id
+            }
+            playerOut.troops.push(troopOut)
+        }
+
+        gamestateReturn.players.push(playerOut)
+    }
+
+    // load in the planets
+    for (let i: number = 0; i < pa_planets.length; i++) {
+        let planetOut: any = {
+            name: pa_planets[i].s_name,
+
+            time_periods: []
+        }
+
+        for (let j: number = 0; j < pa_planets[i].ta_timePeriods.length; j++) {
+            let timePeriodOut: any = {
+                ownerIndex: pa_planets[i].ta_timePeriods[j].n_ownerIndex,
+                rawLevel: pa_planets[i].ta_timePeriods[j].n_rawLevel,
+                level: pa_planets[i].ta_timePeriods[j].n_level,
+                rawModifierFactor: pa_planets[i].ta_timePeriods[j].n_rawModifierFactor,
+                powerModifier: pa_planets[i].ta_timePeriods[j].n_powerModifier,
+                resources: pa_planets[i].ta_timePeriods[j].n_resources,
+                resourceProduction: pa_planets[i].ta_timePeriods[j].n_resourceProduction,
+                darkAgeValue: pa_planets[i].ta_timePeriods[j].n_darkAgeValue,
+
+                buildings: [],
+
+                armies: [],
+
+                build_orders: [],
+
+                hasCombat: pa_planets[i].ta_timePeriods[j].b_hasCombat,
+                propagationBlocked: pa_planets[i].ta_timePeriods[j].b_propagationBlocked,
+                conquested: pa_planets[i].ta_timePeriods[j].b_conquested,
+                scorchedEarth: pa_planets[i].ta_timePeriods[j].b_scorchedEarth
+            }
+
             for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].ba_buildings.length; k++) {
-                gamestateOut += `{` // specific building open
-
-                gamestateOut += `"name": "${pa_planets[i].ta_timePeriods[j].ba_buildings[k].s_name}",`
-                gamestateOut += `"type": ${pa_planets[i].ta_timePeriods[j].ba_buildings[k].bt_type.valueOf()}`
-
-                gamestateOut += `${k === pa_planets[i].ta_timePeriods[j].ba_buildings.length-1 ? "}" : "},"}` // specific building close | if its the last one, leave out the trailing comma
-            }
-            gamestateOut += `],` // buildings close
-
-            // Armies
-            gamestateOut += `"armies": [` // armies open
-            for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].aa_armies.length; k++) {
-                gamestateOut += `{` // specific army open
-
-                gamestateOut += `"owner_index": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].n_ownerIndex},`
-                
-                gamestateOut += `"troops": [` // troops open
-                for (let m: number = 0; m < pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops.length; m++) {
-                    gamestateOut += `{` // specific troop open
-
-                    gamestateOut += `"rawLevel": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_rawLevel},`
-                    gamestateOut += `"level": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_level},`
-                    gamestateOut += `"modifier": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_modifier},`
-                    gamestateOut += `"health": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_health},`
-                    gamestateOut += `"id": ${pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_id}`
-        
-                    gamestateOut += `${m === pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops.length-1 ? "}" : "},"}` // specific troop close | if its the last one, leave out the trailing comma
+                let buildingOut: any = {
+                    name: pa_planets[i].ta_timePeriods[j].ba_buildings[k].s_name,
+                    type: pa_planets[i].ta_timePeriods[j].ba_buildings[k].bt_type.valueOf()
                 }
-                gamestateOut += `]` // troops close
 
-                gamestateOut += `${k === pa_planets[i].ta_timePeriods[j].aa_armies.length-1 ? "}" : "},"}` // specific army close | if its the last one, leave out the trailing comma
+                timePeriodOut.buildings.push(buildingOut)
             }
-            gamestateOut += `],` // armies close
-            
-            // Build orders
-            gamestateOut += `"build_orders": [` // build orders open
+
+            for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].aa_armies.length; k++) {
+                let armyOut: any = {
+                    owner_index: pa_planets[i].ta_timePeriods[j].aa_armies[k].n_ownerIndex,
+
+                    troops: []
+                }
+
+                for (let m: number = 0; m < pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops.length; m++) {
+                    let troopOut: any = {  
+                        rawLevel: pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_rawLevel,
+                        level: pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_level,
+                        modifier: pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_modifier,
+                        health: pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_health,
+                        id: pa_planets[i].ta_timePeriods[j].aa_armies[k].ta_troops[m].n_id
+                    }
+
+                    armyOut.troops.push(troopOut)
+                }
+
+                timePeriodOut.armies.push(armyOut)
+            }
 
             for (let k: number = 0; k < pa_planets[i].ta_timePeriods[j].boa_buildQueue.length; k++) {
-                gamestateOut += `{` // specific build order open
-
-                gamestateOut += `"type": "${pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor.name}",`
-                
-                gamestateOut += `"target": {` // target open
-                if (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor === Building) { // if its a building
-                    gamestateOut += `"name": "${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Building).s_name}",`
-                    gamestateOut += `"type": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Building).bt_type.valueOf()}`
+                let buildOrderOut: any = {
+                    type: pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor.name,
+                    target: JSON.stringify(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target),
+                    turns_remaining: pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].n_turnsRemaining
                 }
-                if (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor === Troop) { // if its a troop
-                    gamestateOut += `"rawLevel": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_rawLevel},`
-                    gamestateOut += `"level": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_level},`
-                    gamestateOut += `"modifier": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_modifier},`
-                    gamestateOut += `"health": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_health},`
-                    gamestateOut += `"id": ${(pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_id}`
+
+                if (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor === Building) {
+                    let targetOut: any = {
+                        name: (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Building).s_name,
+                        type: (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Building).bt_type.valueOf()
+                    }
+
+                    buildOrderOut.target = targetOut
                 }
-                gamestateOut += `},` // target close
+                if (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target.constructor === Troop) {
+                    let targetOut: any = {
+                        rawLevel: (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_rawLevel,
+                        level: (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_level,
+                        modifier: (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_modifier,
+                        health: (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_health,
+                        id: (pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].tb_target as Troop).n_id
+                    }
 
-                gamestateOut += `"turns_remaining": ${pa_planets[i].ta_timePeriods[j].boa_buildQueue[k].n_turnsRemaining}`
+                    buildOrderOut.target = targetOut
+                }
 
-                gamestateOut += `${k === pa_planets[i].ta_timePeriods[j].boa_buildQueue.length-1 ? "}" : "},"}` // specific build order close | if its the last one, leave out the trailing comma
+                timePeriodOut.build_orders.push(buildOrderOut)
             }
 
-            gamestateOut += `],` // build orders close
-
-            gamestateOut += `"hasCombat": ${pa_planets[i].ta_timePeriods[j].b_hasCombat},`
-            gamestateOut += `"propagationBlocked": ${pa_planets[i].ta_timePeriods[j].b_propagationBlocked},`
-            gamestateOut += `"conquested": ${pa_planets[i].ta_timePeriods[j].b_conquested},`
-            gamestateOut += `"scorchedEarth": ${pa_planets[i].ta_timePeriods[j].b_scorchedEarth}`
-
-            gamestateOut += `${j === pa_planets[i].ta_timePeriods.length-1 ? "}" : "},"}` // specific time period close | if its the last one, leave out the trailing comma
+            planetOut.time_periods.push(timePeriodOut)
         }
-        gamestateOut += `]` // time periods close
-        
-        gamestateOut += `${i === pa_planets.length-1 ? "}" : "},"}` // specific planet close | if its the last one, leave out the trailing comma
+
+        gamestateReturn.planets.push(planetOut)
     }
-    gamestateOut += `]` // planets close
 
-    gamestateOut += `}` // file close
+    console.log(JSON.stringify(gamestateReturn))
 
-    response.send(JSON.stringify(gamestateOut))
+    response.send(JSON.stringify(gamestateReturn))
+})
+
+app.get("/submissionstates", (request: any, response: any) => {
+  let submissionStates: any = {
+    states: [],
+  };
+
+  pa_players.forEach((p) => submissionStates.states.push(p.b_hasSubmitted));
+
+  response.send(JSON.stringify(submissionStates));
 })
 
 // submit function
