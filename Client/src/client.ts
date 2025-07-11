@@ -2,6 +2,7 @@
 //--------------Tunable Values------------------
 //----------------------------------------------
 
+//#region Tunable Values
 let numPlanets: number = 5 // number of planets that the game should have
 let numTimePeriods: number = 10 // stores how many time periods each planet should have
 
@@ -47,11 +48,13 @@ const playerColors: string[] = [ // colors to represent the players [14]
     " #ffbf80 ",
     " #80ffd0 "
 ]
+//#endregion Tunable Values
 
 //----------------------------------------------
 //--------------Helper Functions----------------
 //----------------------------------------------
 
+//#region Helper Functions
 const SortTroops = (ta: Troop[]): Troop[] => { //sorts the troops of an army in descending order of power
     return ta.sort((a, b) => { //uses the built in sort method
         return (b.n_level + b.n_modifier) - (a.n_level + a.n_modifier)
@@ -146,17 +149,32 @@ const TroopCardList = (a: Army, taken: boolean, target: Army): string => { //tak
 
     return output.outerHTML //returns the generated HTML
 }
+//#endregion Helper Functions
 
 //----------------------------------------------
-//-------------Classes and Enums----------------
+//--------Classes and Enums and Types-----------
 //----------------------------------------------
 
+//#region Types
+type TurnActionsObject = {
+    Header: {
+        CurrentTurnIndex: number,
+        GameID: number,
+        TurnNumber: number
+    },
+    Actions: any[]
+}
+//#endregion Types
+
+//#region Enums
 enum BuildingType {
     Training_Camp = 0, //makes training troops faster
     Warehouse = 1, //increases resource production (thematically reduces resource losses to spoilage)
     Fortress = 2 //gives bonus to defending troops
 }
+//#endregion Enums
 
+//#region Classes
 class Player {
 
     s_name: string
@@ -344,11 +362,13 @@ class Planet {
         }
     }
 }
+//#endregion Classes
 
 //----------------------------------------------
 //-----------Trading and Building---------------
 //----------------------------------------------
 
+//#region Trading
 //holds onto the trading window elements
 const tradingWindow: HTMLElement = document.getElementById('trading-window') as HTMLElement //the whole trading window
 const timePeriodPresent: HTMLElement = document.getElementById('time-period-present') as HTMLElement //the box where the things in the time period go
@@ -569,7 +589,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
     }
     if (playerArmyIndex > -1) { // if they have an army here
         // Fill in the turn actions json for the trade
-        turnActions.Details.push({
+        turnActions.Actions.push({
             "Type": "Trade",
             "TargetTimePeriod": [p_pIndex, p_tIndex],
             "ResourcesTaken": resourcesTaken,
@@ -579,7 +599,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
         })
         // fill in the list of troops taken
         for (let i: number = 0; i < troopsTaken.ta_troops.length; i++) {
-            turnActions.Details[turnActions.Details.length-1].TroopsTaken.push({
+            turnActions.Actions[turnActions.Actions.length-1].TroopsTaken.push({
                 "rawLevel": troopsTaken.ta_troops[i].n_rawLevel,
                 "level": troopsTaken.ta_troops[i].n_level,
                 "modifier": troopsTaken.ta_troops[i].n_modifier,
@@ -589,7 +609,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
         }
         // fill in the list of troops given
         for (let i: number = 0; i < troopsGiven.ta_troops.length; i++) {
-            turnActions.Details[turnActions.Details.length-1].TroopsGiven.push({
+            turnActions.Actions[turnActions.Actions.length-1].TroopsGiven.push({
                 "rawLevel": troopsGiven.ta_troops[i].n_rawLevel,
                 "level": troopsGiven.ta_troops[i].n_level,
                 "modifier": troopsGiven.ta_troops[i].n_modifier,
@@ -622,7 +642,9 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
 
     DrawBoard()
 }
+//#endregion Trading
 
+//#region Building
 // hold onto the building window elements
 const buildingWindow: HTMLElement = document.getElementById('building-window') as HTMLElement //the whole building window
 
@@ -655,7 +677,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].StartBuilding(0) //starts the building
                 trainingCampButton.remove() //removes the button
-                turnActions.Details.push({
+                turnActions.Actions.push({
                     "Type": "Build",
                     "BuildingType": "0",
                     "Planet": n_selectedPlanetIndex,
@@ -673,7 +695,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].StartBuilding(1) //starts the building
                 warehouseButton.remove() //removes the button
-                turnActions.Details.push({
+                turnActions.Actions.push({
                     "Type": "Build",
                     "BuildingType": "1",
                     "Planet": n_selectedPlanetIndex,
@@ -691,7 +713,7 @@ const FillInBuildWindow = (): void => {
                 pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources -= buildingCost //takes the cost
                 pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].StartBuilding(2) //starts the building
                 fortressButton.remove() //removes the button
-                turnActions.Details.push({
+                turnActions.Actions.push({
                     "Type": "Build",
                     "BuildingType": "2",
                     "Planet": n_selectedPlanetIndex,
@@ -715,11 +737,13 @@ const CloseBuildWindow = (): void => {
 
     DrawBoard()
 }
+//#endregion Building
 
 //----------------------------------------------
 //-------------MAIN GAME LOGIC------------------
 //----------------------------------------------
 
+//#region Main Game Logic
 let ip: string = `127.0.0.1`
 let port: string = `4050`
 
@@ -729,13 +753,19 @@ let myIndex: number = 0 // stores which player the client is
 let gameID: number // unique ID for the game you connect to, used to verify with the server
 let turnNumber: number // stores the current turn number, used to verify with the server
 
-let turnActions: {"Details": any} = {
-    "Details": [
+let turnActions: TurnActionsObject = {
+    Header: {
+        CurrentTurnIndex: -1,
+        GameID: 0,
+        TurnNumber: -1
+    },
+    Actions: [
     ]
 } // holds the actions that the player is taking this turn to be submitted
 
 let pa_planets: Planet[] = [] // stores the list of the planets in play
 
+//#region HTMLElements
 // holds onto the time period board display
 const timePeriodBoard: HTMLElement = document.getElementById('time-period-board') as HTMLElement
 
@@ -787,6 +817,7 @@ const travelButton: HTMLButtonElement = document.getElementById('travel-button')
 const tradeButton: HTMLButtonElement = document.getElementById('trade-button') as HTMLButtonElement // trade button
 const endTurnButton: HTMLButtonElement = document.getElementById('end-turn-button') as HTMLButtonElement // end turn button
 const cancelTurnButton: HTMLElement = document.getElementById('cancel-turn-button') as HTMLElement // button to retract your turn
+//#endregion HTMLElements
 
 // stores the coordinates of the selected time period
 let n_selectedPlanetIndex: number
@@ -1043,19 +1074,19 @@ const DrawBoard = (): void => {
         // fill in the current turn section
         turnNumberSpot.innerHTML = `Current Turn: ${turnNumber}`
         turnListSpot.innerHTML = ``
-        for (let i: number = 1; i < turnActions.Details.length; i++) {
-            switch (turnActions.Details[i].Type) {
+        for (let i: number = 1; i < turnActions.Actions.length; i++) {
+            switch (turnActions.Actions[i].Type) {
                 case "Move":
-                    turnListSpot.innerHTML += `Move to ${pa_planets[turnActions.Details[i].NewLocation[0]].s_name} : ${turnActions.Details[i].NewLocation[1] + 1}<br>`
+                    turnListSpot.innerHTML += `Move to ${pa_planets[turnActions.Actions[i].NewLocation[0]].s_name} : ${turnActions.Actions[i].NewLocation[1] + 1}<br>`
                     break;
                 case "Trade":
-                    turnListSpot.innerHTML += `Trade at ${pa_planets[turnActions.Details[i].TargetTimePeriod[0]].s_name} : ${turnActions.Details[i].TargetTimePeriod[1] + 1}<br>`
+                    turnListSpot.innerHTML += `Trade at ${pa_planets[turnActions.Actions[i].TargetTimePeriod[0]].s_name} : ${turnActions.Actions[i].TargetTimePeriod[1] + 1}<br>`
                     break;
                 case "Build":
-                    turnListSpot.innerHTML += `Build ${BuildingType[turnActions.Details[i].BuildingType].toString()} at ${pa_planets[turnActions.Details[i].Planet].s_name} : ${turnActions.Details[i].TimePeriod + 1}<br>`
+                    turnListSpot.innerHTML += `Build ${BuildingType[turnActions.Actions[i].BuildingType].toString()} at ${pa_planets[turnActions.Actions[i].Planet].s_name} : ${turnActions.Actions[i].TimePeriod + 1}<br>`
                     break;
                 case "Train":
-                    turnListSpot.innerHTML += `Train Troop at ${pa_planets[turnActions.Details[i].Planet].s_name} : ${turnActions.Details[i].TimePeriod + 1}<br>`
+                    turnListSpot.innerHTML += `Train Troop at ${pa_planets[turnActions.Actions[i].Planet].s_name} : ${turnActions.Actions[i].TimePeriod + 1}<br>`
                     break;
             }
         }
@@ -1277,7 +1308,7 @@ const FetchState = ():void => {
             pa_planets.push(newPlanet) // add the loaded in planet to the list
         }
 
-        let playerTurn: any = JSON.parse(gamestateJSON.playerTurns).filter((t:any) => t.Details[0].CurrentTurnIndex === myIndex)
+        let playerTurn: any = JSON.parse(gamestateJSON.playerTurns).filter((t:TurnActionsObject) => t.Header.CurrentTurnIndex === myIndex)
         console.log(playerTurn)
         if (playerTurn.length > 0) {
             turnActions = playerTurn[0]
@@ -1287,14 +1318,15 @@ const FetchState = ():void => {
         if (!pa_players[myIndex].b_hasSubmitted) {
             // resets the turn actions object
             turnActions = {
-                "Details": [
+                Header: {
+                    CurrentTurnIndex: myIndex,
+                    GameID: gameID,
+                    TurnNumber: turnNumber
+                },
+                Actions: [
+
                 ]
             }
-            turnActions.Details.push({
-                "CurrentTurnIndex": myIndex,
-                "GameID": gameID,
-                "TurnNumber": turnNumber
-            })
         }
     })
     .then(() => DrawBoard())
@@ -1458,7 +1490,7 @@ const Initialize = (): void => {
         if (pa_players[myIndex].n_remainingMoves > 0 && n_selectedPlanetIndex > -1 && (n_selectedPlanetIndex !== pa_players[myIndex].na_location[0] || n_selectedTimePeriodIndex !== pa_players[myIndex].na_location[1])) { // makes sure the player can move this turn, has a time period selected, and are not already there
             pa_players[myIndex].n_remainingMoves -= 1 // takes one of the player's moves
             pa_players[myIndex].na_location = [n_selectedPlanetIndex, n_selectedTimePeriodIndex] // moves the player on the client
-            turnActions.Details.push({
+            turnActions.Actions.push({
                 "Type": "Move",
                 "NewLocation": [n_selectedPlanetIndex, n_selectedTimePeriodIndex]
             }) // Add the move to the turn json
@@ -1476,7 +1508,7 @@ const Initialize = (): void => {
         if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources >= trainTroopCost) { // makes sure that the time period can afford to train the troop
             pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].StartTroopTraining() // starts training a troop
             pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources -= trainTroopCost // charges the train troop cost
-            turnActions.Details.push({
+            turnActions.Actions.push({
                     "Type": "Train",
                     "Planet": n_selectedPlanetIndex,
                     "TimePeriod": n_selectedTimePeriodIndex
@@ -1499,11 +1531,13 @@ const Initialize = (): void => {
 
     FetchState() // fetches the gamestate from the server
 }
+//#endregion Main Game Logic
 
 //----------------------------------------------
 //---------------Login LOGIC--------------------
 //----------------------------------------------
 
+//#region Login
 const loginWindow: HTMLElement = document.getElementById('login-window') as HTMLElement
 const loginFailedMessage: HTMLElement = document.getElementById('login-failed-message') as HTMLElement
 const topLayer: HTMLElement = document.getElementById('top-layer') as HTMLMediaElement
@@ -1604,6 +1638,7 @@ const ShowLoginFailed = (errorMessage: string): void => {
     loginFailedMessage.innerHTML = errorMessage
 
 }
+//#endregion Login
 
 ShowLogin() // begin the login process to start the game
 
