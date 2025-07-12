@@ -363,8 +363,6 @@ Things to Watch:
 -Do buildings still feel too expensive once you get deeper
 -Is damage dealt in combat bad feelings?
 --Should damage dealt should probably be a ratio comparing the power levels of each troop
--In internal testing an army switched owner for some reason and conquered a time period for 
- unknown reasons. Look out for that happening again.
 -Time period controls stayed up when selecting a time period where they shouldn't
 -Trade button disappeared when should have had 1 use left
 -Lot of double clicks. Submitting 2 turns, building 2 troops

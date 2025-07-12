@@ -527,7 +527,7 @@ class ResourcePropagationOrder extends PropagationOrder {
 class TroopPropagationOrder extends PropagationOrder {
 
     t_target: Troop
-    n_ownerIndex: number
+    n_ownerIndex: number // index in pa_players of the owner of the army
 
     constructor (c_adding: boolean, c_target: Troop, c_ownerIndex: number) {
         super(c_adding)
@@ -693,7 +693,7 @@ class TimePeriod {
                         this.aa_armies[ownerArmyIndex].ta_troops.push(this.boa_buildQueue[0].tb_target as Troop) // add the troop
                     }
                     if (p_tIndex !== numTimePeriods - 1) { // makes sure that this time period is not the last in the list
-                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, new Troop(this.boa_buildQueue[0].tb_target.n_rawLevel, this.boa_buildQueue[0].tb_target.n_modifier), ownerArmyIndex)) //create propagation order in next time period
+                        pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, new Troop(this.boa_buildQueue[0].tb_target.n_rawLevel, this.boa_buildQueue[0].tb_target.n_modifier), this.n_ownerIndex)) //create propagation order in next time period
                     }
                 } else { // if a building is being built
                     console.log(`Creating building: ${this.boa_buildQueue[0].tb_target} in [${p_pIndex}, ${p_tIndex}]`) // LOG:
@@ -779,6 +779,7 @@ class TimePeriod {
     DoPropagation = (p_pIndex: number, p_tIndex: number): void => {
         if (!pa_planets[p_pIndex].ta_timePeriods[p_tIndex - 1].b_hasCombat) { // only does propagation if the previous time period does not have combat
             this.pa_propagationOrders.forEach((po) => {
+                console.log(`Propagating at [${p_pIndex}, ${p_tIndex}]: ${po.constructor.name} - ${JSON.stringify(po)}`) // LOG:
                 if (po.constructor === ResourcePropagationOrder) { // handles resource propagation orders
                     if (po.b_adding && !pa_planets[p_pIndex].ta_timePeriods[p_tIndex].b_scorchedEarth) { // if the order is to add and the previous time period is not scorched earth
                         this.n_resources += po.n_amount
@@ -1062,6 +1063,8 @@ const AdvanceTurn = (): void => { // ends the current turn and starts the next o
     })
 
     CleanArmies()
+
+    console.log(`=============Turn ${turnNumber}==============`) // LOG:
 }
 
 const Initialize = (): void => {
@@ -1071,7 +1074,8 @@ const Initialize = (): void => {
     responseFile.turnNumber = turnNumber
 
     pa_players.forEach((p) => p.StartTurn())
-    //pa_players[currentTurnIndex].StartTurn() // sets the current player up so they have their actions
+
+    console.log(`=============Turn ${turnNumber}==============`) // LOG:
 
     for (let i: number = 0; i < numPlanets; i++) { // creates the list of planets of the number specified in the tunable values
         let darkAgePoint: number = Math.floor((Math.random() * Math.floor(numTimePeriods / 3)) + Math.floor(numTimePeriods / 3))
