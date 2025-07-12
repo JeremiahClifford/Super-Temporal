@@ -1307,10 +1307,14 @@ app.post("/submitturn", (request: any, response: any) => {
 
     console.log(`Turn Submitted: ${JSON.stringify(turnSubmitted)}`) // log the submitted turn in the console
     
+    responseFile.index = turnSubmitted.Header.CurrentTurnIndex
+
     if (turnSubmitted.Header.GameID !== gameID) { // if the gameID is mismatched
+        console.log(`Game ID did not match, responding false`)
         responseFile.responseValue = false
     } else {
         if (turnSubmitted.Header.TurnNumber !== turnNumber) { // if the player has the wrong turn number
+            console.log(`Turn Number did not match, responding false`)
             responseFile.responseValue = false
         } else { // only accept the turn if both things check out
             if (!pa_players[turnSubmitted.Header.CurrentTurnIndex].b_hasSubmitted) {

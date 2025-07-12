@@ -76,6 +76,8 @@ const CleanArmies = (): void => { // loops through every time zone and removes a
 const TroopsString = (a: Army, useName: boolean): string => { // gives a string representation of the player's or time period's list of troops
     a.ta_troops = SortTroops(a.ta_troops) // sorts the troops so they are in a good order to be printed
 
+    console.log(`Inputted Army: ${JSON.stringify(a)}`) // TEMP: Debugging
+
     // squashes troops of the same level into 1 line
     type troopType = {
         n_level: number
@@ -576,6 +578,8 @@ const SwapResources = (player: boolean, present: boolean, playerIndex: number): 
 }
 
 const SwapTroop = (start: Army, startIndex: number, target: Army, doUI: boolean): void => { // moves troops from one box to another
+    console.log(`Swapping Troop: ${JSON.stringify(start.ta_troops[startIndex])}`) // LOG:
+    
     target.ta_troops.push(start.ta_troops[startIndex]) // adds the troops to the target
     target.ta_troops = SortTroops(target.ta_troops) // sorts the target
     start.ta_troops = start.ta_troops.filter((t) => t !== start.ta_troops[startIndex]) // removes the troop from where it started
@@ -625,6 +629,10 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
                 id: troopsGiven.ta_troops[i].n_id
             })
         }
+        
+        givenIndices = []
+        takenIndices = []
+
         // swaps all the things around
         // gives the player the resources they take
         pa_players[p].n_resources += resourcesTaken
@@ -651,13 +659,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
     DrawBoard()
 }
 
-const TradeBetweenTurns = (tp: TimePeriod, rGiven: number, rTaken: number, tGiven: Troop[], tTaken: Troop[], gIndices: number[], tIndices: number[]): void => {
-    console.log(`Trading`) // LOG:
-            console.log(`  Troops Taken: ${JSON.stringify(tTaken)}`) // LOG:
-            console.log(`  Troops Given: ${JSON.stringify(tGiven)}`) // LOG:
-            console.log(`  Resources Taken: ${rTaken}`) // LOG:
-            console.log(`  Resources Given: ${rGiven}`) // LOG:
-    
+const TradeBetweenTurns = (tp: TimePeriod, rGiven: number, rTaken: number, tGiven: Troop[], tTaken: Troop[], gIndices: number[], tIndices: number[]): void => {    
     let playerArmyIndex: number = -1
     for (let i: number = 0; i < tp.aa_armies.length; i++) { // finds if the player already has an army in this time period
         if (tp.aa_armies[i].n_ownerIndex === myIndex) {
@@ -670,6 +672,13 @@ const TradeBetweenTurns = (tp: TimePeriod, rGiven: number, rTaken: number, tGive
         playerArmyIndex = tp.aa_armies.length - 1
     }
 
+    console.log(`Trading Between Turns`) // LOG:
+    console.log(`  Owner Index: ${playerArmyIndex}`) // LOG:
+    console.log(`  Troops Taken: ${JSON.stringify(tTaken)}`) // LOG:
+    console.log(`  Troops Given: ${JSON.stringify(tGiven)}`) // LOG:
+    console.log(`  Resources Taken: ${rTaken}`) // LOG:
+    console.log(`  Resources Given: ${rGiven}`) // LOG:
+
     pa_players[myIndex].n_resources += rTaken
     tp.n_resources += rGiven
     pa_players[myIndex].n_resources -= rGiven
@@ -681,6 +690,8 @@ const TradeBetweenTurns = (tp: TimePeriod, rGiven: number, rTaken: number, tGive
     for (let i: number = 0; i < gIndices.length; i++) {
         SwapTroop(pa_players[myIndex].a_troops, gIndices[i], tp.aa_armies[playerArmyIndex], false)
     }
+
+    console.log(`A: ${JSON.stringify(tp.aa_armies[playerArmyIndex])}`) //TEMP: Debugging
 
     CleanArmies()
 }
