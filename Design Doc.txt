@@ -349,6 +349,7 @@ Playtest 6:
 Changes:
 -You can no longer submit a turn using a previous gamestate on a new server instance
 -Players can now take back a submitted turn as long as all players have not submitted triggering end of turn calculation
+-Players can now see the actions they took on their turn after submitting
 -Players only start with 1 troop
 -Turn counter and list of actions taken thus far on UI
 -Army lists now show a total level and total health

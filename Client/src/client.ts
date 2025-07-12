@@ -381,7 +381,9 @@ const tradeSubmitButton: HTMLButtonElement = document.getElementById('trade-wind
 let resourcesGiven: number = 0
 let resourcesTaken: number = 0
 let troopsGiven: Army = new Army(-2, [])
+let givenIndices: number[] = []
 let troopsTaken: Army = new Army(-3, [])
+let takenIndices: number[] = []
 
 const FillInTradeWindow = (p: number, t: TimePeriod): void => { // function which writes everything that is in the trade. This function runs every time something is changed in the trade to update the UI
 
@@ -413,6 +415,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { // function whic
             let selectButton: HTMLButtonElement = document.getElementById(`${false}-${p}-swap-button-${i}-${troopsTaken.n_ownerIndex}`) as HTMLButtonElement
             selectButton.addEventListener('click', () => {
                 SwapTroop(t.aa_armies[playerArmyIndex], i, troopsTaken, true)
+                takenIndices.push(i)
             })
         }
     } else {
@@ -460,6 +463,7 @@ const FillInTradeWindow = (p: number, t: TimePeriod): void => { // function whic
         let selectButton: HTMLButtonElement = document.getElementById(`${false}-${p}-swap-button-${i}-${troopsGiven.n_ownerIndex}`) as HTMLButtonElement
         selectButton.addEventListener('click', () => {
             SwapTroop(pa_players[p].a_troops, i, troopsGiven, true)
+            givenIndices.push(i)
         })
     }
     // fills in the player selected
@@ -592,31 +596,33 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
     if (playerArmyIndex > -1) { // if they have an army here
         // Fill in the turn actions json for the trade
         turnActions.Actions.push({
-            "Type": "Trade",
-            "TargetTimePeriod": [p_pIndex, p_tIndex],
-            "ResourcesTaken": resourcesTaken,
-            "ResourcesGiven": resourcesGiven,
-            "TroopsTaken": [],
-            "TroopsGiven": []
+            Type: "Trade",
+            TargetTimePeriod: [p_pIndex, p_tIndex],
+            ResourcesTaken: resourcesTaken,
+            ResourcesGiven: resourcesGiven,
+            TroopsTaken: [],
+            TroopsGiven: [],
+            GivenIndices: givenIndices,
+            TakenIndices: takenIndices
         })
         // fill in the list of troops taken
         for (let i: number = 0; i < troopsTaken.ta_troops.length; i++) {
             turnActions.Actions[turnActions.Actions.length-1].TroopsTaken.push({
-                "rawLevel": troopsTaken.ta_troops[i].n_rawLevel,
-                "level": troopsTaken.ta_troops[i].n_level,
-                "modifier": troopsTaken.ta_troops[i].n_modifier,
-                "health": troopsTaken.ta_troops[i].n_health,
-                "id": troopsTaken.ta_troops[i].n_id
+                rawLevel: troopsTaken.ta_troops[i].n_rawLevel,
+                level: troopsTaken.ta_troops[i].n_level,
+                modifier: troopsTaken.ta_troops[i].n_modifier,
+                health: troopsTaken.ta_troops[i].n_health,
+                id: troopsTaken.ta_troops[i].n_id
             })
         }
         // fill in the list of troops given
         for (let i: number = 0; i < troopsGiven.ta_troops.length; i++) {
             turnActions.Actions[turnActions.Actions.length-1].TroopsGiven.push({
-                "rawLevel": troopsGiven.ta_troops[i].n_rawLevel,
-                "level": troopsGiven.ta_troops[i].n_level,
-                "modifier": troopsGiven.ta_troops[i].n_modifier,
-                "health": troopsGiven.ta_troops[i].n_health,
-                "id": troopsGiven.ta_troops[i].n_id
+                rawLevel: troopsGiven.ta_troops[i].n_rawLevel,
+                level: troopsGiven.ta_troops[i].n_level,
+                modifier: troopsGiven.ta_troops[i].n_modifier,
+                health: troopsGiven.ta_troops[i].n_health,
+                id: troopsGiven.ta_troops[i].n_id
             })
         }
         // swaps all the things around
@@ -645,7 +651,7 @@ const Trade = (p: number, tp: TimePeriod, p_pIndex: number, p_tIndex: number): v
     DrawBoard()
 }
 
-const TradeBetweenTurns = (tp: TimePeriod, rGiven: number, rTaken: number, tGiven: Troop[], tTaken: Troop[]): void => {
+const TradeBetweenTurns = (tp: TimePeriod, rGiven: number, rTaken: number, tGiven: Troop[], tTaken: Troop[], gIndices: number[], tIndices: number[]): void => {
     console.log(`Trading`) // LOG:
             console.log(`  Troops Taken: ${JSON.stringify(tTaken)}`) // LOG:
             console.log(`  Troops Given: ${JSON.stringify(tGiven)}`) // LOG:
@@ -668,38 +674,12 @@ const TradeBetweenTurns = (tp: TimePeriod, rGiven: number, rTaken: number, tGive
     tp.n_resources += rGiven
     pa_players[myIndex].n_resources -= rGiven
     tp.n_resources -= rTaken
-    
-    for (let i: number = 0; i < tGiven.length; i++) {
-        for (let j: number = 0; j < pa_players[myIndex].a_troops.ta_troops.length; j++) {
-            if (
-                pa_players[myIndex].a_troops.ta_troops[j].n_id === tGiven[i].n_id &&
-                pa_players[myIndex].a_troops.ta_troops[j].n_rawLevel === tGiven[i].n_rawLevel &&
-                pa_players[myIndex].a_troops.ta_troops[j].n_level === tGiven[i].n_level &&
-                pa_players[myIndex].a_troops.ta_troops[j].n_modifier === tGiven[i].n_modifier &&
-                pa_players[myIndex].a_troops.ta_troops[j].n_health === tGiven[i].n_health
-            ) {
-                console.log(`Troop Found`) //LOG:
-                tp.aa_armies[playerArmyIndex].ta_troops.push(pa_players[myIndex].a_troops.ta_troops[j])
-                tp.aa_armies[playerArmyIndex].ta_troops = SortTroops(tp.aa_armies[playerArmyIndex].ta_troops)
-                pa_players[myIndex].a_troops.ta_troops = pa_players[myIndex].a_troops.ta_troops.filter((t) => t !== pa_players[myIndex].a_troops.ta_troops[j])
-            }
-        }
+
+    for (let i: number = 0; i < tIndices.length; i++) {
+        SwapTroop(tp.aa_armies[playerArmyIndex], tIndices[i], pa_players[myIndex].a_troops, false)
     }
-    for (let i: number = 0; i < tTaken.length; i++) {
-        for (let j: number = 0; j < tp.aa_armies[playerArmyIndex].ta_troops.length; j++) {
-            if (
-                tp.aa_armies[playerArmyIndex].ta_troops[j].n_id === tTaken[i].n_id &&
-                tp.aa_armies[playerArmyIndex].ta_troops[j].n_rawLevel === tTaken[i].n_rawLevel &&
-                tp.aa_armies[playerArmyIndex].ta_troops[j].n_level === tTaken[i].n_level &&
-                tp.aa_armies[playerArmyIndex].ta_troops[j].n_modifier === tTaken[i].n_modifier &&
-                tp.aa_armies[playerArmyIndex].ta_troops[j].n_health === tTaken[i].n_health
-            ) {
-                console.log(`Troop Found`) //LOG:
-                pa_players[myIndex].a_troops.ta_troops.push(tp.aa_armies[playerArmyIndex].ta_troops[j])
-                pa_players[myIndex].a_troops.ta_troops = SortTroops(pa_players[myIndex].a_troops.ta_troops)
-                tp.aa_armies[playerArmyIndex].ta_troops = tp.aa_armies[playerArmyIndex].ta_troops.filter((t) => t !== tp.aa_armies[playerArmyIndex].ta_troops[j])
-            }
-        }
+    for (let i: number = 0; i < gIndices.length; i++) {
+        SwapTroop(pa_players[myIndex].a_troops, gIndices[i], tp.aa_armies[playerArmyIndex], false)
     }
 
     CleanArmies()
@@ -1258,7 +1238,7 @@ const FillInPlayerTurn = (actions: TurnActionsObject): void => {
             pa_players[actions.Header.CurrentTurnIndex].na_location = [actions.Actions[i].NewLocation[0], actions.Actions[i].NewLocation[1]] // moves the player on the server
         }
         if (actions.Actions[i].Type === "Trade") { // if its a trade
-            TradeBetweenTurns(pa_planets[actions.Actions[i].TargetTimePeriod[0]].ta_timePeriods[actions.Actions[i].TargetTimePeriod[1]], actions.Actions[i].ResourcesGiven, actions.Actions[i].ResourcesTaken, actions.Actions[i].TroopsGiven, actions.Actions[i].TroopsTaken) // execute the trade
+            TradeBetweenTurns(pa_planets[actions.Actions[i].TargetTimePeriod[0]].ta_timePeriods[actions.Actions[i].TargetTimePeriod[1]], actions.Actions[i].ResourcesGiven, actions.Actions[i].ResourcesTaken, actions.Actions[i].TroopsGiven, actions.Actions[i].TroopsTaken, actions.Actions[i].GivenIndices, actions.Actions[i].TakenIndices) // execute the trade
         }
         if (actions.Actions[i].Type === "Build") { // if its a build
             pa_planets[actions.Actions[i].Planet].ta_timePeriods[actions.Actions[i].TimePeriod].n_resources -= buildingCost // takes the cost
@@ -1724,7 +1704,6 @@ const ShowLoginFailed = (errorMessage: string): void => {
 ShowLogin() // begin the login process to start the game
 
 // TODO:
-// -Get TradeBetweenTurns working
 //
 // Future changes to test:
 // -Revisit how combat is resolved, may not be working as intended
