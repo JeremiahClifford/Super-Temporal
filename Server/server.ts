@@ -69,15 +69,15 @@ const Combat = (p: number, tp: number, a1: Army, a2: Army, fortress: number): vo
     console.log(`Combat:\n   A1: ${JSON.stringify(a1)}\n   A2: ${JSON.stringify(a2)}`) // TEMP: Debug
 
     // find which army troop has the highest raw level (combat width)
-    if (a1.ta_troops[0].n_level === a2.ta_troops[0].n_level) { // if they are equal, they damage each other
+    if (a1.ta_troops[0].n_combatWidth === a2.ta_troops[0].n_combatWidth) { // if they are equal, they damage each other
         EvenCombat(p, tp, a1, a2, fortress)
     } else {
-        if (a1.ta_troops[0].n_rawLevel > a2.ta_troops[0].n_rawLevel) { // if army 1 bigger, match that troop against multiple from a2
+        if (a1.ta_troops[0].n_combatWidth > a2.ta_troops[0].n_combatWidth) { // if army 1 bigger, match that troop against multiple from a2
             WidthCombat(p, tp, a1, a2, fortress)
         } else { // if army 2 bigger, match that troop against multiple from a1
             // invert fortress if it is 1 or 2 as the width combat function needs to know whether the bigger or smaller army has the fortress whereas it currently shows whether a1 or a2 has it
             if (fortress === 0) {
-                WidthCombat(p, tp, a1, a2, fortress)
+                WidthCombat(p, tp, a2, a1, 0)
             }
             if (fortress === 1) {
                 WidthCombat(p, tp, a2, a1, 2)
@@ -110,25 +110,44 @@ const EvenCombat = (p: number, tp: number, a1: Army, a2: Army, fortress: number)
 }
 
 const WidthCombat = (p: number, tp: number, biggerArmy: Army, smallerArmy: Army, fortress: number): void => {
-    let targetWidth: number = biggerArmy.ta_troops[0].n_level
+    let targetWidth: number = biggerArmy.ta_troops[0].n_combatWidth
     let enemyWidth: number = 0;
     let enemyFormation: number[] = []
 
     for (let i: number = 0; i < smallerArmy.ta_troops.length; i++) { // go through the troops and add as many as we can to fit under the combat width
-        if (smallerArmy.ta_troops[i].n_rawLevel <= (targetWidth - enemyWidth)) {
-            enemyWidth += smallerArmy.ta_troops[i].n_rawLevel
+        if (smallerArmy.ta_troops[i].n_combatWidth <= (targetWidth - enemyWidth)) {
+            enemyWidth += smallerArmy.ta_troops[i].n_combatWidth
             enemyFormation.push(i)
         }
     }
 
+    console.log(`Width Combat:`)
+    console.log(`  Bigger: ${biggerArmy.ta_troops[0].ToString()}`)
+    console.log(`  Smaller:`)
+
     enemyFormation.forEach((t) => { // troops do damage to each other
+        console.log(`    ${smallerArmy.ta_troops[t].ToString()}`)
         biggerArmy.ta_troops[0].n_health -= (smallerArmy.ta_troops[t].n_level + smallerArmy.ta_troops[t].n_modifier) * (fortress === 1 ? fortressProtectionPercent : 1)
         smallerArmy.ta_troops[t].n_health -= (biggerArmy.ta_troops[0].n_level + biggerArmy.ta_troops[0].n_modifier) * (fortress === 2 ? fortressProtectionPercent : 1)
     })
 
     // remove any dead troops
-    biggerArmy.ta_troops = biggerArmy.ta_troops.filter((t) => t.n_health > 0)
-    smallerArmy.ta_troops = smallerArmy.ta_troops.filter((t) => t.n_health > 0)
+    for (let i: number = 0; i < biggerArmy.ta_troops.length; i++) {
+        if (biggerArmy.ta_troops[0].n_health <= 0) {
+            if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+                pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, biggerArmy.ta_troops[0], biggerArmy.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+            }
+            biggerArmy.ta_troops = biggerArmy.ta_troops.filter((t) => t != biggerArmy.ta_troops[0])
+        }
+    }
+    for (let i: number = 0; i < smallerArmy.ta_troops.length; i++) {
+        if (smallerArmy.ta_troops[0].n_health <= 0) {
+            if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+                pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, smallerArmy.ta_troops[0], smallerArmy.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+            }
+            smallerArmy.ta_troops = smallerArmy.ta_troops.filter((t) => t != smallerArmy.ta_troops[0])
+        }
+    }
 }
 
 const SelectPlanetName = (): string => { // selects a name from the list of options and returns it if it is unused. if it is used it returns a new name recursively. called when creating planets at initialization.
@@ -208,6 +227,7 @@ class Troop { // represents 1 fighting unit
 
     n_rawLevel: number
     n_level: number
+    n_combatWidth: number
     n_modifier: number
     n_health: number
     n_id: number
@@ -215,6 +235,7 @@ class Troop { // represents 1 fighting unit
     constructor (c_rawLevel: number, c_modifier: number, c_health: number = -1) {
         this.n_rawLevel = c_rawLevel
         this.n_level = Math.pow(2, this.n_rawLevel)
+        this.n_combatWidth = Math.floor(Math.pow(this.n_rawLevel + 1, 2))
         this.n_modifier = c_modifier
         if (c_health === -1) {
             this.n_health = this.n_level + this.n_modifier
@@ -245,7 +266,7 @@ class Troop { // represents 1 fighting unit
     }
 
     ToString = (): string => {
-        return `Level: ${this.n_level + this.n_modifier} | Health: ${this.n_health} | ID: ${this.n_id}`
+        return `Level: ${this.n_level + this.n_modifier} | Combat Width: ${this.n_combatWidth} | Health: ${this.n_health} | ID: ${this.n_id}`
     }
 }
 

@@ -410,7 +410,7 @@ Notes:
 Playtest 7:
 
 Changes:
--Combat now comes from level instead of raw level so big troops can take on way more troops now
+-Combat now comes from raw level squared instead of raw level so big troops can take on way more troops now
  which should speed up late game combat more
 -Buildings should work and show up right in lists
 
