@@ -58,7 +58,7 @@ const CleanArmies = (): void => { // loops through every time zone and removes a
     }
 }
 
-const Combat = (p: number, tp: number, a1: Army, a2: Army, fortress: number = 0): void => { // carries out combat between 2 armies. if one of the armies is the defender and has a fortress, the fortress number will be 1 or 2
+const Combat = (p: number, tp: number, a1: Army, a2: Army, fortress: number): void => { // carries out combat between 2 armies. if one of the armies is the defender and has a fortress, the fortress number will be 1 or 2
     //both armies are sorted
     a1.ta_troops = SortTroops(a1.ta_troops)
     a2.ta_troops = SortTroops(a2.ta_troops)
@@ -68,257 +68,67 @@ const Combat = (p: number, tp: number, a1: Army, a2: Army, fortress: number = 0)
 
     console.log(`Combat:\n   A1: ${JSON.stringify(a1)}\n   A2: ${JSON.stringify(a2)}`) // TEMP: Debug
 
-    switch (fortress) {
-        case 0: // neither army has a fortress
-            // find which army troop has the highest raw level (combat width)
-            if (a1.ta_troops[0].n_rawLevel === a2.ta_troops[0].n_rawLevel) { // if they are equal, they damage each other
-                // both troops deal damage to each other
-                a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
-                a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
-                //remove dead troops
-                if (a1.ta_troops[0].n_health <= 0) {
-                    if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                        pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a1.ta_troops[0], a1.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                    }
-                    a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
-                }
-                if (a2.ta_troops[0].n_health <= 0) {
-                    if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                        pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a2.ta_troops[0], a2.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                    }
-                    a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
-                }
-            } else {
-                if (a1.ta_troops[0].n_rawLevel > a2.ta_troops[0].n_rawLevel) { // if army 1 bigger, match that troop against multiple from a2
-                    let targetWidth: number = a1.ta_troops[0].n_rawLevel
-                    let enemyWidth: number = 0;
-                    let enemyFormation: number[] = []
-
-                    for (let i: number = 0; i < a2.ta_troops.length; i++) { // go through the troops and add as many as we can to fit under the combat width
-                        if (a2.ta_troops[i].n_rawLevel <= (targetWidth - enemyWidth)) {
-                            enemyWidth += a2.ta_troops[i].n_rawLevel
-                            enemyFormation.push(i)
-                        }
-                    }
-
-                    enemyFormation.forEach((t) => { // troops do damage to each other
-                        a1.ta_troops[0].n_health -= (a2.ta_troops[t].n_level + a2.ta_troops[t].n_modifier)
-                        a2.ta_troops[t].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
-                    })
-
-                    // remove any dead troops
-                    a1.ta_troops = a1.ta_troops.filter((t) => t.n_health > 0)
-                    a2.ta_troops = a2.ta_troops.filter((t) => t.n_health > 0)
-                } else {
-                    if (a1.ta_troops[0].n_rawLevel < a2.ta_troops[0].n_rawLevel) { // if army 2 bigger, match that troop against multiple from a1
-                        let targetWidth: number = a2.ta_troops[0].n_rawLevel
-                        let enemyWidth: number = 0;
-                        let enemyFormation: number[] = []
-
-                        for (let i: number = 0; i < a1.ta_troops.length; i++) { // go through the troops and add as many as we can to fit under the combat width
-                            if (a1.ta_troops[i].n_rawLevel <= (targetWidth - enemyWidth)) {
-                                enemyWidth += a1.ta_troops[i].n_rawLevel
-                                enemyFormation.push(i)
-                            }
-                        }
-                    
-                        enemyFormation.forEach((t) => { // troops do damage to each other
-                            a2.ta_troops[0].n_health -= (a1.ta_troops[t].n_level + a1.ta_troops[t].n_modifier)
-                            a1.ta_troops[t].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
-                        })
-                    
-                        // remove any dead troops
-                        a1.ta_troops = a1.ta_troops.filter((t) => t.n_health > 0)
-                        a2.ta_troops = a2.ta_troops.filter((t) => t.n_health > 0)
-                    }
-                }
+    // find which army troop has the highest raw level (combat width)
+    if (a1.ta_troops[0].n_level === a2.ta_troops[0].n_level) { // if they are equal, they damage each other
+        EvenCombat(p, tp, a1, a2, fortress)
+    } else {
+        if (a1.ta_troops[0].n_rawLevel > a2.ta_troops[0].n_rawLevel) { // if army 1 bigger, match that troop against multiple from a2
+            WidthCombat(p, tp, a1, a2, fortress)
+        } else { // if army 2 bigger, match that troop against multiple from a1
+            // invert fortress if it is 1 or 2 as the width combat function needs to know whether the bigger or smaller army has the fortress whereas it currently shows whether a1 or a2 has it
+            if (fortress === 0) {
+                WidthCombat(p, tp, a1, a2, fortress)
             }
-            CleanArmies()
-            /*
-            //both troops deal damage to each other
-            a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
-            a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
-            //remove dead troops
-            if (a1.ta_troops[0].n_health <= 0) {
-                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a1.ta_troops[0], a1.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                }
-                a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
+            if (fortress === 1) {
+                WidthCombat(p, tp, a2, a1, 2)
             }
-            if (a2.ta_troops[0].n_health <= 0) {
-                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a2.ta_troops[0], a2.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                }
-                a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
-            }*/
-            break;
-        case 1: //army 1 has the fortress
-            // find which army troop has the highest raw level (combat width)
-            if (a1.ta_troops[0].n_rawLevel === a2.ta_troops[0].n_rawLevel) { // if they are equal, they damage each other
-                // both troops deal damage to each other
-                a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
-                a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
-                //remove dead troops
-                if (a1.ta_troops[0].n_health <= 0) {
-                    if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                        pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a1.ta_troops[0], a1.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                    }
-                    a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
-                }
-                if (a2.ta_troops[0].n_health <= 0) {
-                    if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                        pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a2.ta_troops[0], a2.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                    }
-                    a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
-                }
-            } else {
-                if (a1.ta_troops[0].n_rawLevel > a2.ta_troops[0].n_rawLevel) { // if army 1 bigger, match that troop against multiple from a2
-                    let targetWidth: number = a1.ta_troops[0].n_rawLevel
-                    let enemyWidth: number = 0;
-                    let enemyFormation: number[] = []
-
-                    for (let i: number = 0; i < a2.ta_troops.length; i++) { // go through the troops and add as many as we can to fit under the combat width
-                        if (a2.ta_troops[i].n_rawLevel <= (targetWidth - enemyWidth)) {
-                            enemyWidth += a2.ta_troops[i].n_rawLevel
-                            enemyFormation.push(i)
-                        }
-                    }
-
-                    enemyFormation.forEach((t) => { // troops do damage to each other
-                        a1.ta_troops[0].n_health -= (a2.ta_troops[t].n_level + a2.ta_troops[t].n_modifier) * fortressProtectionPercent // army 1 takes less damage because they have a fortress
-                        a2.ta_troops[t].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
-                    })
-
-                    // remove any dead troops
-                    a1.ta_troops = a1.ta_troops.filter((t) => t.n_health > 0)
-                    a2.ta_troops = a2.ta_troops.filter((t) => t.n_health > 0)
-                } else {
-                    if (a1.ta_troops[0].n_rawLevel < a2.ta_troops[0].n_rawLevel) { // if army 2 bigger, match that troop against multiple from a1
-                        let targetWidth: number = a2.ta_troops[0].n_rawLevel
-                        let enemyWidth: number = 0;
-                        let enemyFormation: number[] = []
-
-                        for (let i: number = 0; i < a1.ta_troops.length; i++) { // go through the troops and add as many as we can to fit under the combat width
-                            if (a1.ta_troops[i].n_rawLevel <= (targetWidth - enemyWidth)) {
-                                enemyWidth += a1.ta_troops[i].n_rawLevel
-                                enemyFormation.push(i)
-                            }
-                        }
-                    
-                        enemyFormation.forEach((t) => { // troops do damage to each other
-                            a2.ta_troops[0].n_health -= (a1.ta_troops[t].n_level + a1.ta_troops[t].n_modifier)
-                            a1.ta_troops[t].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier) * fortressProtectionPercent // army 1 takes less damage because they have a fortress
-                        })
-                    
-                        // remove any dead troops
-                        a1.ta_troops = a1.ta_troops.filter((t) => t.n_health > 0)
-                        a2.ta_troops = a2.ta_troops.filter((t) => t.n_health > 0)
-                    }
-                }
+            if (fortress === 2) {
+                WidthCombat(p, tp, a2, a1, 1)
             }
-            CleanArmies()
-            /*
-            // both troops deal damage to each other
-            a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier) * fortressProtectionPercent // army 1 takes less damage because they have a fortress
-            a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
-            // remove dead troops
-            if (a1.ta_troops[0].n_health <= 0) {
-                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a1.ta_troops[0], a1.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                }
-                a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
-            }
-            if (a2.ta_troops[0].n_health <= 0) {
-                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a2.ta_troops[0], a2.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                }
-                a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
-            }*/
-            break;
-        case 2: //army 2 has the fortress
-            // find which army troop has the highest raw level (combat width)
-            if (a1.ta_troops[0].n_rawLevel === a2.ta_troops[0].n_rawLevel) { // if they are equal, they damage each other
-                // both troops deal damage to each other
-                a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
-                a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier)
-                //remove dead troops
-                if (a1.ta_troops[0].n_health <= 0) {
-                    if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                        pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a1.ta_troops[0], a1.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                    }
-                    a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
-                }
-                if (a2.ta_troops[0].n_health <= 0) {
-                    if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                        pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a2.ta_troops[0], a2.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                    }
-                    a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
-                }
-            } else {
-                if (a1.ta_troops[0].n_rawLevel > a2.ta_troops[0].n_rawLevel) { // if army 1 bigger, match that troop against multiple from a2
-                    let targetWidth: number = a1.ta_troops[0].n_rawLevel
-                    let enemyWidth: number = 0;
-                    let enemyFormation: number[] = []
-
-                    for (let i: number = 0; i < a2.ta_troops.length; i++) { // go through the troops and add as many as we can to fit under the combat width
-                        if (a2.ta_troops[i].n_rawLevel <= (targetWidth - enemyWidth)) {
-                            enemyWidth += a2.ta_troops[i].n_rawLevel
-                            enemyFormation.push(i)
-                        }
-                    }
-
-                    enemyFormation.forEach((t) => { // troops do damage to each other
-                        a1.ta_troops[0].n_health -= (a2.ta_troops[t].n_level + a2.ta_troops[t].n_modifier)
-                        a2.ta_troops[t].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier) * fortressProtectionPercent // army 1 takes less damage because they have a fortress
-                    })
-
-                    // remove any dead troops
-                    a1.ta_troops = a1.ta_troops.filter((t) => t.n_health > 0)
-                    a2.ta_troops = a2.ta_troops.filter((t) => t.n_health > 0)
-                } else {
-                    if (a1.ta_troops[0].n_rawLevel < a2.ta_troops[0].n_rawLevel) { // if army 2 bigger, match that troop against multiple from a1
-                        let targetWidth: number = a2.ta_troops[0].n_rawLevel
-                        let enemyWidth: number = 0;
-                        let enemyFormation: number[] = []
-
-                        for (let i: number = 0; i < a1.ta_troops.length; i++) { // go through the troops and add as many as we can to fit under the combat width
-                            if (a1.ta_troops[i].n_rawLevel <= (targetWidth - enemyWidth)) {
-                                enemyWidth += a1.ta_troops[i].n_rawLevel
-                                enemyFormation.push(i)
-                            }
-                        }
-                    
-                        enemyFormation.forEach((t) => { // troops do damage to each other
-                            a2.ta_troops[0].n_health -= (a1.ta_troops[t].n_level + a1.ta_troops[t].n_modifier) * fortressProtectionPercent // army 2 takes less damage because they have a fortress
-                            a1.ta_troops[t].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
-                        })
-                    
-                        // remove any dead troops
-                        a1.ta_troops = a1.ta_troops.filter((t) => t.n_health > 0)
-                        a2.ta_troops = a2.ta_troops.filter((t) => t.n_health > 0)
-                    }
-                }
-            }
-            CleanArmies()
-            /*
-            // both troops deal damage to each other
-            a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier)
-            a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier) * fortressProtectionPercent // army 2 takes less damage because they have a fortress
-            // remove dead troops
-            if (a1.ta_troops[0].n_health <= 0) {
-                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a1.ta_troops[0], a1.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                }
-                a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
-            }
-            if (a2.ta_troops[0].n_health <= 0) {
-                if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
-                    pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a2.ta_troops[0], a2.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
-                }
-                a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
-            }*/
-            break;
+        }
     }
+    CleanArmies()
+}
+
+const EvenCombat = (p: number, tp: number, a1: Army, a2: Army, fortress: number): void => {
+    // both troops deal damage to each other
+    a1.ta_troops[0].n_health -= (a2.ta_troops[0].n_level + a2.ta_troops[0].n_modifier) * (fortress === 1 ? fortressProtectionPercent : 1)
+    a2.ta_troops[0].n_health -= (a1.ta_troops[0].n_level + a1.ta_troops[0].n_modifier) * (fortress === 2 ? fortressProtectionPercent : 1)
+    // remove dead troops
+    if (a1.ta_troops[0].n_health <= 0) {
+        if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+            pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a1.ta_troops[0], a1.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+        }
+        a1.ta_troops = a1.ta_troops.filter((t) => t != a1.ta_troops[0])
+    }
+    if (a2.ta_troops[0].n_health <= 0) {
+        if (tp !== pa_planets[p].ta_timePeriods.length - 1) { // checks if this is not the last time periods
+            pa_planets[p].ta_timePeriods[tp + 1].pa_propagationOrders.push(new TroopPropagationOrder(false, a2.ta_troops[0], a2.n_ownerIndex)) // add the propagation order to propagate the death of the troop in next time period
+        }
+        a2.ta_troops = a2.ta_troops.filter((t) => t != a2.ta_troops[0])
+    }
+}
+
+const WidthCombat = (p: number, tp: number, biggerArmy: Army, smallerArmy: Army, fortress: number): void => {
+    let targetWidth: number = biggerArmy.ta_troops[0].n_level
+    let enemyWidth: number = 0;
+    let enemyFormation: number[] = []
+
+    for (let i: number = 0; i < smallerArmy.ta_troops.length; i++) { // go through the troops and add as many as we can to fit under the combat width
+        if (smallerArmy.ta_troops[i].n_rawLevel <= (targetWidth - enemyWidth)) {
+            enemyWidth += smallerArmy.ta_troops[i].n_rawLevel
+            enemyFormation.push(i)
+        }
+    }
+
+    enemyFormation.forEach((t) => { // troops do damage to each other
+        biggerArmy.ta_troops[0].n_health -= (smallerArmy.ta_troops[t].n_level + smallerArmy.ta_troops[t].n_modifier) * (fortress === 1 ? fortressProtectionPercent : 1)
+        smallerArmy.ta_troops[t].n_health -= (biggerArmy.ta_troops[0].n_level + biggerArmy.ta_troops[0].n_modifier) * (fortress === 2 ? fortressProtectionPercent : 1)
+    })
+
+    // remove any dead troops
+    biggerArmy.ta_troops = biggerArmy.ta_troops.filter((t) => t.n_health > 0)
+    smallerArmy.ta_troops = smallerArmy.ta_troops.filter((t) => t.n_health > 0)
 }
 
 const SelectPlanetName = (): string => { // selects a name from the list of options and returns it if it is unused. if it is used it returns a new name recursively. called when creating planets at initialization.
@@ -361,8 +171,8 @@ class Player {
 
     constructor (c_index: number, c_name: string) {
         this.s_name = c_name
-        this.a_troops = new Army(c_index, [new Troop(1, 0.5)]) // TEMP: not sure what troops players will start with if any
-        this.n_resources = 0
+        this.a_troops = new Army(c_index, [new Troop(1, 0.5)])
+        this.n_resources = 500
         this.na_location = [-1, -1]
 
         this.n_remainingMoves = 0
@@ -633,7 +443,7 @@ class TimePeriod {
         this.n_resources = this.n_resourceProduction * 5 //TEMP: starts the time period with 5 turns worth of resources. not sure what I want this to be in the final version
         this.n_darkAgeValue = c_darkAgeValue
         this.ba_buildings = []
-        this.aa_armies = [new Army(-1, [new Troop(this.n_rawLevel, this.n_powerModifier * 1.25)])] //TEMP: not sure what troops time periods will start with if any
+        this.aa_armies = [new Army(-1, [new Troop(this.n_rawLevel, this.n_powerModifier * 1.25)])]
         this.boa_buildQueue = []
         this.pa_propagationOrders = []
         this.b_hasCombat = false
@@ -658,17 +468,28 @@ class TimePeriod {
     }
 
     StartTroopTraining = (): void  => {
-        this.ba_buildings.forEach((b) => { //check all buildings in this time period
-            if (b.bt_type === 0) { //if there is a training camp
-                this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier), troopTrainBaseTime - trainingCampDiscount)) //reduced training time
-                return //and exit function
+        let trainingCampPresent: boolean = false;
+        this.ba_buildings.forEach((b) => { // check all buildings in this time period
+            if (b.bt_type === 0) { // if there is a training camp
+                trainingCampPresent = true
             }
         })
-        this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier), troopTrainBaseTime)) //otherwise normal training time
+        this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier), troopTrainBaseTime - ((trainingCampPresent ? 1: 0) * trainingCampDiscount))) // reduced training time
     }
 
     StartBuilding = (p_type: number): void => {
-        this.boa_buildQueue.push(new BuildOrder(new Building(p_type), buildingTime))
+        console.log(`Adding Building of type ${p_type} to Queue`) // LOG:
+        switch (p_type) {
+            case 0:
+                this.boa_buildQueue.push(new BuildOrder(new Building(0, `Training Camp`), buildingTime))
+                break;
+            case 1:
+                this.boa_buildQueue.push(new BuildOrder(new Building(1, `Warehouse`), buildingTime))
+                break;
+            case 2:
+                this.boa_buildQueue.push(new BuildOrder(new Building(2, `Fortress`), buildingTime))
+                break;
+        }
     }
 
     ProgressBuildQueue = (p_pIndex: number, p_tIndex: number): void => {
@@ -696,7 +517,7 @@ class TimePeriod {
                         pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new TroopPropagationOrder(true, new Troop(this.boa_buildQueue[0].tb_target.n_rawLevel, this.boa_buildQueue[0].tb_target.n_modifier), this.n_ownerIndex)) //create propagation order in next time period
                     }
                 } else { // if a building is being built
-                    console.log(`Creating building: ${this.boa_buildQueue[0].tb_target} in [${p_pIndex}, ${p_tIndex}]`) // LOG:
+                    console.log(`Creating building: ${JSON.stringify(this.boa_buildQueue[0].tb_target)} in [${p_pIndex}, ${p_tIndex}]`) // LOG:
                     this.ba_buildings.push(this.boa_buildQueue[0].tb_target as Building) // add the building
                     if (p_tIndex !== numTimePeriods - 1) { // makes sure that this time period is not the last in the list
                         pa_planets[p_pIndex].ta_timePeriods[p_tIndex + 1].pa_propagationOrders.push(new BuildingPropagationOrder(true, this.boa_buildQueue[0].tb_target as Building)) // creates the propagation order in the next time period
@@ -741,7 +562,7 @@ class TimePeriod {
                         if (this.aa_armies[j].n_ownerIndex === this.n_ownerIndex) { // if the current second army is the army of the time period
                             Combat(p_pIndex, p_tIndex, this.aa_armies[i], this.aa_armies[j], (2 * (hasFortress ? 1 : 0))) // has the troops of those armies fight each other. if there is a fortress, feed 2 into the fortress parameter, if not feed 0
                         } else { // if neither army is the army of the time period
-                            Combat(p_pIndex, p_tIndex, this.aa_armies[i], this.aa_armies[j]) // has the troops of those armies fight each other
+                            Combat(p_pIndex, p_tIndex, this.aa_armies[i], this.aa_armies[j], 0) // has the troops of those armies fight each other
                         }
                     }
                 }

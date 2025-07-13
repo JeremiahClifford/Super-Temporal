@@ -376,15 +376,18 @@ Pregame Notes:
 -Adding resources will propagate through a block unless you activate scorched earth
 
 Notes:
+-Endgame combat still feels very slow [Ben+Many] ---
+--Maybe make combat with level not raw level ---
+-Build Queue building line name shows up wrong [Me] ---
+--This also means they don't work [Me] ---
+-Can't build if you're not present in the time period even though it looks like you can [Me] ---
+
+-Troops seem to be taking way more damage than they should [Ben]
+
+-Could the double clicking be the buttons being initialized twice? [Me]
 -One trade is happening 3 times which causes the player to lose all their trades for that turn [Me]
 --Refreshing can fix
--Troops seem to be taking way more damage than they should [Ben]
--Build Queue building line name shows up wrong [Me]
---This also means they don't work [Me]
--Can't build if you're not present in the time period even though it looks like you can [Me]
--Would be nice if server logs had more information about where the message was coming from
- and what timeperiods, army, player, etc was calling it to better trace issues [Me]
--Could the double clicking be the buttons being initialized twice? [Me]
+
 -Dan keeps getting kicked out [Dan]
 --Can't access property ta_timeperiods, pa_planets[i] is undefined [Dan]
   Drawboard client.ts:975
@@ -397,5 +400,25 @@ Notes:
 -Dan can't move resources [Dan]
 --Selected Resources so to rGiven, not rTaken (log:3812)
 --Might be the select button
+
+-Would be nice if server logs had more information about where the message was coming from
+ and what timeperiods, army, player, etc was calling it to better trace issues [Me]
 -Would be cool to be able to group troops into armies and move them around as a whole unit [Me]
--Endgame combat still feels very slow [Ben+Many]
+
+=====================================================================================
+
+Playtest 7:
+
+Changes:
+-Combat now comes from level instead of raw level so big troops can take on way more troops now
+ which should speed up late game combat more
+-Buildings should work and show up right in lists
+
+Things to Watch:
+-
+
+Players:
+-
+
+Notes:
+-

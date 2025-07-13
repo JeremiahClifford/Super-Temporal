@@ -76,8 +76,6 @@ const CleanArmies = (): void => { // loops through every time zone and removes a
 const TroopsString = (a: Army, useName: boolean): string => { // gives a string representation of the player's or time period's list of troops
     a.ta_troops = SortTroops(a.ta_troops) // sorts the troops so they are in a good order to be printed
 
-    console.log(`Inputted Army: ${JSON.stringify(a)}`) // TEMP: Debugging
-
     // squashes troops of the same level into 1 line
     type troopType = {
         n_level: number
@@ -202,7 +200,7 @@ class Player {
     }
 }
 
-class Troop { //represents 1 fighting unit
+class Troop { // represents 1 fighting unit
 
     n_rawLevel: number
     n_level: number
@@ -280,7 +278,7 @@ class TimePeriod {
     n_ownerIndex: number
     n_rawLevel: number
     n_level: number
-    n_rawModifierFactor: number //stores the raw generated value for the modifier factor which should be between 0 and ${maxModifierFactor} for testing purposes
+    n_rawModifierFactor: number // stores the raw generated value for the modifier factor which should be between 0 and ${maxModifierFactor} for testing purposes
     n_powerModifier: number
     n_resources: number
     n_resourceProduction: number
@@ -291,7 +289,7 @@ class TimePeriod {
     b_hasCombat: boolean
     b_propagationBlocked: boolean
     b_conquested: boolean
-    b_scorchedEarth: boolean //resources will continue to propagate to conquested time periods, which will be propagation blocked, unless the time period before is set to scorched earth, i.e. the player has told the people to destroy the resources before they are conquested. this can lead to another player getting resources that you generate or losing resources that you take and thus don't leave behind but if you go scorched earth the time periods disconnect and the latter time period gets a fresh start resource-wise. Troops and buildings don't propagate as those would all be lost in the battle for control. Conquest propagation orders don't go for obvious reasons.
+    b_scorchedEarth: boolean // resources will continue to propagate to conquested time periods, which will be propagation blocked, unless the time period before is set to scorched earth, i.e. the player has told the people to destroy the resources before they are conquested. this can lead to another player getting resources that you generate or losing resources that you take and thus don't leave behind but if you go scorched earth the time periods disconnect and the latter time period gets a fresh start resource-wise. Troops and buildings don't propagate as those would all be lost in the battle for control. Conquest propagation orders don't go for obvious reasons.
 
     constructor (c_level: number, c_modifierFactor: number, c_darkAgeValue: number) {
         this.n_ownerIndex = -1 //sets the owner to the natives
@@ -324,25 +322,25 @@ class TimePeriod {
     }
 
     StartTroopTraining = (): void  => {
-        this.ba_buildings.forEach((b) => { //check all buildings in this time period
-            if (b.bt_type === 0) { //if there is a training camp
-                this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier), troopTrainBaseTime - trainingCampDiscount)) //reduced training time
-                return //and exit function
+        let trainingCampPresent: boolean = false;
+        this.ba_buildings.forEach((b) => { // check all buildings in this time period
+            if (b.bt_type === 0) { // if there is a training camp
+                trainingCampPresent = true
             }
         })
-        this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier), troopTrainBaseTime)) //otherwise normal training time
+        this.boa_buildQueue.push(new BuildOrder(new Troop(this.n_rawLevel, this.n_powerModifier), troopTrainBaseTime - ((trainingCampPresent ? 1: 0) * trainingCampDiscount))) // reduced training time
     }
 
     StartBuilding = (p_type: number): void => {
         switch (p_type) {
             case 0:
-                this.boa_buildQueue.push(new BuildOrder(new Building(0), buildingTime))
+                this.boa_buildQueue.push(new BuildOrder(new Building(0, "Training Camp"), buildingTime))
                 break;
             case 1:
-                this.boa_buildQueue.push(new BuildOrder(new Building(1), buildingTime))
+                this.boa_buildQueue.push(new BuildOrder(new Building(1, "Warehouse"), buildingTime))
                 break;
             case 2:
-                this.boa_buildQueue.push(new BuildOrder(new Building(2), buildingTime))
+                this.boa_buildQueue.push(new BuildOrder(new Building(2, "Fortress"), buildingTime))
                 break;
         }
     }
@@ -708,7 +706,7 @@ const FillInBuildWindow = (): void => {
     let hasWarehouse: boolean = false
     let hasFortress: boolean = false
 
-    pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].ba_buildings.forEach((b) => {
+    pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ba_buildings.forEach((b) => {
         if ((b.bt_type === 0) ? true : false) { // if the time periods already has a training camp
             hasTrainingCamp = true // set it to true
         }
@@ -722,55 +720,55 @@ const FillInBuildWindow = (): void => {
 
     buildingWindow.innerHTML = `` // resets the build window buttons so they don't double up
 
-    if (!hasTrainingCamp) { //creates the Training Camp button if there is not already a training camp
+    if (!hasTrainingCamp) { // creates the Training Camp button if there is not already a training camp
         let trainingCampButton: HTMLButtonElement = document.createElement('button')
         trainingCampButton.innerHTML = `Training Camp - [${buildingCost}]`
         trainingCampButton.addEventListener("click", () => {
-            if (pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
-                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources -= buildingCost //takes the cost
-                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].StartBuilding(0) //starts the building
+            if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources >= buildingCost) { //checks to make sure there are enough resources
+                pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources -= buildingCost //takes the cost
+                pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].StartBuilding(0) //starts the building
                 trainingCampButton.remove() //removes the button
                 turnActions.Actions.push({
-                    "Type": "Build",
-                    "BuildingType": "0",
-                    "Planet": n_selectedPlanetIndex,
-                    "TimePeriod": n_selectedTimePeriodIndex
+                    Type: "Build",
+                    BuildingType: 0,
+                    Planet: n_selectedPlanetIndex,
+                    TimePeriod: n_selectedTimePeriodIndex
                 }) // Add the build to the turn json
             }
         })
         buildingWindow.appendChild(trainingCampButton)
     }
-    if (!hasWarehouse) { //creates the Warehouse button if there is not already a warehouse
+    if (!hasWarehouse) { // creates the Warehouse button if there is not already a warehouse
         let warehouseButton: HTMLButtonElement = document.createElement('button')
         warehouseButton.innerHTML = `Warehouse - [${buildingCost}]`
         warehouseButton.addEventListener("click", () => {
-            if (pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
-                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources -= buildingCost //takes the cost
-                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].StartBuilding(1) //starts the building
+            if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources >= buildingCost) { //checks to make sure there are enough resources
+                pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources -= buildingCost //takes the cost
+                pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].StartBuilding(1) //starts the building
                 warehouseButton.remove() //removes the button
                 turnActions.Actions.push({
-                    "Type": "Build",
-                    "BuildingType": "1",
-                    "Planet": n_selectedPlanetIndex,
-                    "TimePeriod": n_selectedTimePeriodIndex
+                    Type: "Build",
+                    BuildingType: 1,
+                    Planet: n_selectedPlanetIndex,
+                    TimePeriod: n_selectedTimePeriodIndex
                 }) // Add the build to the turn json
             }
         })
         buildingWindow.appendChild(warehouseButton)
     }
-    if (!hasFortress) { //creates the Fortress button if there is not already a fortress
+    if (!hasFortress) { // creates the Fortress button if there is not already a fortress
         let fortressButton: HTMLButtonElement = document.createElement('button')
         fortressButton.innerHTML = `Fortress - [${buildingCost}]`
         fortressButton.addEventListener("click", () => {
-            if (pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources >= buildingCost) { //checks to make sure there are enough resources
-                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].n_resources -= buildingCost //takes the cost
-                pa_planets[pa_players[myIndex].na_location[0]].ta_timePeriods[pa_players[myIndex].na_location[1]].StartBuilding(2) //starts the building
+            if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources >= buildingCost) { //checks to make sure there are enough resources
+                pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources -= buildingCost //takes the cost
+                pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].StartBuilding(2) //starts the building
                 fortressButton.remove() //removes the button
                 turnActions.Actions.push({
-                    "Type": "Build",
-                    "BuildingType": "2",
-                    "Planet": n_selectedPlanetIndex,
-                    "TimePeriod": n_selectedTimePeriodIndex
+                    Type: "Build",
+                    BuildingType: 2,
+                    Planet: n_selectedPlanetIndex,
+                    TimePeriod: n_selectedTimePeriodIndex
                 }) // Add the build to the turn json
             }
         })
@@ -1028,24 +1026,24 @@ const DrawBoard = (): void => {
         planetLine.innerHTML = `${pa_planets[n_selectedPlanetIndex].s_name}` // writes which planet is selected
         ageLine.innerHTML = `Age ${n_selectedTimePeriodIndex + 1}` // writes which time period is selected
         // writes the relevant info from the time period
-        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === -1) { //checks if the time period is owner by a player
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex === -1) { // checks if the time period is owner by a player
             ownerLine.innerHTML = `Owner: ${pa_planets[n_selectedPlanetIndex].s_name} Natives` //if not: writes that it is owned by people from that planet
         } else {
             ownerLine.innerHTML = `Owner: ${pa_players[pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_ownerIndex].s_name}` //if so: writes the owner of the time period
         }
-        powerLine.innerHTML = `Power Level: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_level + pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_powerModifier}` //writes the power level of the time period to the label
-        resourcesLine.innerHTML = `Resources: ${(Math.round(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources * 100)) / 100}` //writes the number of resources in the time period
-        resourceProductionLine.innerHTML = `Resource Production Rate: ${(Math.round(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resourceProduction * 100)) / 100}` //writes the resource production rate to the label
+        powerLine.innerHTML = `Power Level: ${pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_level + pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_powerModifier}` // writes the power level of the time period to the label
+        resourcesLine.innerHTML = `Resources: ${(Math.round(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources * 100)) / 100}` // writes the number of resources in the time period
+        resourceProductionLine.innerHTML = `Resource Production Rate: ${(Math.round(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resourceProduction * 100)) / 100}` // writes the resource production rate to the label
         
         buildingBox.innerHTML = `` // resets the text in the building box
-        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ba_buildings.length > 0) { //checks if there are any buildings in the time period
-            pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ba_buildings.forEach((b) => buildingBox.innerHTML += `${b.s_name}<br>`) //if so: loops through them all and writes them to the box
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ba_buildings.length > 0) { // checks if there are any buildings in the time period
+            pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].ba_buildings.forEach((b) => buildingBox.innerHTML += `${b.s_name}<br>`) // if so: loops through them all and writes them to the box
         } else {
             buildingBox.innerHTML = `None` // if not: writes none to the list
         }
         troopBox.innerHTML = `` // resets the text in the troop box
-        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies.length > 0) { //if there are any armies in the time period
-            for (let i: number = 0; i < pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies.length; i++) { //if so:loops through all of armies in the time period to be written out
+        if (pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies.length > 0) { // if there are any armies in the time period
+            for (let i: number = 0; i < pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies.length; i++) { // if so:loops through all of armies in the time period to be written out
                 troopBox.innerHTML += TroopsString(pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].aa_armies[i], true)
             }
         } else {
@@ -1581,10 +1579,10 @@ const Initialize = (): void => {
             pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].StartTroopTraining() // starts training a troop
             pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex].n_resources -= trainTroopCost // charges the train troop cost
             turnActions.Actions.push({
-                    "Type": "Train",
-                    "Planet": n_selectedPlanetIndex,
-                    "TimePeriod": n_selectedTimePeriodIndex
-                }) // Add the training to the turn json
+                Type: "Train",
+                Planet: n_selectedPlanetIndex,
+                TimePeriod: n_selectedTimePeriodIndex
+            }) // Add the training to the turn json
             DrawBoard() // redraws the board
         }
     }) // makes the button to train troops work
