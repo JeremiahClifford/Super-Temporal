@@ -379,21 +379,21 @@ Notes:
 -One trade is happening 3 times which causes the player to lose all their trades for that turn [Me]
 --Refreshing can fix
 -Troops seem to be taking way more damage than they should [Ben]
--Dan keeps getting kicked out [Dan]
---Can't access property ta_timeperiods, pa_planets[i] is undefined [Dan]
-  Drawboard client.ts:975
 -Build Queue building line name shows up wrong [Me]
 --This also means they don't work [Me]
 -Can't build if you're not present in the time period even though it looks like you can [Me]
+-Would be nice if server logs had more information about where the message was coming from
+ and what timeperiods, army, player, etc was calling it to better trace issues [Me]
+-Could the double clicking be the buttons being initialized twice? [Me]
+-Dan keeps getting kicked out [Dan]
+--Can't access property ta_timeperiods, pa_planets[i] is undefined [Dan]
+  Drawboard client.ts:975
 -Ben got a crash [Ben]
 --Cannot read properties of undefined (reading n_level)
   Troopstring client.ts: 100:41
--Would be nice if server logs had more information about where the message was coming from
- and what timeperiods, army, player, etc was calling it to better trace issues [Me]
 -Ben was kicked every time he viewed  [4, 9] [Ben]
 --Cannot read properties of undefined (reading n_level)
   Troopstring client.ts: 93:59
--Could the double clicking be the buttons being initialized twice? [Me]
 -Dan can't move resources [Dan]
 --Selected Resources so to rGiven, not rTaken (log:3812)
 --Might be the select button
