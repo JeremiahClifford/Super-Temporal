@@ -313,11 +313,13 @@ class Army { // a group of fighting units as well a number to store which player
         })
     }
 
-    DoRecovery = (availResources: number): void => {
+    DoRecovery = (inCombat: boolean, availResources: number): void => {
         for (let i: number = 0; i < this.ta_troops.length; i++) {
             if (availResources > this.ta_troops[i].n_modifier) { // if there are resources available, take them and recover / stay
                 availResources -= this.ta_troops[i].n_modifier
-                this.ta_troops[i].Recover()
+                if (!inCombat) {
+                    this.ta_troops[i].Recover()
+                }
             } else { // if there are not, take attrition
                 this.ta_troops[i].Attrit()
             }
@@ -653,9 +655,9 @@ class TimePeriod {
 
     DoRecovery = (): void => { // goes through every army and runs recovery  or attrition
         if (!this.b_hasCombat) {
-            this.aa_armies.forEach((a) => a.DoRecovery(this.n_resources))
+            this.aa_armies.forEach((a) => a.DoRecovery(false, this.n_resources))
         } else {
-            this.aa_armies.forEach((a) => a.DoRecovery(this.n_resources * (this.TotalArmyStrengthPresent() / a.TotalPower()))) // Gives the army a share of the resources proportional to its power relative to the total forces present in the time period
+            this.aa_armies.forEach((a) => a.DoRecovery(true, this.n_resources * (this.TotalArmyStrengthPresent() / a.TotalPower()))) // Gives the army a share of the resources proportional to its power relative to the total forces present in the time period
         }
     }
 
