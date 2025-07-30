@@ -16,6 +16,7 @@ const numMoves: number = settings.Game.numMoves // how many times a player can m
 const numTrades: number = settings.Game.numTrades // how many times a player can trade on their turn
 
 const darkAges: boolean = settings.Game.darkAges // should dark ages be in play and affect power values
+const attrition: boolean = settings.Game.attrition // should troops use resources and take attrition when not enough remain
 
 const maxModifierFactor: number = settings.Game.maxModifierFactor // how high should the variance between time periods be allowed to get
 const baseResourceProduction: number = settings.Game.baseResourceProduction // base number of resource generation that each time period generates
@@ -265,6 +266,10 @@ class Troop { // represents 1 fighting unit
         }
     }
 
+    Attrit = (): void => {
+        this.n_health -= this.n_level * healthRecoveryPercent
+    }
+
     ToString = (): string => {
         return `Level: ${this.n_level + this.n_modifier} | Combat Width: ${this.n_combatWidth} | Health: ${this.n_health} | ID: ${this.n_id}`
     }
@@ -280,16 +285,44 @@ class Army { // a group of fighting units as well a number to store which player
         this.ta_troops = c_troops
     }
 
+    TotalPower = (): number => {
+        let totalLevel: number = 0
+        this.ta_troops.forEach((t) => {
+            totalLevel += (t.n_level + t.n_modifier)
+        })
+
+        return totalLevel
+    }
+
+    TotalHealth = (): number => {
+        let totalHealth: number = 0
+        this.ta_troops.forEach((t) => {
+            totalHealth += t.n_health
+        })
+
+        return totalHealth
+    }
+
+    RemoveDeadTroops = (): void => {
+        this.ta_troops = this.ta_troops.filter((t => t.n_health > 0))
+    }
+
     DoIntegration = (currentTimePeriodLevel: number): void => { //goes through troop and runs integration
         this.ta_troops.forEach((t) => {
             t.ProgressIntegration(currentTimePeriodLevel)
         })
     }
 
-    DoRecovery = (): void => {
-        this.ta_troops.forEach((t) => {
-            t.Recover()
-        })
+    DoRecovery = (availResources: number): void => {
+        for (let i: number = 0; i < this.ta_troops.length; i++) {
+            if (availResources > this.ta_troops[i].n_modifier) { // if there are resources available, take them and recover / stay
+                availResources -= this.ta_troops[i].n_modifier
+                this.ta_troops[i].Recover()
+            } else { // if there are not, take attrition
+                this.ta_troops[i].Attrit()
+            }
+        }
+        this.RemoveDeadTroops() // remove any that died at the end
     }
 }
 
@@ -473,6 +506,12 @@ class TimePeriod {
         this.b_scorchedEarth = false
     }
 
+    TotalArmyStrengthPresent = (): number => {
+        let totalStrength: number = 0;
+        this.aa_armies.forEach((a) => totalStrength += a.TotalPower())
+        return totalStrength
+    }
+
     GenerateResources = (p_pIndex: number, p_tIndex: number): void => {
         this.ba_buildings.forEach((b) => { //check all buildings in this time period
             if (b.bt_type === 1) { //if there is a warehouse
@@ -612,9 +651,11 @@ class TimePeriod {
         this.aa_armies.forEach((a) => (a as Army).DoIntegration(this.n_rawLevel))
     }
 
-    DoRecovery = (): void => { // goes through every army and runs recovery if there was no combat
+    DoRecovery = (): void => { // goes through every army and runs recovery  or attrition
         if (!this.b_hasCombat) {
-            this.aa_armies.forEach((a) => a.DoRecovery())
+            this.aa_armies.forEach((a) => a.DoRecovery(this.n_resources))
+        } else {
+            this.aa_armies.forEach((a) => a.DoRecovery(this.n_resources * (this.TotalArmyStrengthPresent() / a.TotalPower()))) // Gives the army a share of the resources proportional to its power relative to the total forces present in the time period
         }
     }
 

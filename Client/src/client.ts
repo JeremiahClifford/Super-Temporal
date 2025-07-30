@@ -102,14 +102,6 @@ const TroopsString = (a: Army, useName: boolean): string => { // gives a string 
         }
     }
 
-    // find the total level and health of the army
-    let totalLevel: number = 0
-    let totalHealth: number = 0
-    a.ta_troops.forEach((t) => {
-        totalLevel += (t.n_level + t.n_modifier)
-        totalHealth += t.n_health
-    })
-
     let output: string = ``
     if (useName) { // if this use case requires the name of the owner to distinguish, add the name of the owner. only really used on the selected time period display as multiple armies owned by multiple players can appear there
         if (a.n_ownerIndex === -1) {
@@ -118,7 +110,7 @@ const TroopsString = (a: Army, useName: boolean): string => { // gives a string 
             output = `${pa_players[a.n_ownerIndex].s_name} ` //adds the header to the output showing how many total troops the army has and the owner
         }
     }
-    output += `[${a.ta_troops.length} Battalions(s) | L: ${Math.round(totalLevel * 100) / 100} | S: ${Math.round(totalHealth * 100) / 100}]:<br>` //adds th e number of troops
+    output += `[${a.ta_troops.length} Battalions(s) | L: ${Math.round(a.TotalPower() * 100) / 100} | S: ${Math.round(a.TotalHealth() * 100) / 100}]:<br>` //adds th e number of troops
     for (let i: number = 0; i < troopTypes.length; i++) { //loops through the types
         output += `${troopTypes[i].n_count}x Level: ${troopTypes[i].n_level} | Strength: ${Math.round(troopTypes[i].n_health * 100) / 100}<br>` //adds a line of their info to the output string
     }
@@ -233,6 +225,28 @@ class Army { //a group of fighting units as well a number to store which player 
     constructor (c_ownerIndex: number, c_troops: Troop[]) {
         this.n_ownerIndex = c_ownerIndex
         this.ta_troops = c_troops
+    }
+
+    TotalPower = (): number => {
+        let totalLevel: number = 0
+        this.ta_troops.forEach((t) => {
+            totalLevel += (t.n_level + t.n_modifier)
+        })
+
+        return totalLevel
+    }
+
+    TotalHealth = (): number => {
+        let totalHealth: number = 0
+        this.ta_troops.forEach((t) => {
+            totalHealth += t.n_health
+        })
+
+        return totalHealth
+    }
+
+    RemoveDeadTroops = (): void => {
+        this.ta_troops = this.ta_troops.filter((t => t.n_health > 0))
     }
 }
 
@@ -580,7 +594,7 @@ const SwapTroop = (start: Army, startIndex: number, target: Army, doUI: boolean)
     
     target.ta_troops.push(start.ta_troops[startIndex]) // adds the troops to the target
     target.ta_troops = SortTroops(target.ta_troops) // sorts the target
-    start.ta_troops = start.ta_troops.filter((t) => t !== start.ta_troops[startIndex]) // removes the troop from where it started
+    start.RemoveDeadTroops()
     if (doUI){
         FillInTradeWindow(myIndex, pa_planets[n_selectedPlanetIndex].ta_timePeriods[n_selectedTimePeriodIndex]) // redraws the trade window
     }
@@ -1717,10 +1731,6 @@ ShowLogin() // begin the login process to start the game
 // Future changes to test:
 // -Revisit how combat is resolved, may not be working as intended
 // --A high level troop took what seemed like way too much damage from a very low level troop
-//
-// -Buildings feel too expensive in tests
-// --Maybe make them cheaper
-// --Maybe make the warehouse cheaper and, if needed, buff it
 //
 // -Do the time periods feel TOO similar and unimportant.
 // --Should the variation in resource production be larger between time periods
